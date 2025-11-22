@@ -48,7 +48,7 @@ pub fn draw_game_screen(ui: &mut egui::Ui, ctx: &CustomContext<'_>) {
             ui.group(|ui| {
                 let size = Size {
                     height: top_side_height,
-                    width: ctx.ctx.screen_rect().width() * 0.2,
+                    width: ctx.ctx.screen_rect().width() * 0.1,
                 };
                 size.assign_to(ui);
                 draw_char_hate(ui, ctx, size);
