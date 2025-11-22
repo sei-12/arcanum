@@ -38,6 +38,7 @@ impl ActiveSkillState {
 pub struct StaticActiveSkill {
     pub name: &'static str,
     pub id: StaticSkillId,
+    pub text: &'static str,
     pub(crate) call: fn(user_static_id: usize, con: &mut Container) -> Result<(), GameError>,
     pub need_mp: Num,
 }
