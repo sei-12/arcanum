@@ -1,4 +1,4 @@
-use eframe::egui::{self, Ui, vec2};
+use eframe::egui::{self, Ui};
 use game_core::{
     container_args::{CharData, ContainerArgs, EnemyData},
     game_state::GameResult,

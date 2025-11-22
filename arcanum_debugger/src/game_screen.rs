@@ -1,4 +1,4 @@
-use eframe::egui::{self, vec2};
+use eframe::egui::{self};
 use game_core::{chars::StaticCharId, lt::Char, skills::ActiveSkillState};
 use itertools::Itertools;
 
@@ -37,12 +37,21 @@ pub fn draw_game_screen(ui: &mut egui::Ui, ctx: &CustomContext<'_>) {
             egui::Frame::none().show(ui, |ui| {
                 let enemy_item_size = Size {
                     height: top_side_height,
-                    width: ctx.ctx.screen_rect().width() * 0.8,
+                    width: ctx.ctx.screen_rect().width() * 0.6,
                 };
 
                 enemy_item_size.assign_to(ui);
 
                 draw_enemy_side(ui, ctx, enemy_item_size);
+            });
+
+            ui.group(|ui| {
+                let size = Size {
+                    height: top_side_height,
+                    width: ctx.ctx.screen_rect().width() * 0.2,
+                };
+                size.assign_to(ui);
+                draw_char_hate(ui, ctx, size);
             });
         });
 
@@ -208,4 +217,28 @@ fn draw_log(ui: &mut egui::Ui, ctx: &CustomContext<'_>, _size: Size) {
     });
 }
 
-fn draw_hate(ui: &mut egui::Ui, ctx: &CustomContext<'_>, size: Size) {}
+fn draw_char_hate(ui: &mut egui::Ui, ctx: &CustomContext<'_>, size: Size) {
+    ui.vertical(|ui| {
+        size.assign_to(ui);
+        ui.label(txt("ヘイト順"));
+
+        let mut chars = ctx.core.get_state().chars.iter().collect::<Vec<_>>();
+        chars.sort_by(|a, b| b.hate.partial_cmp(&a.hate).unwrap());
+
+        debug_assert!({
+            // キャラクターは1体以上いる
+            // 配列の最初のキャラクターのヘイトが最後のキャラクターのヘイト以上である
+            let f = chars.first().unwrap();
+            let l = chars.last().unwrap();
+            f.hate >= l.hate
+        });
+
+        for char in chars {
+            ui.group(|ui| {
+                ui.set_width(size.width * 0.8);
+                ui.label(txt(char.static_data.name));
+                ui.label(txt(&format!("hate: {}", char.hate.round() as u32)));
+            });
+        }
+    });
+}
