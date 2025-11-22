@@ -24,24 +24,27 @@ impl Size {
 }
 
 pub fn draw_game_screen(ui: &mut egui::Ui, ctx: &CustomContext<'_>) {
+    let screen_width = ctx.ctx.screen_rect().width() - 100.0;
+    let screen_height = ctx.ctx.screen_rect().height() - 25.0;
+
     // ctx.ctx.gap
     ui.vertical(|ui| {
         ui.horizontal(|ui| {
-            let top_side_height = ctx.ctx.screen_rect().height() / 2.0;
+            let top_side_height = screen_height / 2.0;
             // log
             ui.group(|ui| {
                 let size = Size {
                     height: top_side_height,
-                    width: ctx.ctx.screen_rect().width() * 0.2,
+                    width: screen_width * 0.2,
                 };
                 size.assign_to(ui);
                 draw_log(ui, ctx, size);
             });
             // enemy
-            egui::Frame::none().show(ui, |ui| {
+            ui.group(|ui| {
                 let enemy_item_size = Size {
                     height: top_side_height,
-                    width: ctx.ctx.screen_rect().width() * 0.6,
+                    width: screen_width * 0.7,
                 };
 
                 enemy_item_size.assign_to(ui);
@@ -52,7 +55,7 @@ pub fn draw_game_screen(ui: &mut egui::Ui, ctx: &CustomContext<'_>) {
             ui.group(|ui| {
                 let size = Size {
                     height: top_side_height,
-                    width: ctx.ctx.screen_rect().width() * 0.1,
+                    width: screen_width * 0.1,
                 };
                 size.assign_to(ui);
                 draw_char_hate(ui, ctx, size);
@@ -60,10 +63,10 @@ pub fn draw_game_screen(ui: &mut egui::Ui, ctx: &CustomContext<'_>) {
         });
 
         // player
-        egui::Frame::none().show(ui, |ui| {
+        ui.horizontal_top(|ui| {
             let size = Size {
-                height: (ctx.ctx.screen_rect().height() / 2.0),
-                width: ctx.ctx.screen_rect().width() * 0.96,
+                height: screen_height / 2.0,
+                width: screen_width,
             };
 
             size.assign_to(ui);
@@ -106,12 +109,8 @@ fn draw_enemy_item(ui: &mut egui::Ui, ctx: &CustomContext<'_>, size: Size, enemy
 }
 
 fn draw_enemy_side(ui: &mut egui::Ui, ctx: &CustomContext<'_>, size: Size) {
-    ui.horizontal_top(|ui| {
-        let enemy = &ctx.core.get_state().enemy;
-        ui.group(|ui| {
-            draw_enemy_item(ui, ctx, size, enemy);
-        });
-    });
+    let enemy = &ctx.core.get_state().enemy;
+    draw_enemy_item(ui, ctx, size, enemy);
 }
 
 fn draw_char_item(ui: &mut egui::Ui, ctx: &CustomContext<'_>, size: Size, char: &Char) {
@@ -228,8 +227,8 @@ fn draw_enemy_actions(ui: &mut egui::Ui, ctx: &CustomContext<'_>, size: Size) {
 fn draw_player_side(ui: &mut egui::Ui, ctx: &CustomContext<'_>, size: Size) {
     ui.horizontal(|ui| {
         let item_size = Size {
-            height: size.height - 16.0,
-            width: size.width / 5.2,
+            height: size.height,
+            width: size.width / 5.0,
         };
         egui::Frame::none().show(ui, |ui| {
             draw_player_panel(ui, ctx, item_size);

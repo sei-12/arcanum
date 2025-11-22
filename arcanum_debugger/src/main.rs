@@ -1,4 +1,4 @@
-use eframe::egui::{self, Ui};
+use eframe::egui::{self, Ui, vec2};
 use game_core::{
     container_args::{CharData, ContainerArgs, EnemyData},
     game_state::GameResult,
@@ -38,22 +38,22 @@ fn get_args() -> ContainerArgs {
         chars: vec![
             CharData {
                 level: 1.0,
-                own_skill_ids: vec![0],
+                own_skill_ids: vec![0,1],
                 static_char_id: 0,
             },
             CharData {
                 level: 1.0,
-                own_skill_ids: vec![0],
+                own_skill_ids: vec![0,1],
                 static_char_id: 1,
             },
             CharData {
                 level: 1.0,
-                own_skill_ids: vec![0],
+                own_skill_ids: vec![0,1],
                 static_char_id: 2,
             },
             CharData {
                 level: 1.0,
-                own_skill_ids: vec![0],
+                own_skill_ids: vec![0,1],
                 static_char_id: 3,
             },
         ],
@@ -104,18 +104,18 @@ struct CustomContext<'a> {
     pub ui_state: &'a UiStateContainer,
 }
 
-fn set_space(_ui: &mut Ui) {
-    // let style = &mut ui.style_mut().spacing;
+fn set_space(ui: &mut Ui) {
+    let style = &mut ui.style_mut().spacing;
 
-    // // style.button_padding = vec2(0.0, 0.0);
-    // style.indent = 0.0;
-    // style.item_spacing = vec2(0.0, 0.0);
-    // style.window_margin = egui::Margin {
-    //     left: 0.0,
-    //     right: 0.0,
-    //     top: 0.0,
-    //     bottom: 0.0,
-    // };
+    // style.button_padding = vec2(0.0, 0.0);
+    style.indent = 0.0;
+    style.item_spacing = vec2(0.0, 0.0);
+    style.window_margin = egui::Margin {
+        left: 0.0,
+        right: 0.0,
+        top: 0.0,
+        bottom: 0.0,
+    };
 }
 
 impl eframe::App for SimpleApp {
