@@ -71,19 +71,19 @@ pub fn draw_game_screen(ui: &mut egui::Ui, ctx: &CustomContext<'_>) {
 fn draw_enemy_side(ui: &mut egui::Ui, ctx: &CustomContext<'_>, size: Size) {
     ui.horizontal_top(|ui| {
         let enemy = &ctx.core.get_state().enemy;
-        let item_size = Size {
+        let enemy_item_size = Size {
             width: size.width * 0.5,
             height: size.height,
         };
 
         // padding
         egui::Frame::none().show(ui, |ui| {
-            let width = (size.width - item_size.width) / 2.0;
+            let width = (size.width - enemy_item_size.width) / 2.0;
             ui.set_width(width);
         });
 
         ui.group(|ui| {
-            item_size.assign_to(ui);
+            enemy_item_size.assign_to(ui);
             ui.vertical(|ui| {
                 ui.label(txt(enemy.static_data.name));
 
@@ -91,13 +91,23 @@ fn draw_enemy_side(ui: &mut egui::Ui, ctx: &CustomContext<'_>, size: Size) {
                 let tex_handle = ctx
                     .ctx
                     .load_texture("1", icon, egui::TextureOptions::default());
-                ui.add(egui::Image::new(&tex_handle).max_width(item_size.width / 2.5));
+                ui.add(egui::Image::new(&tex_handle).max_width(enemy_item_size.width / 2.5));
 
                 ui.label(txt(&format!(
                     "HP: {}/{}",
                     enemy.hp.round() as u32,
                     enemy.max_hp() as u32
                 )));
+
+                egui::Frame::none().show(ui, |ui| {
+                    let enemy_actions_item_size = Size {
+                        height: enemy_item_size.height * 0.05,
+                        width: enemy_item_size.width * 0.9,
+                    };
+
+                    enemy_actions_item_size.assign_to(ui);
+                    draw_enemy_actions(ui, ctx, enemy_actions_item_size);
+                });
 
                 for passive in enemy.passive.displayble_passives() {
                     ui.label(txt(&passive));
@@ -170,6 +180,26 @@ fn draw_skill_item(
                 }
             });
         });
+    });
+}
+
+fn draw_enemy_actions(ui: &mut egui::Ui, ctx: &CustomContext<'_>, size: Size) {
+    ui.horizontal(|ui| {
+        size.assign_to(ui);
+
+        ui.label(txt("次の行動: "));
+
+        for action in ctx.core.get_state().enemy_actions.iter() {
+            let action_txt = match *action {
+                game_core::enemy_ai::EnemyAction::Assist => "補",
+                game_core::enemy_ai::EnemyAction::High => "強",
+                game_core::enemy_ai::EnemyAction::Interference => "妨",
+                game_core::enemy_ai::EnemyAction::Low => "弱",
+                game_core::enemy_ai::EnemyAction::Mid => "中",
+            };
+
+            ui.group(|ui| ui.label(txt(action_txt)));
+        }
     });
 }
 
