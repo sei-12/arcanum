@@ -1,5 +1,9 @@
-use eframe::egui::{self};
-use game_core::{chars::StaticCharId, lt::Char, skills::ActiveSkillState};
+use eframe::egui::{self, Id};
+use game_core::{
+    chars::StaticCharId,
+    lt::{Char, Enemy},
+    skills::ActiveSkillState,
+};
 use itertools::Itertools;
 
 use crate::{CustomContext, text::txt};
@@ -68,51 +72,44 @@ pub fn draw_game_screen(ui: &mut egui::Ui, ctx: &CustomContext<'_>) {
     });
 }
 
+fn draw_enemy_item(ui: &mut egui::Ui, ctx: &CustomContext<'_>, size: Size, enemy: &Enemy) {
+    size.assign_to(ui);
+    ui.vertical(|ui| {
+        ui.label(txt(enemy.static_data.name));
+
+        let icon = ctx.img_loader.get_enemy_icon(enemy.static_data.id);
+        let tex_handle = ctx
+            .ctx
+            .load_texture("1", icon, egui::TextureOptions::default());
+        ui.add(egui::Image::new(&tex_handle).max_width(size.width / 2.5));
+
+        ui.label(txt(&format!(
+            "HP: {}/{}",
+            enemy.hp.round() as u32,
+            enemy.max_hp() as u32
+        )));
+
+        egui::Frame::none().show(ui, |ui| {
+            let enemy_actions_item_size = Size {
+                height: size.height * 0.05,
+                width: size.width * 0.9,
+            };
+
+            enemy_actions_item_size.assign_to(ui);
+            draw_enemy_actions(ui, ctx, enemy_actions_item_size);
+        });
+
+        for passive in enemy.passive.displayble_passives() {
+            ui.label(txt(&passive));
+        }
+    });
+}
+
 fn draw_enemy_side(ui: &mut egui::Ui, ctx: &CustomContext<'_>, size: Size) {
     ui.horizontal_top(|ui| {
         let enemy = &ctx.core.get_state().enemy;
-        let enemy_item_size = Size {
-            width: size.width * 0.5,
-            height: size.height,
-        };
-
-        // padding
-        egui::Frame::none().show(ui, |ui| {
-            let width = (size.width - enemy_item_size.width) / 2.0;
-            ui.set_width(width);
-        });
-
         ui.group(|ui| {
-            enemy_item_size.assign_to(ui);
-            ui.vertical(|ui| {
-                ui.label(txt(enemy.static_data.name));
-
-                let icon = ctx.img_loader.get_enemy_icon(enemy.static_data.id);
-                let tex_handle = ctx
-                    .ctx
-                    .load_texture("1", icon, egui::TextureOptions::default());
-                ui.add(egui::Image::new(&tex_handle).max_width(enemy_item_size.width / 2.5));
-
-                ui.label(txt(&format!(
-                    "HP: {}/{}",
-                    enemy.hp.round() as u32,
-                    enemy.max_hp() as u32
-                )));
-
-                egui::Frame::none().show(ui, |ui| {
-                    let enemy_actions_item_size = Size {
-                        height: enemy_item_size.height * 0.05,
-                        width: enemy_item_size.width * 0.9,
-                    };
-
-                    enemy_actions_item_size.assign_to(ui);
-                    draw_enemy_actions(ui, ctx, enemy_actions_item_size);
-                });
-
-                for passive in enemy.passive.displayble_passives() {
-                    ui.label(txt(&passive));
-                }
-            });
+            draw_enemy_item(ui, ctx, size, enemy);
         });
     });
 }
@@ -177,6 +174,31 @@ fn draw_skill_item(
 
                 if useable && btn.clicked() {
                     ctx.core.use_skill(user_id, skill.static_data.id);
+                }
+
+                let open_window = ctx
+                    .ui_state
+                    .get_open_skill_window(user_id, skill.static_data.id);
+
+                let open_window_btn_msg = if open_window { "閉じる" } else { "詳細" };
+                if ui.button(txt(open_window_btn_msg)).clicked() {
+                    ctx.ui_state
+                        .set_open_skill_window(user_id, skill.static_data.id, !open_window);
+                }
+
+                if open_window {
+                    egui::Window::new(txt(skill.static_data.name))
+                        .id(Id::new((user_id, skill.static_data.id)))
+                        .show(ctx.ctx, |ui| {
+                            ui.label(txt(skill.static_data.text));
+                            if ui.button(txt("閉じる")).clicked() {
+                                ctx.ui_state.set_open_skill_window(
+                                    user_id,
+                                    skill.static_data.id,
+                                    false,
+                                );
+                            }
+                        });
                 }
             });
         });

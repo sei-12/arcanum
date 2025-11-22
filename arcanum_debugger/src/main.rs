@@ -10,6 +10,7 @@ use crate::{
     game_state_actor::{ScreenActor, get_screen_actor},
     image_loader::ImageLoader,
     text::{set_font, txt},
+    ui_state::UiStateContainer,
 };
 
 mod core_wrapper;
@@ -17,6 +18,7 @@ mod game_screen;
 mod game_state_actor;
 mod image_loader;
 mod text;
+mod ui_state;
 
 fn main() -> eframe::Result {
     let options = eframe::NativeOptions::default();
@@ -68,6 +70,7 @@ struct SimpleApp {
     page: Page,
     next_page_tmp: Option<Page>,
     image_loader: ImageLoader,
+    ui_state: UiStateContainer,
 }
 
 impl SimpleApp {
@@ -82,6 +85,7 @@ impl SimpleApp {
             next_page_tmp: None,
             page: Page::Home(GameResult::None),
             image_loader: ImageLoader::new(),
+            ui_state: UiStateContainer::new(),
         }
     }
 }
@@ -97,6 +101,7 @@ struct CustomContext<'a> {
     pub core: &'a CoreWrapper,
     pub log: &'a [String],
     pub img_loader: &'a ImageLoader,
+    pub ui_state: &'a UiStateContainer,
 }
 
 fn set_space(_ui: &mut Ui) {
@@ -111,7 +116,6 @@ fn set_space(_ui: &mut Ui) {
     //     top: 0.0,
     //     bottom: 0.0,
     // };
-    
 }
 
 impl eframe::App for SimpleApp {
@@ -135,6 +139,7 @@ impl eframe::App for SimpleApp {
                         ctx,
                         log: screen_actor.get_log().as_slices().0,
                         img_loader: &self.image_loader,
+                        ui_state: &self.ui_state,
                     };
                     draw_game_screen(ui, &custom_ctx);
                 }
