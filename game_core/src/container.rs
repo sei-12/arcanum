@@ -20,6 +20,9 @@ use crate::{
 pub struct Container {
     rng: ThreadRng,
     state: GameState,
+
+    // MEMO: コンテナを引数にとる関数を書くたびに毎回毎回長いジェネリックを書かないといけないのが面倒だからimplではなくdynにした
+    // 気合いで書き直す気になるかいい方法が見つかったらimplにしたほうが良い
     game_screen: Box<dyn ScreenActorSender>,
 }
 
