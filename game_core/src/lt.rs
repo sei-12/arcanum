@@ -180,24 +180,21 @@ impl LtCommon {
 
     pub fn magic_attuck(&self) -> Num {
         let s_f = self.passive.effect_field();
-        let p = self.potential;
 
-        let base = (p.int * 3.0 + p.dex) / 4.0;
+        let base = (self.int() * 3.0 + self.dex()) / 4.0;
         base * self.level_scale() * s_f.magic_attuck_mag
     }
 
     pub fn physics_attuck(&self) -> Num {
         let s_f = self.passive.effect_field();
-        let p = self.potential;
-        let base = (p.str * 3.0 + p.dex) / 4.0;
+        let base = (self.str() * 3.0 + self.dex()) / 4.0;
         base * self.level_scale() * s_f.physics_attuck_mag
     }
 
     pub fn max_hp(&self) -> Num {
         let s_f = self.passive.effect_field();
-        let p = self.potential;
 
-        let base = (p.vit * 6.0 + p.dex) / 7.0;
+        let base = (self.vit() * 6.0 + self.dex()) / 7.0;
         let hp_scale = 3.0;
         let enemy_hp_scale = { if self.is_enemy { 4.0 } else { 1.0 } };
 

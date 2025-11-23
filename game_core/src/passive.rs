@@ -14,6 +14,8 @@ use crate::Num;
 pub enum PassiveIdentifier {
     Burn,
     MagicBarrier,
+    Ikarikuruu,
+    Hardening,
     // MagicDefence,
 }
 
@@ -183,7 +185,10 @@ impl CachedStatusEffectField {
 }
 
 pub(crate) mod public_passive {
-    use crate::passive::{Passive, PassivePrivate};
+    use crate::{
+        passive::{Passive, PassivePrivate},
+        skills::TurnNum,
+    };
 
     #[derive(Debug, Clone)]
     pub struct Burn {
@@ -225,6 +230,47 @@ pub(crate) mod public_passive {
             self.turns == 0
         }
 
+        fn trigger_turn_start(&mut self) {
+            if self.turns > 0 {
+                self.turns -= 1;
+            }
+        }
+    }
+
+    #[derive(Debug, Clone)]
+    pub struct Hardening {
+        turns: TurnNum,
+    }
+    impl Hardening {
+        pub fn new(turns: TurnNum) -> Self {
+            Hardening { turns }
+        }
+    }
+    impl PassivePrivate for Hardening {
+        fn status_effect(&self, field: &mut super::PassiveSkillEffectField) {
+            field.physics_defence *= 0.8;
+            field.magic_defence *= 0.9;
+        }
+    }
+    impl Passive for Hardening {
+        fn id(&self) -> super::PassiveIdentifier {
+            super::PassiveIdentifier::Hardening
+        }
+        fn display(&self) -> Option<String> {
+            Some(format!("硬化({})", self.turns))
+        }
+        fn marge(&mut self, target_state: Box<dyn std::any::Any>) {
+            let turn = target_state
+                .downcast::<TurnNum>()
+                .expect("failed to downcast");
+            self.turns += *turn;
+        }
+        fn state(&self) -> Box<dyn std::any::Any> {
+            Box::new(self.turns)
+        }
+        fn should_trash(&self) -> bool {
+            self.turns == 0
+        }
         fn trigger_turn_start(&mut self) {
             if self.turns > 0 {
                 self.turns -= 1;

@@ -1,12 +1,19 @@
 mod fire_tornado;
 mod fireball;
 mod heal;
+mod provoke;
 
 use crate::{
     Num, container::Container, damage::DamageType, error::GameError, game_state::GameState,
 };
 
-const SKILLS: [&StaticActiveSkill; 3] = [&fireball::SKILL, &heal::SKILL, &fire_tornado::SKILL];
+const SKILLS: [&StaticActiveSkill; 4] = [
+    &fireball::SKILL,
+    &heal::SKILL,
+    &fire_tornado::SKILL,
+    &provoke::SKILL,
+];
+
 fn get_active_skill(id: StaticSkillId) -> Option<&'static StaticActiveSkill> {
     debug_assert!(SKILLS.iter().enumerate().all(|(i, s)| s.id == i));
     SKILLS.get(id).copied()

@@ -53,7 +53,7 @@ fn get_args() -> ContainerArgs {
             },
             CharData {
                 level: 1.0,
-                own_skill_ids: vec![0, 1, 2],
+                own_skill_ids: vec![0, 1, 2, 3],
                 static_char_id: 3,
             },
         ],
