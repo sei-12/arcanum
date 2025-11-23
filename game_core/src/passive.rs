@@ -40,7 +40,7 @@ pub(crate) struct PassiveSkillEffectField {
     /// 加算、減算はするな
     /// todo: ドキュメントで禁止するだけじゃなくて何らかのRustの機能を使って禁止にしたい
     pub magic_defence: Num,
-    
+
     /// 物理ダメージに乗算させる値.
     /// つまり大きいほど防御力が低いことになる.
     /// defalut = 1.0
@@ -113,6 +113,10 @@ impl PassiveList {
 
     pub fn displayble_passives(&self) -> impl Iterator<Item = String> {
         self.passives.iter().filter_map(|(_, p)| p.display())
+    }
+
+    pub fn have(&self, passive_id: PassiveIdentifier) -> bool {
+        self.passives.contains_key(&passive_id)
     }
 
     pub(crate) fn add(&mut self, passive: Box<dyn Passive>) {
