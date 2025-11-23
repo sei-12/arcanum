@@ -38,22 +38,22 @@ fn get_args() -> ContainerArgs {
         chars: vec![
             CharData {
                 level: 1.0,
-                own_skill_ids: vec![0,1,2],
+                own_skill_ids: vec![0, 1, 2],
                 static_char_id: 0,
             },
             CharData {
                 level: 1.0,
-                own_skill_ids: vec![0,1,2],
+                own_skill_ids: vec![0, 1, 2],
                 static_char_id: 1,
             },
             CharData {
                 level: 1.0,
-                own_skill_ids: vec![0,1,2],
+                own_skill_ids: vec![0, 1, 2],
                 static_char_id: 2,
             },
             CharData {
                 level: 1.0,
-                own_skill_ids: vec![0,1,2],
+                own_skill_ids: vec![0, 1, 2],
                 static_char_id: 3,
             },
         ],

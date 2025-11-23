@@ -3,10 +3,7 @@ use crate::{
     damage::{DamageType, calc_damage},
     enemy_ai::StaticEnemyData,
     lt::Potential,
-    passive::{
-        Passive, PassivePrivate,
-        public_passive::{ Burn},
-    },
+    passive::{Passive, PassivePrivate, public_passive::Burn},
     skills::TurnNum,
 };
 

@@ -5,5 +5,5 @@ pub enum GameError {
     InvalidEnemyId,
     ConfrictChar,
     NotEnoughMp,
-    GameEnded
+    GameEnded,
 }

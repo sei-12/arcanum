@@ -171,10 +171,7 @@ impl Container {
         self.game_screen.update_player_mp(self.state.player_side_mp);
     }
 
-    fn get_mut_char(
-        &mut self,
-        static_char_id: usize,
-    ) -> Result<CharMutRef<'_>, GameError> {
+    fn get_mut_char(&mut self, static_char_id: usize) -> Result<CharMutRef<'_>, GameError> {
         let mut_ref = self
             .state
             .chars

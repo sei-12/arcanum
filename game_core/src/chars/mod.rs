@@ -9,7 +9,7 @@ pub struct StaticCharData {
     pub potential: Potential,
 }
 
-const CHARS: [&StaticCharData; 4] = [&ELENA, &YURA, &YUUKO,&ASYA];
+const CHARS: [&StaticCharData; 4] = [&ELENA, &YURA, &YUUKO, &ASYA];
 
 impl StaticCharData {
     pub fn get(id: StaticCharId) -> Option<&'static StaticCharData> {
