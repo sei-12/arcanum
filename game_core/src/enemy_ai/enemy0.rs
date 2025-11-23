@@ -3,7 +3,10 @@ use crate::{
     damage::{DamageType, calc_damage},
     enemy_ai::StaticEnemyData,
     lt::Potential,
-    passive::{Passive, PassivePrivate, public_passive},
+    passive::{
+        Passive, PassivePrivate,
+        public_passive::{ Burn},
+    },
     skills::TurnNum,
 };
 
@@ -25,9 +28,9 @@ pub const ENEMY: StaticEnemyData = StaticEnemyData {
 };
 
 fn assist(con: &mut Container) {
-    con.get_mut_enemy()
-        .passive
-        .add(Box::new(MagicBarrier { turns: 2 }));
+    con.update_enemy(|enemy| {
+        enemy.passive.add(Box::new(MagicBarrier { turns: 2 }));
+    });
 
     con.log(format!(
         "{}の補助行動。{}は自身に2ターンの魔結界を付与した",
@@ -42,9 +45,11 @@ fn high(con: &mut Container) {
     let atk = 1.3;
     let dmg = calc_damage(enemy, target, DamageType::Physics, atk);
 
-    con.get_mut_char(target.static_data.id)
-        .expect("bug")
-        .accept_damage(dmg);
+    con.update_char(target.static_data.id, |char| {
+        char.accept_damage(dmg);
+        Ok(())
+    })
+    .unwrap();
 
     con.log(format!(
         "{}の強攻撃。{}は{}に{}点の物理ダメージを与えた",
@@ -58,10 +63,11 @@ fn high(con: &mut Container) {
 fn interference(con: &mut Container) {
     let id = con.get_max_hate_char().static_data.id;
 
-    con.get_mut_char(id)
-        .unwrap()
-        .passive
-        .add(Box::new(public_passive::Burn::new(2)));
+    con.update_char(id, |char| {
+        char.passive.add(Box::new(Burn::new(2)));
+        Ok(())
+    })
+    .unwrap();
 
     con.log(format!(
         "{}の妨害行動。{}に2ターンの火傷を与えた",
@@ -77,9 +83,11 @@ fn mid(con: &mut Container) {
     let atk = 1.1;
     let dmg = calc_damage(enemy, target, DamageType::Physics, atk);
 
-    con.get_mut_char(target.static_data.id)
-        .expect("bug")
-        .accept_damage(dmg);
+    con.update_char(target.static_data.id, |char| {
+        char.accept_damage(dmg);
+        Ok(())
+    })
+    .unwrap();
 
     con.log(format!(
         "{}の中攻撃。{}は{}に{}点の物理ダメージを与えた",
@@ -97,9 +105,11 @@ fn low(con: &mut Container) {
     let atk = 0.9;
     let dmg = calc_damage(enemy, target, DamageType::Magic, atk);
 
-    con.get_mut_char(target.static_data.id)
-        .expect("bug")
-        .accept_damage(dmg);
+    con.update_char(target.static_data.id, |char| {
+        char.accept_damage(dmg);
+        Ok(())
+    })
+    .unwrap();
 
     con.log(format!(
         "{}の弱攻撃。{}は{}に{}点の物理ダメージを与えた",

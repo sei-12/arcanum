@@ -10,7 +10,8 @@ pub const SKILL: StaticActiveSkill = StaticActiveSkill {
 
 const TEXT: &str = "消費MP 30
 クールタイム 3ターン
-N = (INT + DEX) / 2
+ヘイト値 30
+N = (INT + DEX) / 2 * (LEVEL + 10)
 残りHP割合が最も小さい味方一人のHPをN回復する。
 スキル使用者のAGIが12以上ならこのスキルのクールタイムは1小さくなる。
 ";
@@ -31,17 +32,25 @@ fn call(static_user_id: usize, con: &mut Container) -> Result<(), GameError> {
         .static_data
         .id;
 
-    let heal_num = (user.potential().int + user.potential().dex) / 2.0;
+    let heal_num = (user.potential().int + user.potential().dex) / 2.0 * (user.level + 10.0);
 
     let mut cooltime = 3;
     if user.potential().agi >= 12.0 {
         cooltime -= 1;
     }
 
-    con.get_mut_char(user.static_data.id)?
-        .set_skill_cooltime(SKILL.id, cooltime)?;
+    con.update_char(static_user_id, |user| {
+        user.set_skill_cooltime(SKILL.id, cooltime)?;
+        user.add_hate(30.0);
+        Ok(())
+    })?;
 
-    con.get_mut_char(target_char_id)?.accept_heal(heal_num);
+    con.update_char(target_char_id, |target| {
+        target.accept_heal(heal_num);
+        Ok(())
+    })?;
+
+    con.consume_player_side_mp(SKILL.need_mp);
 
     con.log(format!(
         "{}がヒールを発動。{}のHPを{}回復した",

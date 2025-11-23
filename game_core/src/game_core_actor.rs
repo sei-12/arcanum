@@ -86,7 +86,11 @@ fn turn_end(con: &mut Container) -> Result<GameResult, GameError> {
     // start enemy turn
     con.log("敵のターン");
     con.heal_enemy_side_mp(100.0);
-    con.get_mut_enemy().accept_turn_start_dmg();
+    con.update_enemy(|enemy| {
+        enemy.accept_turn_start_dmg();
+        enemy.passive.trigger_turn_start(); 
+    });
+    
 
     if con.check_and_send_win_or_lose().ended() {
         return Ok(con.get_win_or_lose());

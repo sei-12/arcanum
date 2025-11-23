@@ -16,6 +16,7 @@ pub const SKILL: StaticActiveSkill = StaticActiveSkill {
 
 const TEXT: &str = "消費MP 40
 クールタイム 3ターン
+ヘイト値 40
 敵にスキルダメージ1.1の魔法ダメージを与える。
 スキル使用者のINTが3以下ならさらに追加でMPを10消費する。
 スキル使用者のDEXが4以下ならスキル使用者に2ターンの火傷を付与する。
@@ -30,12 +31,11 @@ fn call(static_user_id: usize, con: &mut Container) -> Result<(), GameError> {
     let skill_atk = 1.1;
     let dmg = calc_damage(user, enemy, DamageType::Magic, skill_atk);
 
-    let mut user = con.get_mut_char(static_user_id)?;
-    // 使用者のDEXが4以下なら使用者に2ターンの火傷を付与する
-    if user.potential().dex <= 4.0 {
-        let burn = public_passive::Burn::new(2);
-        user.passive.add(Box::new(burn));
-    }
+    let burn: Option<public_passive::Burn> = if user.potential().dex <= 4.0 {
+        Some(public_passive::Burn::new(2))
+    } else {
+        None
+    };
 
     let mut cooltime = 3;
     if user.potential().agi >= 12.0 {
@@ -47,11 +47,19 @@ fn call(static_user_id: usize, con: &mut Container) -> Result<(), GameError> {
         addtional_need_mp += 10.0;
     }
 
-    user.set_skill_cooltime(SKILL.id, cooltime)?;
+    con.update_char(static_user_id, |user| {
+        if let Some(burn) = burn {
+            user.passive.add(Box::new(burn));
+        };
+        user.set_skill_cooltime(SKILL.id, cooltime)?;
+        user.add_hate(40.0);
+        Ok(())
+    })?;
 
-    drop(user);
+    con.update_enemy(|enemy| {
+        enemy.accept_damage(dmg);
+    });
 
-    con.get_mut_enemy().accept_damage(dmg);
     con.consume_player_side_mp(SKILL.need_mp + addtional_need_mp);
 
     con.log(dmg_msg_template(

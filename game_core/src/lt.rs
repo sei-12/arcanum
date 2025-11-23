@@ -122,6 +122,10 @@ impl Char {
 
         Ok(())
     }
+
+    pub(crate) fn add_hate(&mut self, hate: Num) {
+        self.hate += hate;
+    }
 }
 
 impl Char {

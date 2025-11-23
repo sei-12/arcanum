@@ -171,7 +171,7 @@ impl Container {
         self.game_screen.update_player_mp(self.state.player_side_mp);
     }
 
-    pub(crate) fn get_mut_char(
+    fn get_mut_char(
         &mut self,
         static_char_id: usize,
     ) -> Result<CharMutRef<'_>, GameError> {
@@ -195,11 +195,26 @@ impl Container {
         }
     }
 
-    pub(crate) fn get_mut_enemy(&mut self) -> EnemyMutRef<'_> {
-        EnemyMutRef {
-            enemy: &mut self.state.enemy,
-            game_screen: self.game_screen.as_mut(),
-        }
+    // fn get_mut_enemy(&mut self) -> EnemyMutRef<'_> {
+    //     EnemyMutRef {
+    //         enemy: &mut self.state.enemy,
+    //         game_screen: self.game_screen.as_mut(),
+    //     }
+    // }
+
+    pub(crate) fn update_char(
+        &mut self,
+        static_char_id: usize,
+        update_fn: impl FnOnce(&mut Char) -> Result<(), GameError>,
+    ) -> Result<(), GameError> {
+        let mut char = self.get_mut_char(static_char_id)?;
+        update_fn(char.deref_mut())?;
+        Ok(())
+    }
+
+    pub(crate) fn update_enemy(&mut self, update_fn: impl FnOnce(&mut Enemy)) {
+        update_fn(&mut self.state.enemy);
+        self.game_screen.update_enemy(&self.state.enemy);
     }
 
     pub(crate) fn consume_player_side_mp(&mut self, num: Num) {
@@ -245,23 +260,23 @@ impl<'a> Drop for CharMutRef<'a> {
 //--------------------------------------------------//
 //                  ENEMY MUT REF                   //
 //--------------------------------------------------//
-pub struct EnemyMutRef<'a> {
-    enemy: &'a mut Enemy,
-    game_screen: &'a mut dyn ScreenActorSender,
-}
-impl<'a> Deref for EnemyMutRef<'a> {
-    type Target = Enemy;
-    fn deref(&self) -> &Self::Target {
-        self.enemy
-    }
-}
-impl<'a> DerefMut for EnemyMutRef<'a> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        self.enemy
-    }
-}
-impl<'a> Drop for EnemyMutRef<'a> {
-    fn drop(&mut self) {
-        self.game_screen.update_enemy(self.enemy);
-    }
-}
+// pub struct EnemyMutRef<'a> {
+//     enemy: &'a mut Enemy,
+//     game_screen: &'a mut dyn ScreenActorSender,
+// }
+// impl<'a> Deref for EnemyMutRef<'a> {
+//     type Target = Enemy;
+//     fn deref(&self) -> &Self::Target {
+//         self.enemy
+//     }
+// }
+// impl<'a> DerefMut for EnemyMutRef<'a> {
+//     fn deref_mut(&mut self) -> &mut Self::Target {
+//         self.enemy
+//     }
+// }
+// impl<'a> Drop for EnemyMutRef<'a> {
+//     fn drop(&mut self) {
+//         self.game_screen.update_enemy(self.enemy);
+//     }
+// }

@@ -16,9 +16,11 @@ pub const SKILL: StaticActiveSkill = StaticActiveSkill {
 
 const TEXT: &str = "消費MP 90
 クールタイム 7ターン
+ヘイト値 120
 敵にスキルダメージ2.5の魔法ダメージを与える。
 スキル使用者のINTが16以上ならスキルダメージを1.0加算する。
 敵が火傷状態ならスキルダメージを0.3加算する。
+スキル使用者のAGIが14以上ならヘイト値が40減少する。
 ";
 
 fn call(static_user_id: usize, con: &mut Container) -> Result<(), GameError> {
@@ -36,14 +38,25 @@ fn call(static_user_id: usize, con: &mut Container) -> Result<(), GameError> {
         skill_atk += 0.3;
     }
 
+    let mut hate = 120.0;
+    if user.potential().agi >= 14.0 {
+        hate -= 40.0;
+    }
+
     let dmg = calc_damage(user, enemy, DamageType::Magic, skill_atk);
 
     let cooltime = 7;
 
-    con.get_mut_char(static_user_id)?
-        .set_skill_cooltime(SKILL.id, cooltime)?;
+    con.update_char(static_user_id, |char| {
+        char.set_skill_cooltime(SKILL.id, cooltime)?;
+        char.add_hate(hate);
+        Ok(())
+    })?;
 
-    con.get_mut_enemy().accept_damage(dmg);
+    con.update_enemy(|enemy| {
+        enemy.accept_damage(dmg);
+    });
+
     con.consume_player_side_mp(SKILL.need_mp);
 
     con.log(dmg_msg_template(
