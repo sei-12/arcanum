@@ -3,14 +3,14 @@ use crate::{container::Container, error::GameError, skills::StaticActiveSkill};
 pub const SKILL: StaticActiveSkill = StaticActiveSkill {
     id: 1,
     name: "ヒール",
-    need_mp: 30.0,
+    need_mp: 60.0,
     call,
     text: TEXT,
 };
 
-const TEXT: &str = "消費MP 30
+const TEXT: &str = "消費MP 60
 クールタイム 3ターン
-ヘイト値 30
+ヘイト値 60
 N = (INT + DEX) / 2 * (LEVEL + 10)
 残りHP割合が最も小さい味方一人のHPをN回復する。
 スキル使用者のAGIが12以上ならこのスキルのクールタイムは1小さくなる。
@@ -41,7 +41,7 @@ fn call(static_user_id: usize, con: &mut Container) -> Result<(), GameError> {
 
     con.update_char(static_user_id, |user| {
         user.set_skill_cooltime(SKILL.id, cooltime)?;
-        user.add_hate(30.0);
+        user.add_hate(60.0);
         Ok(())
     })?;
 

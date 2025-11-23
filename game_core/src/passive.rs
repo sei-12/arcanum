@@ -197,7 +197,7 @@ pub(crate) mod public_passive {
 
     impl PassivePrivate for Burn {
         fn status_effect(&self, field: &mut super::PassiveSkillEffectField) {
-            field.magic_defence *= 0.9;
+            field.magic_defence *= 1.1;
         }
     }
 

@@ -9,14 +9,14 @@ use crate::{
 pub const SKILL: StaticActiveSkill = StaticActiveSkill {
     id: 0,
     name: "ファイヤーボール",
-    need_mp: 40.0,
+    need_mp: 70.0,
     call,
     text: TEXT,
 };
 
-const TEXT: &str = "消費MP 40
+const TEXT: &str = "消費MP 70
 クールタイム 3ターン
-ヘイト値 40
+ヘイト値 70
 敵にスキルダメージ1.1の魔法ダメージを与える。
 スキル使用者のINTが3以下ならさらに追加でMPを10消費する。
 スキル使用者のDEXが4以下ならスキル使用者に2ターンの火傷を付与する。
@@ -52,7 +52,7 @@ fn call(static_user_id: usize, con: &mut Container) -> Result<(), GameError> {
             user.passive.add(Box::new(burn));
         };
         user.set_skill_cooltime(SKILL.id, cooltime)?;
-        user.add_hate(40.0);
+        user.add_hate(70.0);
         Ok(())
     })?;
 

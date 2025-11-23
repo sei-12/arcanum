@@ -9,14 +9,14 @@ use crate::{
 pub const SKILL: StaticActiveSkill = StaticActiveSkill {
     id: 2,
     name: "火炎の大竜巻",
-    need_mp: 90.0,
+    need_mp: 200.0,
     call,
     text: TEXT,
 };
 
-const TEXT: &str = "消費MP 90
+const TEXT: &str = "消費MP 200
 クールタイム 7ターン
-ヘイト値 120
+ヘイト値 230
 敵にスキルダメージ2.5の魔法ダメージを与える。
 スキル使用者のINTが16以上ならスキルダメージを1.0加算する。
 敵が火傷状態ならスキルダメージを0.3加算する。
@@ -38,7 +38,7 @@ fn call(static_user_id: usize, con: &mut Container) -> Result<(), GameError> {
         skill_atk += 0.3;
     }
 
-    let mut hate = 120.0;
+    let mut hate = 230.0;
     if user.potential().agi >= 14.0 {
         hate -= 40.0;
     }
