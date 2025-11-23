@@ -32,7 +32,7 @@ fn call(static_user_id: usize, con: &mut Container) -> Result<(), GameError> {
     }
 
     let hardeing = if user.vit() >= 15.0 {
-        Some(Box::new(Hardening::new(2)))
+        Some(Box::new(Hardening::new(3)))
     } else {
         None
     };
@@ -43,10 +43,23 @@ fn call(static_user_id: usize, con: &mut Container) -> Result<(), GameError> {
         None
     };
 
-    let log = format!(
-        "{}が{}を挑発",
+    let mut logs = Vec::new();
+    logs.push(format!(
+        "{}が{}を挑発。",
         user.static_data.name, enemy.static_data.name
-    );
+    ));
+    if hardeing.is_some() {
+        logs.push(format!(
+            "{}に3ターンの硬化が付与された。",
+            user.static_data.name
+        ));
+    }
+    if ikarikuruu.is_some() {
+        logs.push(format!(
+            "{}に3ターンの「怒り狂う」が付与された。",
+            enemy.static_data.name
+        ));
+    }
 
     con.update_char(static_user_id, |char| {
         char.set_skill_cooltime(SKILL.id, cooltime)?;
@@ -63,7 +76,8 @@ fn call(static_user_id: usize, con: &mut Container) -> Result<(), GameError> {
         }
     });
 
-    con.log(log);
+    con.log(logs.join(""));
+
     Ok(())
 }
 
