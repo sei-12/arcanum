@@ -9,7 +9,7 @@ use crate::{
     game_screen::draw_game_screen,
     game_state_actor::{ScreenActor, get_screen_actor},
     image_loader::ImageLoader,
-    text::{set_font, txt},
+    text::{rich_txt, set_font},
     ui_state::UiStateContainer,
 };
 
@@ -24,7 +24,7 @@ fn main() -> eframe::Result {
     let options = eframe::NativeOptions::default();
 
     eframe::run_native(
-        "egui example: global font style",
+        "Arcanum Debugger",
         options,
         Box::new(|cc| {
             // Box::<SimpleApp>::default();
@@ -160,9 +160,9 @@ fn home_page(ui: &mut Ui, result: GameResult, app: &mut SimpleApp) {
         GameResult::Win => "WIN",
     };
 
-    ui.label(txt(res_text));
+    ui.label(rich_txt(res_text));
 
-    if ui.button(txt("開始")).clicked() {
+    if ui.button(rich_txt("開始")).clicked() {
         let (screen_actor, sender) = get_screen_actor();
         let core = CoreWrapper::new(&get_args(), sender);
         core.start_game();

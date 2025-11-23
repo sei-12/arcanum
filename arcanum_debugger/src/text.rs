@@ -15,9 +15,18 @@ pub fn set_font(cc: &eframe::CreationContext<'_>) {
     // cc.egui_ctx.setfon
 }
 
-pub fn txt(text: &str) -> RichText {
-    RichText::new(text).font(FontId::new(
-        20.0,
-        egui::FontFamily::Name("Kaisei Opti".into()),
-    ))
+fn font_family() -> egui::FontFamily {
+    egui::FontFamily::Name("Kaisei Opti".into())
+}
+
+pub fn rich_txt(text: impl Into<String>) -> RichText {
+    RichText::new(text).font(FontId::new(16.0, font_family()))
+}
+
+pub fn rich_small_text(text: impl Into<String>) -> RichText {
+    RichText::new(text).font(FontId::new(13.0, font_family()))
+}
+
+pub fn rich_title(text: impl Into<String>) -> RichText {
+    RichText::new(text).font(FontId::new(22.0, font_family()))
 }
