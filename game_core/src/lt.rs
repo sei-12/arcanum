@@ -157,9 +157,25 @@ impl LtCommon {
     fn level_scale(&self) -> Num {
         self.level + 10.0
     }
-    // pub fn add_passive()
-    pub fn potential(&self) -> &Potential {
-        self.potential
+
+    pub fn int(&self) -> Num {
+        self.potential.int
+    }
+
+    pub fn dex(&self) -> Num {
+        self.potential.dex
+    }
+
+    pub fn str(&self) -> Num {
+        self.potential.str
+    }
+
+    pub fn vit(&self) -> Num {
+        self.potential.vit
+    }
+
+    pub fn agi(&self) -> Num {
+        self.potential.agi
     }
 
     pub fn magic_attuck(&self) -> Num {

@@ -30,7 +30,7 @@ fn call(static_user_id: usize, con: &mut Container) -> Result<(), GameError> {
     let enemy_name = enemy.static_data.name;
     let mut skill_atk = 2.5;
 
-    if user.potential().int >= 16.0 {
+    if user.int() >= 16.0 {
         skill_atk += 1.0;
     };
 
@@ -39,7 +39,7 @@ fn call(static_user_id: usize, con: &mut Container) -> Result<(), GameError> {
     }
 
     let mut hate = 230.0;
-    if user.potential().agi >= 14.0 {
+    if user.agi() >= 14.0 {
         hate -= 40.0;
     }
 

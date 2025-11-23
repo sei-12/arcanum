@@ -31,19 +31,19 @@ fn call(static_user_id: usize, con: &mut Container) -> Result<(), GameError> {
     let skill_atk = 1.1;
     let dmg = calc_damage(user, enemy, DamageType::Magic, skill_atk);
 
-    let burn: Option<public_passive::Burn> = if user.potential().dex <= 4.0 {
+    let burn: Option<public_passive::Burn> = if user.dex() <= 4.0 {
         Some(public_passive::Burn::new(2))
     } else {
         None
     };
 
     let mut cooltime = 3;
-    if user.potential().agi >= 12.0 {
+    if user.agi() >= 12.0 {
         cooltime -= 1;
     }
 
     let mut addtional_need_mp = 0.0;
-    if user.potential().int <= 3.0 {
+    if user.int() <= 3.0 {
         addtional_need_mp += 10.0;
     }
 

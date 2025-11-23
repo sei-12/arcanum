@@ -32,10 +32,10 @@ fn call(static_user_id: usize, con: &mut Container) -> Result<(), GameError> {
         .static_data
         .id;
 
-    let heal_num = (user.potential().int + user.potential().dex) / 2.0 * (user.level + 10.0);
+    let heal_num = (user.int() + user.dex()) / 2.0 * (user.level + 10.0);
 
     let mut cooltime = 3;
-    if user.potential().agi >= 12.0 {
+    if user.agi() >= 12.0 {
         cooltime -= 1;
     }
 

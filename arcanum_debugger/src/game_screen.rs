@@ -356,11 +356,11 @@ fn draw_lt_status(
             });
 
             ui.vertical(|ui| {
-                ui.label(rich_small_text(format!("INT: {}", lt.potential().int)));
-                ui.label(rich_small_text(format!("STR: {}", lt.potential().str)));
-                ui.label(rich_small_text(format!("VIT: {}", lt.potential().vit)));
-                ui.label(rich_small_text(format!("DEX: {}", lt.potential().dex)));
-                ui.label(rich_small_text(format!("AGI: {}", lt.potential().agi)));
+                ui.label(rich_small_text(format!("INT: {}", lt.int())));
+                ui.label(rich_small_text(format!("STR: {}", lt.str())));
+                ui.label(rich_small_text(format!("VIT: {}", lt.vit())));
+                ui.label(rich_small_text(format!("DEX: {}", lt.dex())));
+                ui.label(rich_small_text(format!("AGI: {}", lt.agi())));
             });
         });
     });
