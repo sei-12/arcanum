@@ -228,7 +228,7 @@ fn draw_player_side(ui: &mut egui::Ui, ctx: &CustomContext<'_>, size: Size) {
     ui.horizontal(|ui| {
         let item_size = Size {
             height: size.height,
-            width: size.width / 5.0,
+            width: size.width / 5.2,
         };
         egui::Frame::none().show(ui, |ui| {
             draw_player_panel(ui, ctx, item_size);
