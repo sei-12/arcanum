@@ -29,7 +29,7 @@ fn call(static_user_id: usize, con: &mut Container) -> Result<(), GameError> {
     let cooltime = 350.0;
 
     let skill_atk = 0.1;
-    let dmg = calc_damage(user, enemy, DamageType::Magic, skill_atk);
+    let dmg = calc_damage(user, enemy, DamageType::Physics, skill_atk);
 
     let mut num_attucks = 5;
     if user.agi() >= 14.0 {
