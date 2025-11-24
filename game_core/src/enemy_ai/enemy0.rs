@@ -1,10 +1,5 @@
 use crate::{
-    container::Container,
-    damage::{DamageType, calc_damage},
-    enemy_ai::StaticEnemyData,
-    lt::Potential,
-    passive::{Passive, PassivePrivate, public_passive::Burn},
-    skills::TurnNum,
+    TurnNum, container::Container, damage::{DamageType, calc_damage}, enemy_ai::StaticEnemyData, lt::Potential, passive::{Passive, PassivePrivate, public_passive::Burn}
 };
 
 pub const ENEMY: StaticEnemyData = StaticEnemyData {
@@ -123,8 +118,9 @@ struct MagicBarrier {
 }
 
 impl PassivePrivate for MagicBarrier {
-    fn status_effect(&self, _field: &mut crate::passive::PassiveSkillEffectField) {
-        _field.magic_defence *= 0.9;
+    fn status_effect(&self, field: &mut crate::passive::PassiveSkillEffectField) {
+        field.physics_defence *= 1.1;
+        field.magic_defence *= 0.7;
     }
 }
 impl Passive for MagicBarrier {

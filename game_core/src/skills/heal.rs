@@ -9,11 +9,11 @@ pub const SKILL: StaticActiveSkill = StaticActiveSkill {
 };
 
 const TEXT: &str = "消費MP 60
-クールタイム 3ターン
+クールタイム 300
 ヘイト値 60
 N = (INT + DEX) / 2 * (LEVEL + 10)
 残りHP割合が最も小さい味方一人のHPをN回復する。
-スキル使用者のAGIが12以上ならこのスキルのクールタイムは1小さくなる。
+スキル使用者のAGIが12以上ならこのスキルのクールタイムは100小さくなる。
 ";
 
 fn call(static_user_id: usize, con: &mut Container) -> Result<(), GameError> {
@@ -34,9 +34,9 @@ fn call(static_user_id: usize, con: &mut Container) -> Result<(), GameError> {
 
     let heal_num = (user.int() + user.dex()) / 2.0 * (user.level + 10.0);
 
-    let mut cooltime = 3;
+    let mut cooltime = 300.0;
     if user.agi() >= 12.0 {
-        cooltime -= 1;
+        cooltime -= 100.0;
     }
 
     con.update_char(static_user_id, |user| {

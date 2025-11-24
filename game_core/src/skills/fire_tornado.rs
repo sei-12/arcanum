@@ -15,7 +15,7 @@ pub const SKILL: StaticActiveSkill = StaticActiveSkill {
 };
 
 const TEXT: &str = "消費MP 200
-クールタイム 7ターン
+クールタイム 700
 ヘイト値 230
 敵にスキルダメージ2.5の魔法ダメージを与える。
 スキル使用者のINTが16以上ならスキルダメージを1.0加算する。
@@ -45,7 +45,7 @@ fn call(static_user_id: usize, con: &mut Container) -> Result<(), GameError> {
 
     let dmg = calc_damage(user, enemy, DamageType::Magic, skill_atk);
 
-    let cooltime = 7;
+    let cooltime = 700.0;
 
     con.update_char(static_user_id, |char| {
         char.set_skill_cooltime(SKILL.id, cooltime)?;

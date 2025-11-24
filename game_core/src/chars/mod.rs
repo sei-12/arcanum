@@ -82,7 +82,7 @@ mod tests {
     #[test]
     fn check_potential() {
         // ポテンシャルの合計値はちょうど50である必要がある
-        CHARS.iter().for_each(| c| {
+        CHARS.iter().for_each(|c| {
             let sum = c.potential.agi
                 + c.potential.dex
                 + c.potential.int

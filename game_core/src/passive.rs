@@ -16,6 +16,7 @@ pub enum PassiveIdentifier {
     MagicBarrier,
     Ikarikuruu,
     Hardening,
+    HametuNoYokubou,
     // MagicDefence,
 }
 
@@ -26,30 +27,50 @@ pub(crate) struct PassiveSkillEffectField {
     pub turn_start_dmg_per: Num,
 
     /// 魔法攻撃力に乗算させる値 default = 1.0
+    ///
+    /// 乗算するな
     pub magic_attuck_mag: Num,
 
     /// 物理攻撃力に乗算させる値 default = 1.0
+    ///
+    /// 乗算するな
     pub physics_attuck_mag: Num,
 
     /// 最大HPに乗算させる値
+    ///
     /// default = 1.0
     pub max_hp_mag: Num,
 
     /// 魔法ダメージに乗算させる値.
+    ///
     /// つまり大きいほど防御力が低いことになる.
+    ///
     /// defalut = 1.0
     /// ### Rule
     /// 加算、減算はするな
+    ///
     /// todo: ドキュメントで禁止するだけじゃなくて何らかのRustの機能を使って禁止にしたい
     pub magic_defence: Num,
 
     /// 物理ダメージに乗算させる値.
+    ///
     /// つまり大きいほど防御力が低いことになる.
+    ///
     /// defalut = 1.0
     /// ### Rule
     /// 加算、減算はするな
+    ///
     /// todo: ドキュメントで禁止するだけじゃなくて何らかのRustの機能を使って禁止にしたい
     pub physics_defence: Num,
+
+    /// 追加MP回復
+    ///
+    /// ターン開始時に追加で回復されるMP量
+    ///
+    /// チームの合計が負の値になったとしてもMPが減ることはない
+    pub add_heal_mp: Num,
+
+    pub add_agi: Num,
 }
 
 impl PassiveSkillEffectField {
@@ -67,6 +88,8 @@ impl Default for PassiveSkillEffectField {
             magic_defence: 1.0,
             physics_attuck_mag: 1.0,
             physics_defence: 1.0,
+            add_heal_mp: 0.0,
+            add_agi: 0.0,
         }
     }
 }
@@ -186,8 +209,7 @@ impl CachedStatusEffectField {
 
 pub(crate) mod public_passive {
     use crate::{
-        passive::{Passive, PassivePrivate},
-        skills::TurnNum,
+        TurnNum, passive::{Passive, PassivePrivate}
     };
 
     #[derive(Debug, Clone)]

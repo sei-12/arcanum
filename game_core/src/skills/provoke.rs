@@ -14,7 +14,7 @@ pub const SKILL: StaticActiveSkill = StaticActiveSkill {
 };
 
 const TEXT: &str = "消費MP 60
-クールタイム 5ターン
+クールタイム 500
 ヘイト値 200
 スキル使用者のINTとDEXの合計値が25以上ならヘイト値が50加算される。
 スキル使用者のVITが15以上ならスキル使用者に3ターンの「硬化」を付与する。
@@ -22,7 +22,7 @@ const TEXT: &str = "消費MP 60
 ";
 
 fn call(static_user_id: usize, con: &mut Container) -> Result<(), GameError> {
-    let cooltime = 5;
+    let cooltime = 500.0;
     let mut hate = 200.0;
     let user = con.get_char(static_user_id)?;
     let enemy = con.get_enemy();
@@ -76,6 +76,7 @@ fn call(static_user_id: usize, con: &mut Container) -> Result<(), GameError> {
         }
     });
 
+    con.consume_player_side_mp(SKILL.need_mp);
     con.log(logs.join(""));
 
     Ok(())

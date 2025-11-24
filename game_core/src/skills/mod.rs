@@ -1,17 +1,22 @@
 mod fire_tornado;
 mod fireball;
+mod hametu_no_yokubou;
 mod heal;
 mod provoke;
+mod wind_slash;
 
 use crate::{
-    Num, container::Container, damage::DamageType, error::GameError, game_state::GameState,
+    Num, SkillCooltimeNum, TurnNum, container::Container, damage::DamageType, error::GameError,
+    game_state::GameState,
 };
 
-const SKILLS: [&StaticActiveSkill; 4] = [
+const SKILLS: [&StaticActiveSkill; 6] = [
     &fireball::SKILL,
     &heal::SKILL,
     &fire_tornado::SKILL,
     &provoke::SKILL,
+    &wind_slash::SKILL,
+    &hametu_no_yokubou::SKILL,
 ];
 
 fn get_active_skill(id: StaticSkillId) -> Option<&'static StaticActiveSkill> {
@@ -20,12 +25,11 @@ fn get_active_skill(id: StaticSkillId) -> Option<&'static StaticActiveSkill> {
 }
 
 pub type StaticSkillId = usize;
-pub type TurnNum = u8;
 
 #[derive(Debug, Clone)]
 pub struct ActiveSkillState {
     pub static_data: &'static StaticActiveSkill,
-    pub current_cooltime: TurnNum,
+    current_cooltime: SkillCooltimeNum,
 }
 
 impl ActiveSkillState {
@@ -33,12 +37,27 @@ impl ActiveSkillState {
         let static_data = get_active_skill(id)?;
         Some(Self {
             static_data,
-            current_cooltime: 0,
+            current_cooltime: 0.0,
         })
     }
 
+    pub fn current_cooltime(&self) -> SkillCooltimeNum {
+        self.current_cooltime
+    }
+    
+    pub fn set_skill_cooltime(&mut self, time: SkillCooltimeNum) {
+        self.current_cooltime = time;
+    }
+    
+    pub fn heal_skill_cooltime(&mut self, time: SkillCooltimeNum) {
+        self.current_cooltime -= time;
+        if self.current_cooltime < 0.0 {
+            self.current_cooltime = 0.0;
+        }
+    }
+    
     pub fn useable(&self, state: &GameState) -> bool {
-        self.current_cooltime == 0 && state.player_side_mp >= self.static_data.need_mp
+        self.current_cooltime <= 0.0 && state.player_side_mp >= self.static_data.need_mp
     }
 }
 

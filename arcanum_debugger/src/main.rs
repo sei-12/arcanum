@@ -37,28 +37,28 @@ fn get_args() -> ContainerArgs {
     ContainerArgs {
         chars: vec![
             CharData {
-                level: 1.0,
+                level: 10.0,
                 own_skill_ids: vec![0, 1, 2],
                 static_char_id: 0,
             },
             CharData {
-                level: 1.0,
-                own_skill_ids: vec![0, 1, 2],
+                level: 10.0,
+                own_skill_ids: vec![0, 1, 5, 4],
                 static_char_id: 1,
             },
             CharData {
-                level: 1.0,
+                level: 10.0,
                 own_skill_ids: vec![0, 1, 2],
                 static_char_id: 2,
             },
             CharData {
-                level: 1.0,
+                level: 10.0,
                 own_skill_ids: vec![0, 1, 2, 3],
                 static_char_id: 3,
             },
         ],
         enemy: EnemyData {
-            level: 1.0,
+            level: 10.0,
             static_enemy_id: 0,
         },
     }

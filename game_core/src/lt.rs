@@ -3,13 +3,13 @@ use std::ops::{Deref, DerefMut};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    Num,
+    Num, SkillCooltimeNum,
     chars::StaticCharData,
     container_args::{CharData, EnemyData},
     enemy_ai::StaticEnemyData,
     error::GameError,
     passive::PassiveList,
-    skills::{ActiveSkillState, StaticActiveSkill, StaticSkillId, TurnNum},
+    skills::{ActiveSkillState, StaticActiveSkill, StaticSkillId},
 };
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -110,7 +110,7 @@ impl Char {
     pub(crate) fn set_skill_cooltime(
         &mut self,
         static_skill_id: StaticSkillId,
-        turns: TurnNum,
+        time: SkillCooltimeNum,
     ) -> Result<(), GameError> {
         let skill_state = self
             .skills
@@ -118,13 +118,25 @@ impl Char {
             .find(|skill| skill.static_data.id == static_skill_id)
             .ok_or(GameError::InvalidSkillId)?;
 
-        skill_state.current_cooltime = turns;
+        skill_state.set_skill_cooltime(time);
 
         Ok(())
     }
 
     pub(crate) fn add_hate(&mut self, hate: Num) {
         self.hate += hate;
+    }
+
+    pub(crate) fn heal_skill_cooltime(&mut self) {
+        let heal = self.skill_cootime_heal();
+        self.skills.iter_mut().for_each(|s| {
+            s.heal_skill_cooltime(heal);
+        });
+    }
+
+    /// スキルクールタイム回復力
+    pub fn skill_cootime_heal(&self) -> Num {
+        50.0 + self.agi() * 5.0
     }
 }
 
@@ -175,7 +187,7 @@ impl LtCommon {
     }
 
     pub fn agi(&self) -> Num {
-        self.potential.agi
+        self.potential.agi + self.passive.effect_field().add_agi
     }
 
     pub fn magic_attuck(&self) -> Num {
@@ -207,6 +219,10 @@ impl LtCommon {
 
     pub fn physics_defence(&self) -> Num {
         self.passive.effect_field().physics_defence
+    }
+
+    pub fn add_heal_mp(&self) -> Num {
+        self.passive.effect_field().add_heal_mp
     }
 
     pub fn is_dead(&self) -> bool {

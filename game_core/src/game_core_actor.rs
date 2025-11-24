@@ -1,4 +1,5 @@
 use crate::{
+    Num,
     chars::StaticCharId,
     container::Container,
     container_args::ContainerArgs,
@@ -57,10 +58,12 @@ impl GameCoreActor {
 
 fn start_player_turn(con: &mut Container) {
     con.log("あなたのターン");
-    con.heal_player_side_mp(100.0);
+    let add_heal_mp: Num = con.get_chars().iter().map(|c| c.add_heal_mp()).sum();
+    con.heal_player_side_mp(100.0 + add_heal_mp);
     con.mut_chars_for_each(|char| {
         char.accept_turn_start_dmg();
         char.passive.trigger_turn_start();
+        char.heal_skill_cooltime();
     });
     con.set_turn_side(true);
 }
@@ -85,7 +88,7 @@ fn turn_end(con: &mut Container) -> Result<GameResult, GameError> {
 
     // start enemy turn
     con.log("敵のターン");
-    con.heal_enemy_side_mp(100.0);
+    con.heal_enemy_side_mp(100.0 + con.get_enemy().add_heal_mp());
     con.update_enemy(|enemy| {
         enemy.accept_turn_start_dmg();
         enemy.passive.trigger_turn_start();

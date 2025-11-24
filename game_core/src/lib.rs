@@ -8,12 +8,13 @@ pub mod lt;
 pub mod screen_actor;
 pub mod skills;
 
-
 mod container;
 mod damage;
 mod passive;
 
 type Num = f32;
+pub type TurnNum = u8;
+pub type SkillCooltimeNum = f32;
 
 #[cfg(test)]
 mod tests;

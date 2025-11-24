@@ -15,12 +15,12 @@ pub const SKILL: StaticActiveSkill = StaticActiveSkill {
 };
 
 const TEXT: &str = "消費MP 70
-クールタイム 3ターン
+クールタイム 300
 ヘイト値 70
 敵にスキルダメージ1.1の魔法ダメージを与える。
 スキル使用者のINTが3以下ならさらに追加でMPを10消費する。
 スキル使用者のDEXが4以下ならスキル使用者に2ターンの火傷を付与する。
-スキル使用者のAGIが12以上ならこのスキルのクールタイムは1小さくなる。
+スキル使用者のAGIが12以上ならこのスキルのクールタイムは100小さくなる。
 ";
 
 fn call(static_user_id: usize, con: &mut Container) -> Result<(), GameError> {
@@ -37,9 +37,9 @@ fn call(static_user_id: usize, con: &mut Container) -> Result<(), GameError> {
         None
     };
 
-    let mut cooltime = 3;
+    let mut cooltime = 300.0;
     if user.agi() >= 12.0 {
-        cooltime -= 1;
+        cooltime -= 100.0;
     }
 
     let mut addtional_need_mp = 0.0;

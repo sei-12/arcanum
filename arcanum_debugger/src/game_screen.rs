@@ -19,10 +19,10 @@ struct Size {
 
 impl Size {
     fn assign_to(&self, ui: &mut egui::Ui) {
-        ui.set_max_width(self.width);
-        ui.set_max_height(self.height);
         ui.set_width(self.width);
         ui.set_height(self.height);
+        ui.set_max_width(self.width);
+        ui.set_max_height(self.height);
     }
 }
 
@@ -141,7 +141,7 @@ fn draw_char_item(ui: &mut egui::Ui, ctx: &CustomContext<'_>, size: Size, char: 
             egui::Frame::none().show(ui, |ui| {
                 let skill_item_size = Size {
                     width: size.width / 2.0,
-                    height: size.height / 10.0,
+                    height: size.height * 0.15,
                 };
 
                 for skills in &char.skills.iter().chunks(2) {
@@ -170,11 +170,15 @@ fn draw_skill_item(
         size.assign_to(ui);
         ui.vertical(|ui| {
             ui.label(rich_txt(skill.static_data.name));
+            ui.label(rich_small_text(format!(
+                "CT: {}",
+                skill.current_cooltime().round()
+            )));
+            ui.label(rich_txt(format!(
+                "必要MP: {}",
+                skill.static_data.need_mp.round() as u32
+            )));
             ui.horizontal(|ui| {
-                ui.label(rich_txt(format!(
-                    "必要MP: {}",
-                    skill.static_data.need_mp.round() as u32
-                )));
                 let useable = skill.useable(ctx.core.get_state());
 
                 let msg = if useable { "使用" } else { "使用不可" };
@@ -183,6 +187,11 @@ fn draw_skill_item(
                 if useable && btn.clicked() {
                     ctx.core.use_skill(user_id, skill.static_data.id);
                 }
+
+                // padding
+                egui::Frame::none().show(ui, |ui| {
+                    ui.set_min_width(size.width * 0.04);
+                });
 
                 let open_window = ctx
                     .ui_state
