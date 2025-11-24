@@ -188,7 +188,7 @@ impl Container {
         })
     }
 
-    pub(crate) fn mut_chars_for_each(&mut self, update_fn: impl Fn(&mut Char)) {
+    pub(crate) fn update_chars(&mut self, update_fn: impl Fn(&mut Char)) {
         for char in self.state.chars.iter_mut() {
             update_fn(char);
             self.game_screen.update_char(char);

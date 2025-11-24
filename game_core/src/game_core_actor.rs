@@ -60,10 +60,10 @@ fn start_player_turn(con: &mut Container) {
     con.log("あなたのターン");
     let add_heal_mp: Num = con.get_chars().iter().map(|c| c.add_heal_mp()).sum();
     con.heal_player_side_mp(100.0 + add_heal_mp);
-    con.mut_chars_for_each(|char| {
+    con.update_chars(|char| {
         char.accept_turn_start_dmg();
         char.passive.trigger_turn_start();
-        char.heal_skill_cooltime();
+        char.heal_skill_cooltime(char.skill_cootime_heal());
     });
     con.set_turn_side(true);
 }

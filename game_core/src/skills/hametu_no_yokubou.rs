@@ -45,7 +45,7 @@ fn call(static_user_id: usize, con: &mut Container) -> Result<(), GameError> {
         char.passive.add(Box::new(HametuNoYokubou {
             turns: passive_turns,
         }));
-        char.set_skill_cooltime(SKILL.id, 400.0);
+        char.set_skill_cooltime(SKILL.id, 400.0)?;
         Ok(())
     })?;
     con.log(log);

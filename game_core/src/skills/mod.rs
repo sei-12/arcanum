@@ -3,6 +3,7 @@ mod fireball;
 mod hametu_no_yokubou;
 mod heal;
 mod provoke;
+mod sippuu_rennzann;
 mod wind_slash;
 
 use crate::{
@@ -10,13 +11,14 @@ use crate::{
     game_state::GameState,
 };
 
-const SKILLS: [&StaticActiveSkill; 6] = [
+const SKILLS: [&StaticActiveSkill; 7] = [
     &fireball::SKILL,
     &heal::SKILL,
     &fire_tornado::SKILL,
     &provoke::SKILL,
     &wind_slash::SKILL,
     &hametu_no_yokubou::SKILL,
+    &sippuu_rennzann::SKILL,
 ];
 
 fn get_active_skill(id: StaticSkillId) -> Option<&'static StaticActiveSkill> {
@@ -44,18 +46,18 @@ impl ActiveSkillState {
     pub fn current_cooltime(&self) -> SkillCooltimeNum {
         self.current_cooltime
     }
-    
+
     pub fn set_skill_cooltime(&mut self, time: SkillCooltimeNum) {
         self.current_cooltime = time;
     }
-    
+
     pub fn heal_skill_cooltime(&mut self, time: SkillCooltimeNum) {
         self.current_cooltime -= time;
         if self.current_cooltime < 0.0 {
             self.current_cooltime = 0.0;
         }
     }
-    
+
     pub fn useable(&self, state: &GameState) -> bool {
         self.current_cooltime <= 0.0 && state.player_side_mp >= self.static_data.need_mp
     }
@@ -84,6 +86,25 @@ fn dmg_msg_template(
 
     format!(
         "{user_name}が{skill_name}を発動!!{target_name}に{}点の{type_str}ダメージを与えた。",
+        dmg.round() as u32
+    )
+}
+
+fn dmgs_msg_template(
+    user_name: &str,
+    skill_name: &str,
+    target_name: &str,
+    dmg: Num,
+    dmg_type: DamageType,
+    num_attucks: u32,
+) -> String {
+    let type_str = match dmg_type {
+        DamageType::Magic => "魔法",
+        DamageType::Physics => "物理",
+    };
+
+    format!(
+        "{user_name}が{skill_name}を発動!!{target_name}に{}点の{type_str}ダメージを{num_attucks}回与えた。",
         dmg.round() as u32
     )
 }

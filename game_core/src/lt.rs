@@ -127,10 +127,9 @@ impl Char {
         self.hate += hate;
     }
 
-    pub(crate) fn heal_skill_cooltime(&mut self) {
-        let heal = self.skill_cootime_heal();
+    pub(crate) fn heal_skill_cooltime(&mut self, num: SkillCooltimeNum) {
         self.skills.iter_mut().for_each(|s| {
-            s.heal_skill_cooltime(heal);
+            s.heal_skill_cooltime(num);
         });
     }
 
