@@ -1,0 +1,10 @@
+[package]
+name = "game_core3"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+dyn-clone = "1.0.20"
+enum_dispatch = "0.3.13"
+rand = "0.9.2"
+thiserror = "2.0.17"
