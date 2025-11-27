@@ -8,6 +8,17 @@ pub enum StaticCharId {
     Asya,
 }
 
+impl std::fmt::Display for StaticCharId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Asya => f.write_str("Asya"),
+            Self::Elena => f.write_str("Elena"),
+            Self::Yura => f.write_str("Yura"),
+            Self::Yuuko => f.write_str("Yuuko"),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct StaticCharData {
     pub id: StaticCharId,

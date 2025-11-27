@@ -1,9 +1,9 @@
-use crate::{LevelNum, StatusNum, potential::Potential};
+use crate::{LevelNum, MpNum, StatusNum, passive::list::PassiveList, potential::Potential};
 
 #[derive(Debug, Clone)]
 pub struct LtCommon {
     // pub passive: PassiveList,
-    // passive: PassiveList,
+    passive: PassiveList,
     potential: &'static Potential,
     level: LevelNum,
     hp: StatusNum,
@@ -17,7 +17,7 @@ impl LtCommon {
             level,
             hp: 0.0,
             is_enemy,
-            // passive: PassiveList::default(),
+            passive: PassiveList::default(),
         };
 
         tmp.hp = tmp.max_hp();
@@ -93,17 +93,17 @@ impl LtCommon {
         }
     }
 
-    // pub fn recv_magic_dmg_mag(&self) -> StatusNum {
-    //     self.passive.status().recv_magic_dmg_mag
-    // }
+    pub fn recv_magic_dmg_mag(&self) -> StatusNum {
+        self.passive.status().recv_magic_dmg_mag
+    }
 
-    // pub fn recv_physics_dmg_mag(&self) -> StatusNum {
-    //     self.passive.status().recv_physics_dmg_mag
-    // }
+    pub fn recv_physics_dmg_mag(&self) -> StatusNum {
+        self.passive.status().recv_physics_dmg_mag
+    }
 
-    // pub fn add_heal_mp(&self) -> MpNum {
-    //     self.passive.status().add_heal_mp
-    // }
+    pub fn add_heal_mp(&self) -> MpNum {
+        self.passive.status().add_heal_mp
+    }
 
     pub fn is_dead(&self) -> bool {
         self.hp <= 0.0

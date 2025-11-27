@@ -7,6 +7,10 @@ pub mod potential;
 pub mod lt_common;
 pub mod passive;
 pub mod buttle_char;
+pub mod args;
+pub mod error;
+
+pub use error::Error;
 
 pub type MpNum = u32;
 pub type LevelNum = u32;
@@ -14,3 +18,6 @@ pub type StatusNum = f32;
 pub type TurnNum = u8;
 pub type CooldownNum = u32;
 pub type HateNum = u32;
+
+pub const NUM_MAX_CHAR_IN_TEAM: usize = 4;
+pub const NUM_MAX_LEARN_SKILLS: usize = 6;

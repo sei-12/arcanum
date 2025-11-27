@@ -1,5 +1,5 @@
 use crate::{
-    event::{Event, EventsQue},
+    event::EventsQue,
     state::GameState,
 };
 
@@ -28,6 +28,7 @@ impl Skill {
     }
 }
 
+#[derive(Debug, Clone)]
 pub enum StaticSkillId {
     Fireball,
     Waterball,

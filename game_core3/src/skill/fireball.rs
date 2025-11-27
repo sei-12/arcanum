@@ -1,4 +1,4 @@
-use crate::skill::{SkillTrait, fireball};
+use crate::skill::SkillTrait;
 
 #[derive(Debug, Clone)]
 pub struct Fireball;
