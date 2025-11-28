@@ -6,7 +6,7 @@ use std::{
 use crate::{
     event::{Event, EventsQuePusher},
     passive::{
-        PassiveRuntimeId, PassiveUpdateStateError, PassiveUpdateStateMessage,
+        PassiveUpdateStateError, PassiveUpdateStateMessage, RuntimePassiveId,
         cached_status::CachedPassiveStatus, status::PassiveStatus, traits::Passive,
     },
     state::{GameState, LtId},
@@ -15,10 +15,10 @@ use crate::{
 #[derive(Debug, Clone, thiserror::Error)]
 pub enum PassiveListError {
     #[error("該当する要素が見つかりませんでした: id={0}")]
-    NotFoundPassive(PassiveRuntimeId),
+    NotFoundPassive(RuntimePassiveId),
 
     #[error("同じIDを持つ要素がすでに存在します: id={0}")]
-    AlreadyExists(PassiveRuntimeId),
+    AlreadyExists(RuntimePassiveId),
 
     #[error("{0}")]
     UpdateError(#[from] PassiveUpdateStateError),
@@ -26,7 +26,7 @@ pub enum PassiveListError {
 
 #[derive(Debug, Clone)]
 pub struct PassiveList {
-    runtime_id_map: HashMap<PassiveRuntimeId, Box<dyn Passive>>,
+    runtime_id_map: HashMap<RuntimePassiveId, Box<dyn Passive>>,
     static_id_map: HashMap<TypeId, u16>,
     status_cache: CachedPassiveStatus,
     added_order: AddedOrder,
@@ -71,7 +71,7 @@ impl PassiveList {
 
     pub fn update_state(
         &mut self,
-        id: PassiveRuntimeId,
+        id: RuntimePassiveId,
         state: &PassiveUpdateStateMessage,
     ) -> Result<(), PassiveListError> {
         let passive = self
@@ -89,7 +89,7 @@ impl PassiveList {
         Ok(())
     }
 
-    fn trash_passive(&mut self, id: PassiveRuntimeId) {
+    fn trash_passive(&mut self, id: RuntimePassiveId) {
         debug_assert!(self.runtime_id_map.contains_key(&id));
 
         let passive = self.runtime_id_map.remove(&id).unwrap();
@@ -127,7 +127,11 @@ impl PassiveList {
 /// sortして前にくる値が実行優先度が高い
 fn event_exec_priority(event: &Event) -> u8 {
     match event {
-        Event::UpdatePassiveState => 0,
+        Event::UpdatePassiveState {
+            msg: _,
+            target: _,
+            passive_id: _,
+        } => 0,
         _ => 1,
     }
 }
@@ -160,8 +164,8 @@ impl PassiveList {
 #[derive(Debug, Clone)]
 struct AddedOrder {
     count: u64,
-    sorted: BTreeMap<u64, PassiveRuntimeId>,
-    runtime_id_to_count: HashMap<PassiveRuntimeId, u64>,
+    sorted: BTreeMap<u64, RuntimePassiveId>,
+    runtime_id_to_count: HashMap<RuntimePassiveId, u64>,
 }
 
 impl AddedOrder {
@@ -173,11 +177,11 @@ impl AddedOrder {
         }
     }
 
-    fn iter(&self) -> impl Iterator<Item = PassiveRuntimeId> {
+    fn iter(&self) -> impl Iterator<Item = RuntimePassiveId> {
         self.sorted.values().copied()
     }
 
-    fn add(&mut self, id: PassiveRuntimeId) {
+    fn add(&mut self, id: RuntimePassiveId) {
         self.count += 1;
         let old_item = self.sorted.insert(self.count, id);
         if old_item.is_some() {
@@ -186,7 +190,7 @@ impl AddedOrder {
         self.runtime_id_to_count.insert(id, self.count);
     }
 
-    fn remove_expect(&mut self, id: PassiveRuntimeId) {
+    fn remove_expect(&mut self, id: RuntimePassiveId) {
         let count = self
             .runtime_id_to_count
             .remove(&id)

@@ -3,14 +3,14 @@ use crate::{
     state::{GameState, LtId, chars::RuntimeCharId},
 };
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DamageType {
     Magic,
     Physics,
     Fixed,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DamageCauser {
     Enemy,
     Char(RuntimeCharId),
@@ -25,7 +25,7 @@ impl From<LtId> for DamageCauser {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Damage {
     causer: DamageCauser,
     target: LtId,
@@ -53,6 +53,18 @@ impl Damage {
 }
 
 impl Damage {
+    pub(crate) fn new_hp_per_dmg(state: &GameState, target_id: LtId, per: StatusNum) -> Self {
+        assert!(per >= 0.0);
+        let target = state.get_lt(target_id);
+        let dmg = target.hp() * per;
+        Self {
+            causer: DamageCauser::None,
+            target: target_id,
+            ty: DamageType::Fixed,
+            dmg,
+        }
+    }
+
     pub(crate) fn new_magic_damage(
         state: &GameState,
         attucker_id: LtId,

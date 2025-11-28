@@ -9,8 +9,8 @@ pub(crate) mod public_passive;
 pub mod status;
 pub mod traits;
 
-pub type PassiveRuntimeId = u32;
-pub(crate) fn gen_passive_runtime_id() -> PassiveRuntimeId {
+pub type RuntimePassiveId = u32;
+pub(crate) fn gen_passive_runtime_id() -> RuntimePassiveId {
     let mut rng = rng();
     rng.random()
 }

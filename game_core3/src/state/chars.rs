@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
 pub struct RuntimeCharId {
     idx: usize,
 }

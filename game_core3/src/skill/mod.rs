@@ -4,22 +4,40 @@ use crate::{
     CooldownNum, HateNum, MpNum, buttle_char::ButtleChar, event::EventsQuePusher, state::GameState,
 };
 mod fireball;
-mod waterball;
+// mod waterball;
 
 pub mod skills;
+
+pub struct SkillDocument {
+    need_mp: MpNum,
+    hate: HateNum,
+    cooldown: CooldownNum,
+    text: &'static str,
+    name: &'static str,
+}
 
 #[enum_dispatch::enum_dispatch]
 pub trait SkillTrait: Debug + Clone {
     fn id(&self) -> StaticSkillId;
-    fn name(&self) -> &'static str;
-    fn text(&self) -> &'static str;
+    fn document(&self) -> &'static SkillDocument;
     fn call(
         &self,
         user: &ButtleChar,
         state: &GameState,
         events: &mut impl EventsQuePusher,
     ) -> SkillResult;
-    fn useable(&self, user: &ButtleChar, state: &GameState);
+
+    fn useable(&self, user: &ButtleChar, state: &GameState) -> bool {
+        let cooldown = user.skills.get(self.id()).unwrap().cooldown == 0;
+        let mp = self.need_mp(user, state) <= state.player_mp();
+        cooldown && mp
+    }
+
+    #[allow(unused_variables)]
+    fn need_mp(&self, user: &ButtleChar, state: &GameState) -> MpNum {
+        self.document().need_mp
+    }
+
     fn initialize_cooldown(&self) -> CooldownNum {
         0
     }
@@ -30,9 +48,10 @@ pub struct SkillResult {
     hate: HateNum,
     cooldown: CooldownNum,
 }
+
 impl SkillResult {
     pub(crate) fn to_events(&self, events: &mut impl EventsQuePusher) {
-        todo!()
+        // events.push(Eve);
     }
 }
 
@@ -40,14 +59,14 @@ impl SkillResult {
 #[enum_dispatch::enum_dispatch(SkillTrait)]
 pub enum StaticSkill {
     Fireball(fireball::Fireball),
-    Waterball(waterball::Waterball),
+    // Waterball(waterball::Waterball),
 }
 
 impl StaticSkill {
     fn new(id: StaticSkillId) -> Self {
         match id {
             StaticSkillId::Fireball => StaticSkill::Fireball(fireball::Fireball::new()),
-            StaticSkillId::Waterball => StaticSkill::Waterball(waterball::Waterball::new()),
+            // StaticSkillId::Waterball => StaticSkill::Waterball(waterball::Waterball::new()),
         }
     }
 }
@@ -55,7 +74,7 @@ impl StaticSkill {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum StaticSkillId {
     Fireball,
-    Waterball,
+    // Waterball,
 }
 
 #[derive(Debug, Clone)]

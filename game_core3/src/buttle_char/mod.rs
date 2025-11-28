@@ -4,7 +4,7 @@ use crate::{
     args::CharData,
     lt_common::LtCommon,
     skill::skills::ButtleSkills,
-    state::chars::RuntimeCharId,
+    state::{LtId, chars::RuntimeCharId},
     static_char::StaticCharData,
 };
 #[derive(Debug, Clone)]
@@ -59,6 +59,10 @@ impl ButtleChar {
 
     pub fn lt_mut(&mut self) -> &mut LtCommon {
         &mut self.lt_common
+    }
+    
+    pub fn lt_id(&self) -> LtId {
+        LtId::Char(self.runtime_id)
     }
 }
 

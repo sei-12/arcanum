@@ -74,6 +74,7 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
     }
 
     fn enemy_turn_start(&mut self, events: &mut EventsQue) {
+        events.push(event::Event::TurnStart(crate::state::Side::Enemy));
         events.push(event::Event::HealMp {
             side: crate::state::Side::Enemy,
             mp: TURN_START_HEAL_MP_NUM + self.state.enemy().lt().passive.status().add_heal_mp,
@@ -92,6 +93,7 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
     }
 
     fn player_turn_start(&mut self, events: &mut EventsQue) {
+        events.push(event::Event::TurnStart(crate::state::Side::Player));
         let heal_mp = {
             let sum: MpNum = self
                 .state

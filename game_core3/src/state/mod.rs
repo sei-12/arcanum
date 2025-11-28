@@ -1,5 +1,5 @@
 use crate::{
-    GameResult,
+    GameResult, MpNum,
     buttle_enemy::ButtleEnemy,
     event::Event,
     lt_common::LtCommon,
@@ -8,7 +8,7 @@ use crate::{
 
 pub mod chars;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LtId {
     Enemy,
     Char(RuntimeCharId),
@@ -53,5 +53,9 @@ impl GameState {
             return Some(GameResult::Win);
         }
         None
+    }
+
+    pub fn player_mp(&self) -> MpNum {
+        todo!()
     }
 }

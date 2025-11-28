@@ -3,14 +3,14 @@ use std::any::Any;
 use crate::{
     TurnNum,
     passive::{
-        DisplayPassiveInfo, PassiveRuntimeId, PassiveUpdateStateError, PassiveUpdateStateMessage,
+        DisplayPassiveInfo, RuntimePassiveId, PassiveUpdateStateError, PassiveUpdateStateMessage,
         gen_passive_runtime_id, status::PassiveStatus, traits::Passive,
     },
 };
 
 #[derive(Debug, Clone)]
 pub struct Burn {
-    id: PassiveRuntimeId,
+    id: RuntimePassiveId,
     turns: TurnNum,
     header: String,
 }
@@ -40,7 +40,7 @@ impl Passive for Burn {
         })
     }
 
-    fn runtime_id(&self) -> crate::passive::PassiveRuntimeId {
+    fn runtime_id(&self) -> crate::passive::RuntimePassiveId {
         self.id
     }
 
