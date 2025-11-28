@@ -1,5 +1,4 @@
 pub mod event;
-pub mod game_state;
 pub mod skill;
 pub mod state;
 pub mod static_char;
@@ -9,7 +8,11 @@ pub mod passive;
 pub mod buttle_char;
 pub mod args;
 pub mod error;
+pub mod screen_actor;
+pub mod container;
+pub mod buttle_enemy;
 
+mod common;
 pub use error::Error;
 
 pub type MpNum = u32;
@@ -21,3 +24,4 @@ pub type HateNum = u32;
 
 pub const NUM_MAX_CHAR_IN_TEAM: usize = 4;
 pub const NUM_MAX_LEARN_SKILLS: usize = 6;
+pub const TURN_START_HEAL_MP_NUM: MpNum = 100;

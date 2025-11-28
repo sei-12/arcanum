@@ -6,11 +6,10 @@ use std::{
 use dyn_clone::DynClone;
 
 use crate::{
-    passive::{
+    event::Event, passive::{
         DisplayPassiveInfo, PassiveRuntimeId, PassiveUpdateStateError, PassiveUpdateStateMessage,
-        passive_events, status::PassiveStatus,
-    },
-    state::{GameState, LtId},
+ status::PassiveStatus,
+    }, state::{GameState, LtId}
 };
 
 pub trait Passive: DynClone + Debug + Send + 'static {
@@ -33,11 +32,11 @@ pub trait Passive: DynClone + Debug + Send + 'static {
     fn status(&self, status: &mut PassiveStatus) {}
 
     #[allow(unused_variables)]
-    fn turn_start(
+    fn trigger_turn_start(
         &self,
         owner: LtId,
         state: &GameState,
-        effects: &mut Vec<passive_events::PassiveEvent>,
+        effects: &mut Vec<Event>,
     ) {
     }
 }

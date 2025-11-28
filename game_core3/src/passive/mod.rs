@@ -4,7 +4,7 @@ use rand::{Rng, rng};
 
 mod cached_status;
 pub mod list;
-pub mod passive_events;
+// pub mod passive_events;
 pub(crate) mod public_passive;
 pub mod status;
 pub mod traits;

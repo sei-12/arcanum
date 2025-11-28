@@ -3,7 +3,7 @@ use crate::{LevelNum, MpNum, StatusNum, passive::list::PassiveList, potential::P
 #[derive(Debug, Clone)]
 pub struct LtCommon {
     // pub passive: PassiveList,
-    passive: PassiveList,
+    pub passive: PassiveList,
     potential: &'static Potential,
     level: LevelNum,
     hp: StatusNum,

@@ -12,7 +12,6 @@ pub struct ButtleChars {
     chars: Vec<ButtleChar>,
 }
 
-
 impl ButtleChars {
     pub(crate) fn new(char_datas: &[args::CharData]) -> Result<Self, crate::Error> {
         if char_datas.is_empty() || char_datas.len() > NUM_MAX_CHAR_IN_TEAM {
@@ -44,7 +43,7 @@ impl ButtleChars {
                 .all(|(i, (buttle_char, char_data))| {
                     buttle_char.runtime_id().idx == i
                         && buttle_char.static_data().id == char_data.static_char_id
-                        && buttle_char.level() == char_data.level
+                        && buttle_char.lt().level() == char_data.level
                 })
         });
 
@@ -148,7 +147,7 @@ mod tests {
             chars.get_char(elena.runtime_id()).static_data().id,
             StaticCharId::Elena
         );
-        assert_eq!(elena.level(), 1);
+        assert_eq!(elena.lt().level(), 1);
     }
 
     #[test]

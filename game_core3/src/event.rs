@@ -1,9 +1,12 @@
+use crate::{MpNum, state::Side};
 
-pub trait EventsQue {
+pub trait EventsQuePusher {
     fn push(&mut self, event: Event);
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Event {
-    Damage
+    Damage,
+    HealMp { side: Side, mp: MpNum },
+    UpdatePassiveState,
 }
