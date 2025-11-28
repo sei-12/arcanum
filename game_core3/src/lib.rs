@@ -11,6 +11,7 @@ pub mod error;
 pub mod screen_actor;
 pub mod container;
 pub mod buttle_enemy;
+pub mod damage;
 
 pub use error::Error;
 

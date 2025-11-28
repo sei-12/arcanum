@@ -2,6 +2,7 @@ use crate::{
     GameResult,
     buttle_enemy::ButtleEnemy,
     event::Event,
+    lt_common::LtCommon,
     state::chars::{ButtleChars, RuntimeCharId},
 };
 
@@ -35,6 +36,13 @@ impl GameState {
 
     pub fn enemy(&self) -> &ButtleEnemy {
         &self.enemy
+    }
+
+    pub fn get_lt(&self, lt_id: LtId) -> &LtCommon {
+        match lt_id {
+            LtId::Char(id) => self.chars().get_char(id).lt(),
+            LtId::Enemy => self.enemy().lt(),
+        }
     }
 
     pub fn check_game_end(&self) -> Option<GameResult> {
