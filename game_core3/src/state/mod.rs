@@ -21,10 +21,11 @@ pub enum Side {
     Enemy,
 }
 
+#[derive(Debug)]
 pub struct GameState {
     focused_enemy: Option<RuntimeEnemyId>,
     chars: ButtleChars,
-    enemys: ButtleEnemys,
+    enemys: ButtleEnemys<ButtleEnemy>,
 }
 
 impl GameState {
@@ -36,7 +37,7 @@ impl GameState {
         &self.chars
     }
 
-    pub fn enemys(&self) -> &ButtleEnemys {
+    pub fn enemys(&self) -> &ButtleEnemys<ButtleEnemy> {
         &self.enemys
     }
 
@@ -58,16 +59,11 @@ impl GameState {
         let f = self.focused_enemy();
 
         // Optionをinto_iterするとSomeの場合は要素が追加され、Noneの場合は何も追加されない
-        f.into_iter().chain(
-            self.enemys
-                .current_wave_enemys()
-                .iter()
-                .filter(move |enemy| {
-                    let is_not_focused_enemy =
-                        Some(enemy.runtime_id()) != f.map(|f| f.runtime_id());
-                    !enemy.lt().is_dead() && is_not_focused_enemy
-                }),
-        )
+        f.into_iter()
+            .chain(self.enemys.current_wave_enemys().filter(move |enemy| {
+                let is_not_focused_enemy = Some(enemy.runtime_id()) != f.map(|f| f.runtime_id());
+                !enemy.lt().is_dead() && is_not_focused_enemy
+            }))
     }
 
     pub fn get_lt(&self, lt_id: LtId) -> &LtCommon {

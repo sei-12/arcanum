@@ -92,7 +92,6 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
                 .state
                 .enemys()
                 .current_wave_enemys()
-                .iter()
                 .map(|enemy| enemy.lt().add_heal_mp())
                 .sum();
 
@@ -107,16 +106,12 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
             return;
         };
 
-        self.state
-            .enemys()
-            .current_wave_enemys()
-            .iter()
-            .for_each(|enemy| {
-                enemy
-                    .lt()
-                    .passive
-                    .trigger_turn_start(enemy.lt_id(), &self.state, events);
-            });
+        self.state.enemys().current_wave_enemys().for_each(|enemy| {
+            enemy
+                .lt()
+                .passive
+                .trigger_turn_start(enemy.lt_id(), &self.state, events);
+        });
 
         self.accept_events(events);
     }
