@@ -24,6 +24,8 @@ pub struct DisplayPassiveInfo<'a> {
 #[derive(Debug, Clone)]
 pub enum PassiveUpdateStateMessage {
     DecrimentTurns,
+
+    UniqueBleeding(u8),
 }
 
 #[derive(Debug, Clone, thiserror::Error)]

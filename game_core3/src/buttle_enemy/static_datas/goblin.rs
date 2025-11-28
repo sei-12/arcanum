@@ -1,6 +1,11 @@
 use crate::{
     buttle_enemy::{
-        skill::{hikkaku, isinage},
+        skill::{
+            // EnemySkill,
+            // hikkaku::{self, Hikkaku},
+            hikkaku,
+            isinage,
+        },
         static_datas::{EnemyAbility, EnemyActionText, StaticEnemyTrait},
     },
     potential::Potential,
@@ -41,9 +46,9 @@ impl StaticEnemyTrait for Goblin {
         &[
             EnemyActionText::IfThenReturn {
                 condition: "SPが80以上ある",
-                skill_name: hikkaku::SKILL_NAME,
+                skill_doc: &hikkaku::DOCUMENT,
             },
-            EnemyActionText::Normal(isinage::SKILL_NAME),
+            EnemyActionText::Normal(&isinage::DOCUMENT),
         ]
     }
 }

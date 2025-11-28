@@ -94,16 +94,16 @@ impl LtCommon {
     }
 
     pub fn recv_magic_dmg_mag(&self) -> StatusNum {
-        self.passive.status().recv_magic_dmg_mag
+        self.passive.status().recv_magic_dmg_mag.get()
     }
 
     pub fn recv_physics_dmg_mag(&self) -> StatusNum {
-        self.passive.status().recv_physics_dmg_mag
+        self.passive.status().recv_physics_dmg_mag.get()
     }
 
-    pub fn add_heal_mp(&self) -> MpNum {
-        self.passive.status().add_heal_mp
-    }
+    // pub fn add_heal_mp(&self) -> MpNum {
+    //     self.passive.status().add_heal_mp
+    // }
 
     pub fn is_dead(&self) -> bool {
         self.hp <= 0.0

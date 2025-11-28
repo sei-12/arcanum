@@ -4,6 +4,7 @@ use std::{
 };
 
 use crate::{
+    enemys,
     event::{Event, EventsQuePusher},
     passive::{
         PassiveUpdateStateError, PassiveUpdateStateMessage, RuntimePassiveId,
@@ -29,6 +30,7 @@ pub struct PassiveList {
     runtime_id_map: HashMap<RuntimePassiveId, Box<dyn Passive>>,
     static_id_map: HashMap<TypeId, u16>,
     status_cache: CachedPassiveStatus,
+    should_merge_passives: HashMap<TypeId, RuntimePassiveId>,
     added_order: AddedOrder,
 }
 
@@ -39,6 +41,7 @@ impl Default for PassiveList {
             static_id_map: HashMap::default(),
             status_cache: CachedPassiveStatus::new(),
             added_order: AddedOrder::new(),
+            should_merge_passives: HashMap::default(),
         }
     }
 }
@@ -48,11 +51,31 @@ impl PassiveList {
         self.static_id_map.contains_key(&static_id)
     }
 
+    fn merge(&mut self, passive: Box<dyn Passive>) {
+        let runtime_id = self
+            .should_merge_passives
+            .get(&passive.static_id())
+            .unwrap();
+
+        let Entry::Occupied(mut entry) = self.runtime_id_map.entry(*runtime_id) else {
+            panic!()
+        };
+
+        entry.get_mut().merge(passive);
+    }
+
     /// 重複するruntime_idを持つ要素がすでに存在している場合はエラーになります
     /// エラーになった場合変更が加えられないことが保証されています
     pub fn add(&mut self, passive: Box<dyn Passive>) -> Result<(), PassiveListError> {
         let static_id = passive.static_id();
         let runtime_id = passive.runtime_id();
+        let should_merge = passive.should_merge_type();
+
+        if self.should_merge_passives.contains_key(&static_id) {
+            debug_assert!(!self.runtime_id_map.contains_key(&runtime_id));
+            self.merge(passive);
+            return Ok(());
+        }
 
         match self.runtime_id_map.entry(passive.runtime_id()) {
             Entry::Vacant(entry) => {
@@ -63,6 +86,9 @@ impl PassiveList {
             }
         }
 
+        if should_merge {
+            self.should_merge_passives.insert(static_id, runtime_id);
+        }
         *self.static_id_map.entry(static_id).or_insert(1) += 1;
         self.added_order.add(runtime_id);
 
@@ -101,6 +127,7 @@ impl PassiveList {
             }
         }
 
+        self.should_merge_passives.remove(&passive.static_id());
         self.added_order.remove_expect(id);
     }
 

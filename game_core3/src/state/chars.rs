@@ -95,6 +95,11 @@ impl ButtleChars {
     pub fn chars(&self) -> &Vec<ButtleChar> {
         &self.chars
     }
+
+    pub(crate) fn get_highest_hate_char(&self) -> &ButtleChar {
+        assert!(!self.chars.is_empty());
+        self.chars.iter().max_by_key(|char| char.hate()).unwrap()
+    }
 }
 
 //--------------------------------------------------//

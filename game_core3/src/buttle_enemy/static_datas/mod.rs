@@ -1,7 +1,8 @@
 use std::fmt::Debug;
 
 use crate::{
-    enemys::RuntimeEnemyId, event::EventsQuePusher, potential::Potential, state::GameState,
+    buttle_enemy::skill::EnemySkillDocument, enemys::RuntimeEnemyId, event::EventsQuePusher,
+    potential::Potential, state::GameState,
 };
 
 pub mod goblin;
@@ -42,13 +43,13 @@ pub enum StaticEnemyId {
 //--------------------------------------------------//
 
 pub enum EnemyActionText {
-    /// もし{condition}なら「{skill_name}」を行い、行動を終了する。
+    /// もし{condition}なら「{skill_doc.name}」を行い、行動を終了する。
     IfThenReturn {
         condition: &'static str,
-        skill_name: &'static str,
+        skill_doc: &'static EnemySkillDocument,
     },
-    /// 「{0}」を行う。
-    Normal(&'static str),
+    /// 「{0.name}」を行う。
+    Normal(&'static EnemySkillDocument),
 }
 
 impl EnemyActionText {
@@ -56,12 +57,15 @@ impl EnemyActionText {
         match self {
             EnemyActionText::IfThenReturn {
                 condition,
-                skill_name,
+                skill_doc,
             } => {
-                format!("もし{condition}なら「{skill_name}」を行い、行動を終了する")
+                format!(
+                    "もし{condition}なら「{}」を行い、行動を終了する",
+                    skill_doc.name
+                )
             }
-            EnemyActionText::Normal(skill_name) => {
-                format!("「{skill_name}」を行う")
+            EnemyActionText::Normal(skill_doc) => {
+                format!("「{}」を行う", skill_doc.name)
             }
         }
     }

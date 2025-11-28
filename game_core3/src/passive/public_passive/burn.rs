@@ -31,6 +31,10 @@ impl Burn {
     }
 }
 
+struct MergeState {
+    turns: TurnNum,
+}
+
 impl Passive for Burn {
     fn display(&'_ self) -> Option<crate::passive::DisplayPassiveInfo<'_>> {
         Some(DisplayPassiveInfo {
@@ -57,7 +61,23 @@ impl Passive for Burn {
     fn status(&self, status: &mut PassiveStatus) {
         assert!(!self.should_trash());
 
-        status.recv_magic_dmg_mag *= 1.1;
+        status.recv_magic_dmg_mag.mul(1.1);
+    }
+
+    fn should_merge_type(&self) -> bool {
+        true
+    }
+
+    fn merge_state(&self) -> Option<Box<dyn Any>> {
+        Some(Box::new(MergeState { turns: self.turns }))
+    }
+
+    fn merge(&mut self, passive: Box<dyn Passive>) {
+        assert_eq!(self.static_id(), passive.static_id());
+        let state_box = passive.merge_state().unwrap();
+        let state = state_box.downcast_ref::<MergeState>().unwrap();
+        self.turns += state.turns;
+        self.header = Self::header(self.turns);
     }
 
     fn trigger_turn_start(
@@ -91,9 +111,12 @@ impl Passive for Burn {
     ) -> Result<(), PassiveUpdateStateError> {
         assert!(!self.should_trash());
 
-        match msg {
+        match &msg {
             PassiveUpdateStateMessage::DecrimentTurns => {
                 self.turns -= 1;
+            }
+            _ => {
+                return Err(PassiveUpdateStateError::UnexpectedMessage(msg.clone()));
             }
         }
         Ok(())

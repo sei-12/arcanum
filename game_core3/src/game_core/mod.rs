@@ -89,19 +89,19 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
 
     fn enemy_turn_start(&mut self, events: &mut EventsQue) {
         events.push(event::Event::TurnStart(crate::state::Side::Enemy));
-        let heal_mp = {
-            let sum: MpNum = self
-                .state
-                .enemys()
-                .current_wave_enemys()
-                .map(|enemy| enemy.lt().add_heal_mp())
-                .sum();
+        // let heal_mp = {
+        //     let sum: MpNum = self
+        //         .state
+        //         .enemys()
+        //         .current_wave_enemys()
+        //         .map(|enemy| enemy.lt().add_heal_mp())
+        //         .sum();
 
-            TURN_START_HEAL_MP_NUM + sum
-        };
+        //     TURN_START_HEAL_MP_NUM + sum
+        // };
         events.push(event::Event::HealMp {
             side: crate::state::Side::Enemy,
-            mp: heal_mp,
+            mp: TURN_START_HEAL_MP_NUM,
         });
 
         if self.accept_events(events) {
@@ -120,19 +120,19 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
 
     fn player_turn_start(&mut self, events: &mut EventsQue) {
         events.push(event::Event::TurnStart(crate::state::Side::Player));
-        let heal_mp = {
-            let sum: MpNum = self
-                .state
-                .chars()
-                .chars()
-                .iter()
-                .map(|char| char.lt().passive.status().add_heal_mp)
-                .sum();
-            TURN_START_HEAL_MP_NUM + sum
-        };
+        // let heal_mp = {
+        //     let sum: MpNum = self
+        //         .state
+        //         .chars()
+        //         .chars()
+        //         .iter()
+        //         .map(|char| char.lt().passive.status().add_heal_mp)
+        //         .sum();
+        //     TURN_START_HEAL_MP_NUM + sum
+        // };
         events.push(event::Event::HealMp {
             side: crate::state::Side::Player,
-            mp: heal_mp,
+            mp: TURN_START_HEAL_MP_NUM,
         });
 
         if self.accept_events(events) {
