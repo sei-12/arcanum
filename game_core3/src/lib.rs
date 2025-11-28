@@ -12,7 +12,6 @@ pub mod screen_actor;
 pub mod container;
 pub mod buttle_enemy;
 
-mod common;
 pub use error::Error;
 
 pub type MpNum = u32;

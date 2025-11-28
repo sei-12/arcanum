@@ -3,7 +3,7 @@ pub mod command;
 mod event_que;
 
 use crate::{
-    TURN_START_HEAL_MP_NUM,
+    MpNum, TURN_START_HEAL_MP_NUM,
     container::{command::GameCoreActorCommand, event_que::EventsQue},
     event::{self, EventsQuePusher},
     screen_actor::ScreenActorSender,
@@ -26,8 +26,8 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
             GameCoreActorCommand::TurnEnd => {
                 self.turn_end();
             }
-            _ => {
-                todo!()
+            GameCoreActorCommand::GameStart => {
+                self.game_start();
             }
         }
         Ok(())
@@ -58,6 +58,16 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
     fn turn_end(&mut self) {
         let mut events = EventsQue::default();
         self.enemy_turn_start(&mut events);
+        let enemy = self.state.enemy();
+        enemy.play_action(&self.state, &mut events);
+        self.accept_events(&mut events);
+
+        self.player_turn_start(&mut events);
+    }
+
+    fn game_start(&mut self) {
+        let mut events = EventsQue::default();
+        self.player_turn_start(&mut events);
     }
 
     fn enemy_turn_start(&mut self, events: &mut EventsQue) {
@@ -72,6 +82,35 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
         enemy
             .passive
             .trigger_turn_start(crate::state::LtId::Enemy, &self.state, events);
+
+        self.accept_events(events);
+    }
+
+    fn player_turn_start(&mut self, events: &mut EventsQue) {
+        let heal_mp = {
+            let sum: MpNum = self
+                .state
+                .chars()
+                .chars()
+                .iter()
+                .map(|char| char.lt().passive.status().add_heal_mp)
+                .sum();
+            TURN_START_HEAL_MP_NUM + sum
+        };
+        events.push(event::Event::HealMp {
+            side: crate::state::Side::Player,
+            mp: heal_mp,
+        });
+
+        self.accept_events(events);
+
+        self.state.chars().chars().iter().for_each(|char| {
+            char.lt().passive.trigger_turn_start(
+                crate::state::LtId::Char(char.runtime_id()),
+                &self.state,
+                events,
+            );
+        });
 
         self.accept_events(events);
     }

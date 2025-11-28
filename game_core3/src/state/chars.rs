@@ -91,6 +91,10 @@ impl ButtleChars {
 
         char
     }
+
+    pub fn chars(&self) -> &Vec<ButtleChar> {
+        &self.chars
+    }
 }
 
 //--------------------------------------------------//
