@@ -13,7 +13,6 @@ pub enum Error {
 
     #[error("保持していないスキルIDです: skill={skill:?}")]
     NotFoundSkill {
-        // char: StaticCharId,
         skill: StaticSkillId,
     },
     

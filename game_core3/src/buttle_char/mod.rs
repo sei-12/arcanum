@@ -10,7 +10,6 @@ use crate::{
 #[derive(Debug, Clone)]
 pub struct ButtleChar {
     static_data: &'static StaticCharData,
-    // char_idx: CharIdx,
     lt_common: LtCommon,
     pub skills: ButtleSkills,
     runtime_id: RuntimeCharId,
@@ -20,7 +19,6 @@ pub struct ButtleChar {
 impl ButtleChar {
     pub(crate) fn new(data: &CharData, runtime_id: RuntimeCharId) -> Self {
         let static_data = StaticCharData::get(data.static_char_id);
-        // let skills = ButtleSkills::new(&data.own_skill_ids)?;
 
         let lt_common = LtCommon::new(&static_data.potential, data.level, false);
         let skills = ButtleSkills::new(&data.own_skill_ids);
@@ -33,10 +31,6 @@ impl ButtleChar {
             hate: 0,
         }
     }
-
-    // pub(crate) fn is_have_skill(&self, skill_id: StaticSkillId) -> Result<(), crate::Error> {
-    //     todo!()
-    // }
 
     pub(crate) fn runtime_id(&self) -> RuntimeCharId {
         self.runtime_id
@@ -65,16 +59,3 @@ impl ButtleChar {
         LtId::Char(self.runtime_id)
     }
 }
-
-// impl Deref for ButtleChar {
-//     type Target = LtCommon;
-//     fn deref(&self) -> &Self::Target {
-//         &self.lt_common
-//     }
-// }
-
-// impl DerefMut for ButtleChar {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.lt_common
-//     }
-// }

@@ -1,8 +1,6 @@
 use crate::{
     buttle_enemy::{
         skill::{
-            // EnemySkill,
-            // hikkaku::{self, Hikkaku},
             hikkaku,
             isinage,
         },

@@ -172,7 +172,6 @@ impl GameState {
     }
 }
 
-// TODO: 適当な名前を考えて適当なファイルに書き直す
 pub enum CheckGameEndResult {
     Win,
     GoNextWave,

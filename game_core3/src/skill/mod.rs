@@ -7,7 +7,6 @@ use crate::{
     state::{GameState, chars::RuntimeCharId},
 };
 mod fireball;
-// mod waterball;
 
 pub mod skills;
 
@@ -80,14 +79,12 @@ impl SkillResult {
 #[enum_dispatch::enum_dispatch(SkillTrait)]
 pub enum StaticSkill {
     Fireball(fireball::Fireball),
-    // Waterball(waterball::Waterball),
 }
 
 impl StaticSkill {
     fn new(id: StaticSkillId) -> Self {
         match id {
             StaticSkillId::Fireball => StaticSkill::Fireball(fireball::Fireball::new()),
-            // StaticSkillId::Waterball => StaticSkill::Waterball(waterball::Waterball::new()),
         }
     }
 }
@@ -95,7 +92,6 @@ impl StaticSkill {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum StaticSkillId {
     Fireball,
-    // Waterball,
 }
 
 #[derive(Debug, Clone)]

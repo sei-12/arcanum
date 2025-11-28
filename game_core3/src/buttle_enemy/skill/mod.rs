@@ -1,5 +1,3 @@
-// pub mod isinage;
-
 use crate::SpNum;
 
 pub struct EnemySkillDocument {
