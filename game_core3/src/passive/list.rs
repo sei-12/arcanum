@@ -4,7 +4,6 @@ use std::{
 };
 
 use crate::{
-    enemys,
     event::{Event, EventsQuePusher},
     passive::{
         PassiveUpdateStateError, PassiveUpdateStateMessage, RuntimePassiveId,

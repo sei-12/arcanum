@@ -41,7 +41,7 @@ pub mod hikkaku {
         for _ in 0..damage_count {
             events.push(crate::event::Event::Damage(Damage::new_physics_damage(
                 state,
-                target.lt_id(),
+                user.lt_id(),
                 target.lt_id(),
                 dmg_mag,
             )));
@@ -57,11 +57,11 @@ pub mod hikkaku {
 }
 
 pub mod isinage {
-    use crate::buttle_enemy::skill::EnemySkillDocument;
+    use crate::{buttle_enemy::skill::EnemySkillDocument, damage::Damage};
     pub const DOCUMENT: EnemySkillDocument = EnemySkillDocument {
         need_sp: 0,
         name: "石投げ",
-        text: "",
+        text: "最もヘイト値の高いキャラクター1体に対して倍率0.3の物理ダメージを与える",
     };
 
     pub fn call(
@@ -69,5 +69,15 @@ pub mod isinage {
         state: &crate::state::GameState,
         events: &mut impl crate::event::EventsQuePusher,
     ) {
+        let target = state.chars().get_highest_hate_char();
+        let user = state.enemys().get(enemy_id);
+        let dmg_mag = 0.3;
+
+        events.push(crate::event::Event::Damage(Damage::new_physics_damage(
+            state,
+            user.lt_id(),
+            target.lt_id(),
+            dmg_mag,
+        )));
     }
 }

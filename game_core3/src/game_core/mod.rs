@@ -3,7 +3,7 @@ pub mod command;
 mod event_que;
 
 use crate::{
-    MpNum, TURN_START_HEAL_MP_NUM,
+     TURN_START_HEAL_MP_NUM,
     args::ContainerArgs,
     event::{self, Event, EventsQuePusher},
     game_core::{command::GameCoreActorCommand, event_que::EventsQue},

@@ -1,4 +1,4 @@
-use crate::{LevelNum, MpNum, StatusNum, passive::list::PassiveList, potential::Potential};
+use crate::{LevelNum, StatusNum, passive::list::PassiveList, potential::Potential};
 
 #[derive(Debug, Clone)]
 pub struct LtCommon {
@@ -32,24 +32,31 @@ impl LtCommon {
 //                                                  //
 //--------------------------------------------------//
 impl LtCommon {
+    /// 0.0以上であることが保証されている
     pub fn int(&self) -> StatusNum {
         self.potential.int()
     }
 
+    /// 0.0以上であることが保証されている
     pub fn dex(&self) -> StatusNum {
         self.potential.dex()
     }
 
+    /// 0.0以上であることが保証されている
     pub fn str(&self) -> StatusNum {
-        self.potential.str()
+        let tmp = self.potential.str() + self.passive.status().add_str;
+        if tmp < 0.0 { 0.0 } else { tmp }
     }
 
+    /// 0.0以上であることが保証されている
     pub fn vit(&self) -> StatusNum {
         self.potential.vit()
     }
 
+    /// 0.0以上であることが保証されている
     pub fn agi(&self) -> StatusNum {
-        self.potential.agi()
+        let tmp = self.potential.agi() + self.passive.status().add_agi;
+        if tmp < 0.0 { 0.0 } else { tmp }
     }
 }
 
@@ -70,11 +77,15 @@ impl LtCommon {
     pub fn magic_attuck(&self) -> StatusNum {
         let base = (self.int() * 3.0 + self.dex()) / 4.0;
         base * self.level_scale()
+            * self.passive.status().magic_attuck_mag_buff.get()
+            * self.passive.status().magic_attuck_mag_debuff.get()
     }
 
     pub fn physics_attuck(&self) -> StatusNum {
         let base = (self.str() * 3.0 + self.dex()) / 4.0;
         base * self.level_scale()
+            * self.passive.status().physics_attuck_mag_buff.get()
+            * self.passive.status().physics_attuck_mag_debuff.get()
     }
 
     pub fn max_hp(&self) -> StatusNum {
@@ -82,7 +93,11 @@ impl LtCommon {
         let hp_scale = 3.0;
         let enemy_hp_scale = { if self.is_enemy { 4.0 } else { 1.0 } };
 
-        base * hp_scale * enemy_hp_scale * self.level_scale()
+        base * hp_scale
+            * enemy_hp_scale
+            * self.level_scale()
+            * self.passive.status().max_hp_mag_buff.get()
+            * self.passive.status().max_hp_mag_debuff.get()
     }
 
     pub fn hp(&self) -> StatusNum {
@@ -100,10 +115,6 @@ impl LtCommon {
     pub fn recv_physics_dmg_mag(&self) -> StatusNum {
         self.passive.status().recv_physics_dmg_mag.get()
     }
-
-    // pub fn add_heal_mp(&self) -> MpNum {
-    //     self.passive.status().add_heal_mp
-    // }
 
     pub fn is_dead(&self) -> bool {
         self.hp <= 0.0

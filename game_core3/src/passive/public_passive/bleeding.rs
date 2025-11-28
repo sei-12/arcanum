@@ -30,6 +30,13 @@ impl Bleeding {
             header: Self::header(turns, 0),
         }
     }
+
+    fn add_bleed_count(&mut self, num: u8) {
+        self.bleed_count += num;
+        if self.bleed_count > 30 {
+            self.bleed_count = 30;
+        }
+    }
 }
 
 impl Passive for Bleeding {
@@ -42,6 +49,7 @@ impl Passive for Bleeding {
             ・出血量1につき物理攻撃力倍率0.96倍
             ・出血量が20以上ならSTR-1。
             ・出血量の最大値は30
+            ・効果は重複しない。重ねがけした場合はターン数と出血量を合算する。
             "
             .into(),
         })
@@ -61,8 +69,16 @@ impl Passive for Bleeding {
 
     fn status(&self, status: &mut PassiveStatus) {
         assert!(!self.should_trash());
+        assert!(self.bleed_count <= 30);
 
         status.recv_physics_dmg_mag.mul(1.05);
+        status
+            .physics_attuck_mag_debuff
+            .mul(0.96_f32.powi(self.bleed_count as i32));
+
+        if self.bleed_count >= 20 {
+            status.add_str -= 1.0;
+        }
     }
 
     fn trigger_turn_start(
@@ -104,10 +120,7 @@ impl Passive for Bleeding {
                 self.turns -= 1;
             }
             PassiveUpdateStateMessage::UniqueBleeding(num) => {
-                self.bleed_count += *num;
-                if self.bleed_count > 30 {
-                    self.bleed_count = 30;
-                }
+                self.add_bleed_count(*num);
             }
         }
 
@@ -121,7 +134,7 @@ impl Passive for Bleeding {
         let state_box = passive.merge_state().unwrap();
         let state = state_box.downcast_ref::<MergeState>().unwrap();
         self.turns += state.turns;
-        self.bleed_count += state.count;
+        self.add_bleed_count(state.count);
         self.header = Self::header(self.turns, self.bleed_count);
     }
 

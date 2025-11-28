@@ -1,6 +1,4 @@
-use rand::distr::StandardUniform;
-
-use crate::{MpNum, StatusNum};
+use crate::StatusNum;
 
 // メリット効果は加算 デメリット効果は乗算
 //
@@ -34,6 +32,7 @@ pub struct PassiveStatus {
     pub recv_physics_dmg_mag: RecvDamageMagnificationNum,
 
     pub add_agi: StatusNum,
+    pub add_str: StatusNum,
 }
 
 impl Default for PassiveStatus {
@@ -44,6 +43,7 @@ impl Default for PassiveStatus {
             recv_magic_dmg_mag: RecvDamageMagnificationNum::default(),
             recv_physics_dmg_mag: RecvDamageMagnificationNum::default(),
             add_agi: 0.0,
+            add_str: 0.0,
             magic_attuck_mag_buff: BuffMagnificationNum::default(),
             magic_attuck_mag_debuff: DebuffMagnificationNum::default(),
             physics_attuck_mag_buff: BuffMagnificationNum::default(),
@@ -87,7 +87,9 @@ impl Default for BuffMagnificationNum {
     }
 }
 impl BuffMagnificationNum {
+    /// 0以上が保証されている
     pub fn get(&self) -> StatusNum {
+        assert!(self.value >= 0.0);
         self.value
     }
     pub fn add(&mut self, buff: StatusNum) {
@@ -106,7 +108,9 @@ impl Default for DebuffMagnificationNum {
     }
 }
 impl DebuffMagnificationNum {
+    /// 0以上が保証されている
     pub fn get(&self) -> StatusNum {
+        assert!(self.value >= 0.0);
         self.value
     }
     pub fn mul(&mut self, buff: StatusNum) {
