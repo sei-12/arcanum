@@ -60,7 +60,10 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
         self.enemy_turn_start(&mut events);
         let enemy = self.state.enemy();
         enemy.play_action(&self.state, &mut events);
-        self.accept_events(&mut events);
+
+        if self.accept_events(&mut events) {
+            return;
+        };
 
         self.player_turn_start(&mut events);
     }
@@ -76,7 +79,9 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
             mp: TURN_START_HEAL_MP_NUM + self.state.enemy().lt().passive.status().add_heal_mp,
         });
 
-        self.accept_events(events);
+        if self.accept_events(events) {
+            return;
+        };
 
         let enemy = self.state.enemy().lt();
         enemy
@@ -102,7 +107,9 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
             mp: heal_mp,
         });
 
-        self.accept_events(events);
+        if self.accept_events(events) {
+            return;
+        };
 
         self.state.chars().chars().iter().for_each(|char| {
             char.lt().passive.trigger_turn_start(
@@ -115,10 +122,21 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
         self.accept_events(events);
     }
 
-    fn accept_events(&mut self, events: &mut EventsQue) {
+    /// 勝ちもしくは負けならtrue
+    fn accept_events(&mut self, events: &mut EventsQue) -> bool {
         while let Some(event) = events.pop() {
             self.state.accept_event(event.clone());
             self.screen_actor_sender.send(event);
+
+            if let Some(result) = self.state.check_game_end() {
+                events.clear();
+                let event = event::Event::GameEnd(result);
+                self.state.accept_event(event.clone());
+                self.screen_actor_sender.send(event);
+                return true;
+            }
         }
+
+        false
     }
 }

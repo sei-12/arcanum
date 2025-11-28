@@ -1,4 +1,5 @@
 use crate::{
+    GameResult,
     buttle_enemy::ButtleEnemy,
     event::Event,
     state::chars::{ButtleChars, RuntimeCharId},
@@ -12,7 +13,7 @@ pub enum LtId {
     Char(RuntimeCharId),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq,Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Side {
     Player,
     Enemy,
@@ -34,5 +35,15 @@ impl GameState {
 
     pub fn enemy(&self) -> &ButtleEnemy {
         &self.enemy
+    }
+
+    pub fn check_game_end(&self) -> Option<GameResult> {
+        if self.chars.chars().iter().any(|char| char.lt().is_dead()) {
+            return Some(GameResult::Lose);
+        }
+        if self.enemy.lt().is_dead() {
+            return Some(GameResult::Win);
+        }
+        None
     }
 }

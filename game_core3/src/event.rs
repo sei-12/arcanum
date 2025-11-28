@@ -1,4 +1,4 @@
-use crate::{MpNum, state::Side};
+use crate::{GameResult, MpNum, state::Side};
 
 pub trait EventsQuePusher {
     fn push(&mut self, event: Event);
@@ -9,4 +9,5 @@ pub enum Event {
     Damage,
     HealMp { side: Side, mp: MpNum },
     UpdatePassiveState,
+    GameEnd(GameResult)
 }

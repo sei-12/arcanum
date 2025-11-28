@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, ops::Deref};
 
 use crate::{
     CooldownNum, HateNum, MpNum, buttle_char::ButtleChar, event::EventsQuePusher, state::GameState,
@@ -20,6 +20,9 @@ pub trait SkillTrait: Debug + Clone {
         events: &mut impl EventsQuePusher,
     ) -> SkillResult;
     fn useable(&self, user: &ButtleChar, state: &GameState);
+    fn initialize_cooldown(&self) -> CooldownNum {
+        0
+    }
 }
 
 pub struct SkillResult {
@@ -35,16 +38,16 @@ impl SkillResult {
 
 #[derive(Debug, Clone)]
 #[enum_dispatch::enum_dispatch(SkillTrait)]
-pub enum Skill {
+pub enum StaticSkill {
     Fireball(fireball::Fireball),
     Waterball(waterball::Waterball),
 }
 
-impl Skill {
-    pub fn new(id: StaticSkillId) -> Self {
+impl StaticSkill {
+    fn new(id: StaticSkillId) -> Self {
         match id {
-            StaticSkillId::Fireball => Skill::Fireball(fireball::Fireball::new()),
-            StaticSkillId::Waterball => Skill::Waterball(waterball::Waterball::new()),
+            StaticSkillId::Fireball => StaticSkill::Fireball(fireball::Fireball::new()),
+            StaticSkillId::Waterball => StaticSkill::Waterball(waterball::Waterball::new()),
         }
     }
 }
@@ -53,4 +56,27 @@ impl Skill {
 pub enum StaticSkillId {
     Fireball,
     Waterball,
+}
+
+#[derive(Debug, Clone)]
+pub struct SkillWithState {
+    static_skill: StaticSkill,
+    cooldown: CooldownNum,
+}
+
+impl SkillWithState {
+    fn new(id: StaticSkillId) -> Self {
+        let static_skill = StaticSkill::new(id);
+        Self {
+            cooldown: static_skill.initialize_cooldown(),
+            static_skill,
+        }
+    }
+}
+
+impl Deref for SkillWithState {
+    type Target = StaticSkill;
+    fn deref(&self) -> &Self::Target {
+        &self.static_skill
+    }
 }
