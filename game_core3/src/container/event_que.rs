@@ -1,9 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::{
-    GameResult,
-    event::{self, Event},
-};
+use crate::event::{self, Event};
 
 #[derive(Debug, Clone, Default)]
 pub struct EventsQue {

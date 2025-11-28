@@ -1,10 +1,9 @@
-use std::ops::{Deref, DerefMut};
 
 use crate::{
     HateNum,
     args::CharData,
-    lt_common::{self, LtCommon},
-    skill::{StaticSkillId, skills::ButtleSkills},
+    lt_common::LtCommon,
+    skill::skills::ButtleSkills,
     state::chars::RuntimeCharId,
     static_char::StaticCharData,
 };

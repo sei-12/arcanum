@@ -1,6 +1,6 @@
 use crate::{
     CooldownNum,
-    skill::{SkillTrait, SkillWithState, StaticSkill, StaticSkillId},
+    skill::{SkillTrait, SkillWithState, StaticSkillId},
 };
 
 #[derive(Debug, Clone)]
