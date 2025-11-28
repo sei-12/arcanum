@@ -40,8 +40,13 @@ impl<T: ButtleEnemysItem> ButtleEnemys<T> {
             })
             .collect::<Vec<_>>();
 
-        assert!(!waves.is_empty());
-        debug_assert!({ waves.iter().all(|w| !w.is_empty()) });
+        assert_eq!(waves.len(), enemy_data.len());
+        debug_assert!({
+            waves
+                .iter()
+                .zip(enemy_data.iter())
+                .all(|(a, b)| a.len() == b.len())
+        });
 
         Self {
             current_wave_idx: 0,
