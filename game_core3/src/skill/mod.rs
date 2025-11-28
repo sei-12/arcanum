@@ -1,7 +1,10 @@
 use std::{fmt::Debug, ops::Deref};
 
 use crate::{
-    CooldownNum, HateNum, MpNum, buttle_char::ButtleChar, event::EventsQuePusher, state::GameState,
+    CooldownNum, HateNum, MpNum,
+    buttle_char::ButtleChar,
+    event::EventsQuePusher,
+    state::{GameState, chars::RuntimeCharId},
 };
 mod fireball;
 // mod waterball;
@@ -9,11 +12,11 @@ mod fireball;
 pub mod skills;
 
 pub struct SkillDocument {
-    need_mp: MpNum,
-    hate: HateNum,
-    cooldown: CooldownNum,
-    text: &'static str,
-    name: &'static str,
+    pub need_mp: MpNum,
+    pub hate: HateNum,
+    pub cooldown: CooldownNum,
+    pub text: &'static str,
+    pub name: &'static str,
 }
 
 #[enum_dispatch::enum_dispatch]
@@ -50,8 +53,26 @@ pub struct SkillResult {
 }
 
 impl SkillResult {
-    pub(crate) fn to_events(&self, events: &mut impl EventsQuePusher) {
-        // events.push(Eve);
+    pub(crate) fn to_events(
+        &self,
+        events: &mut impl EventsQuePusher,
+        user_id: RuntimeCharId,
+        skill_id: StaticSkillId,
+    ) {
+        events.push(crate::event::Event::ConsumeMp {
+            side: crate::state::Side::Player,
+            mp: self.consume_mp,
+        });
+        events.push(crate::event::Event::AddHate {
+            char_id: user_id,
+            hate: self.hate,
+        });
+
+        events.push(crate::event::Event::SetSkillCooldown {
+            char_id: user_id,
+            skill_id,
+            cooldown: self.cooldown,
+        });
     }
 }
 

@@ -1,4 +1,3 @@
-
 use crate::{
     HateNum,
     args::CharData,
@@ -7,6 +6,7 @@ use crate::{
     state::{LtId, chars::RuntimeCharId},
     static_char::StaticCharData,
 };
+
 #[derive(Debug, Clone)]
 pub struct ButtleChar {
     static_data: &'static StaticCharData,

@@ -9,7 +9,7 @@ pub mod buttle_char;
 pub mod args;
 pub mod error;
 pub mod screen_actor;
-pub mod container;
+pub mod game_core;
 pub mod buttle_enemy;
 pub mod damage;
 pub mod enemys;
@@ -17,6 +17,7 @@ pub mod enemys;
 pub use error::Error;
 
 pub type MpNum = u32;
+pub type SpNum = u32;
 pub type LevelNum = u32;
 pub type StatusNum = f32;
 pub type TurnNum = u8;

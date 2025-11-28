@@ -34,7 +34,7 @@ pub trait Passive: DynClone + Debug + Send + 'static {
     fn status(&self, status: &mut PassiveStatus) {}
 
     #[allow(unused_variables)]
-    fn trigger_turn_start(&self, owner: LtId, state: &GameState, effects: &mut Vec<Event>) {}
+    fn trigger_turn_start(&self, owner_id: LtId, state: &GameState, effects: &mut Vec<Event>) {}
 }
 
 dyn_clone::clone_trait_object!(Passive);

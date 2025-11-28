@@ -4,8 +4,9 @@ mod event_que;
 
 use crate::{
     MpNum, TURN_START_HEAL_MP_NUM,
-    container::{command::GameCoreActorCommand, event_que::EventsQue},
-    event::{self, EventsQuePusher},
+    args::ContainerArgs,
+    event::{self, Event, EventsQuePusher},
+    game_core::{command::GameCoreActorCommand, event_que::EventsQue},
     screen_actor::ScreenActorSender,
     skill::{SkillTrait, StaticSkillId},
     state::GameState,
@@ -18,8 +19,14 @@ pub struct GameCoreActor<S: ScreenActorSender> {
 }
 
 impl<S: ScreenActorSender> GameCoreActor<S> {
+    pub fn new(arg: &ContainerArgs, screen_actor_sender: S) -> Result<Self, crate::Error> {
+        Ok(Self {
+            screen_actor_sender,
+            state: GameState::new(arg)?,
+        })
+    }
     pub fn accept(&mut self, cmd: GameCoreActorCommand) -> Result<(), crate::Error> {
-        if self.game_ended() {
+        if self.state.check_game_end().game_ended() {
             return Err(crate::Error::AlreadyGameEnd);
         }
 
@@ -34,14 +41,12 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
                 self.game_start();
             }
             GameCoreActorCommand::ChangeFocusEnemy { enemy_id } => {
-                todo!()
+                let mut events = EventsQue::default();
+                events.push(Event::ChangeFocusEnemy { enemy_id });
+                self.accept_events(&mut events);
             }
         }
         Ok(())
-    }
-
-    pub fn game_ended(&self) -> bool {
-        todo!()
     }
 }
 
@@ -61,7 +66,7 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
         let user = self.state.chars().get_char_by_static_id(user_id)?;
         let skill = user.skills.get(skill_id)?;
         let result = skill.call(user, &self.state, &mut events);
-        result.to_events(&mut events);
+        result.to_events(&mut events, user.runtime_id(), skill_id);
         self.accept_events(&mut events);
         Ok(())
     }
@@ -69,9 +74,6 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
     fn turn_end(&mut self) {
         let mut events = EventsQue::default();
         self.enemy_turn_start(&mut events);
-
-        // let enemy = self.state.enemy();
-        // enemy.play_action(&self.state, &mut events);
 
         if self.accept_events(&mut events) {
             return;

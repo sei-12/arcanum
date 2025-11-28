@@ -2,8 +2,10 @@ use std::any::Any;
 
 use crate::{
     TurnNum,
+    damage::Damage,
+    event::Event,
     passive::{
-        DisplayPassiveInfo, RuntimePassiveId, PassiveUpdateStateError, PassiveUpdateStateMessage,
+        DisplayPassiveInfo, PassiveUpdateStateError, PassiveUpdateStateMessage, RuntimePassiveId,
         gen_passive_runtime_id, status::PassiveStatus, traits::Passive,
     },
 };
@@ -58,34 +60,30 @@ impl Passive for Burn {
         status.recv_magic_dmg_mag *= 1.1;
     }
 
-    // fn turn_start(
-    //     &self,
-    //     own_char_idx: crate::game_state::buttle_chars::CharIdx,
-    //     state: &crate::game_state::GameState,
-    //     effects: &mut Vec<crate::event::EffectEvent>,
-    // ) {
-    //     assert!(!self.should_trash());
+    fn trigger_turn_start(
+        &self,
+        owner_id: crate::state::LtId,
+        state: &crate::state::GameState,
+        effects: &mut Vec<crate::event::Event>,
+    ) {
+        assert!(!self.should_trash());
+        let owner = state.get_lt(owner_id);
 
-    //     let own_char = state.chars().get_char(own_char_idx);
+        let mut dmg_per = 0.03;
+        if owner.vit() <= 7.0 {
+            dmg_per = 0.07;
+        };
 
-    //     let mut dmg_per = 0.03;
-    //     if own_char.vit() <= 7.0 {
-    //         dmg_per = 0.07;
-    //     };
+        let dmg = Event::Damage(Damage::new_hp_per_dmg(state, owner_id, dmg_per));
 
-    //     let dmg = EffectEvent::Damage(Damage::new_hp_per_dmg(
-    //         Target::Char(own_char_idx),
-    //         own_char,
-    //         dmg_per,
-    //     ));
+        effects.push(dmg);
 
-    //     effects.push(dmg);
-    //     effects.push(EffectEvent::UpdatePassiveState {
-    //         target: Target::Char(own_char_idx),
-    //         passive_id: self.id,
-    //         msg: crate::passive::PassiveUpdateStateMessage::DecrimentTurns,
-    //     });
-    // }
+        effects.push(Event::UpdatePassiveState {
+            target_id: owner_id,
+            passive_id: self.runtime_id(),
+            msg: PassiveUpdateStateMessage::DecrimentTurns,
+        });
+    }
 
     fn update_state(
         &mut self,

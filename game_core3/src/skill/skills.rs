@@ -17,6 +17,13 @@ impl ButtleSkills {
         Self { inner }
     }
 
+    fn get_mut(&mut self, id: StaticSkillId) -> Result<&mut SkillWithState, crate::Error> {
+        self.inner
+            .iter_mut()
+            .find(|skill| skill.id() == id)
+            .ok_or(crate::Error::NotFoundSkill { skill: id })
+    }
+
     pub fn get(&self, id: StaticSkillId) -> Result<&SkillWithState, crate::Error> {
         self.inner
             .iter()
@@ -34,6 +41,22 @@ impl ButtleSkills {
             .find(|skill| skill.id() == id)
             .ok_or(crate::Error::NotFoundSkill { skill: id })?
             .cooldown = cooldown;
+        Ok(())
+    }
+
+    pub fn heal_skill_cooldown(
+        &mut self,
+        target: StaticSkillId,
+        heal_num: CooldownNum,
+    ) -> Result<(), crate::Error> {
+        let target_item = self.get_mut(target)?;
+
+        if target_item.cooldown > heal_num {
+            target_item.cooldown -= heal_num;
+        } else {
+            target_item.cooldown = 0;
+        };
+
         Ok(())
     }
 }

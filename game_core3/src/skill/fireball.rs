@@ -76,7 +76,7 @@ impl SkillTrait for Fireball {
 
         if burn_flag {
             let add_passive_event = Event::AddPassive {
-                target: user.lt_id(),
+                target_id: user.lt_id(),
                 passive: Box::new(Burn::new(3)),
             };
 

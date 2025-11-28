@@ -72,14 +72,14 @@ impl PassiveList {
     pub fn update_state(
         &mut self,
         id: RuntimePassiveId,
-        state: &PassiveUpdateStateMessage,
+        msg: &PassiveUpdateStateMessage,
     ) -> Result<(), PassiveListError> {
         let passive = self
             .runtime_id_map
             .get_mut(&id)
             .ok_or(PassiveListError::NotFoundPassive(id))?;
 
-        passive.update_state(state)?;
+        passive.update_state(msg)?;
         self.status_cache.need_update();
 
         if passive.should_trash() {
@@ -129,7 +129,7 @@ fn event_exec_priority(event: &Event) -> u8 {
     match event {
         Event::UpdatePassiveState {
             msg: _,
-            target: _,
+            target_id: _,
             passive_id: _,
         } => 0,
         _ => 1,

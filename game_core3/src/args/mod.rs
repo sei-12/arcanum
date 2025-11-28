@@ -1,4 +1,4 @@
-use crate::{LevelNum, skill::StaticSkillId, static_char::StaticCharId};
+use crate::{LevelNum, buttle_enemy::static_datas::StaticEnemyId, skill::StaticSkillId, static_char::StaticCharId};
 
 #[derive(Debug, Clone)]
 pub struct CharData {
@@ -10,7 +10,7 @@ pub struct CharData {
 #[derive(Debug, Clone)]
 pub struct EnemyData {
     pub level: LevelNum,
-    // pub static_enemy_id: StaticEnemyId,
+    pub id: StaticEnemyId,
 }
 
 #[derive(Debug, Clone)]

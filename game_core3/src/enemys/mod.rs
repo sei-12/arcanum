@@ -1,6 +1,4 @@
-use std::fmt::Debug;
-
-use crate::{WaveNum, args::EnemyData};
+use std::{fmt::Debug, marker::PhantomData};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct RuntimeEnemyId {
@@ -8,19 +6,26 @@ pub struct RuntimeEnemyId {
     idx: usize,
 }
 
-pub trait ButtleEnemysItem {
-    fn new(data: &EnemyData, id: RuntimeEnemyId) -> Self;
+pub trait ButtleEnemysItem<D> {
+    fn new(data: &D, id: RuntimeEnemyId) -> Self;
     fn is_dead(&self) -> bool;
 }
 
 #[derive(Debug)]
-pub struct ButtleEnemys<T: ButtleEnemysItem> {
+pub struct ButtleEnemys<T, D>
+where
+    T: ButtleEnemysItem<D>,
+{
     current_wave_idx: usize,
     inner: Vec<Vec<T>>,
+    _marker: PhantomData<D>,
 }
 
-impl<T: ButtleEnemysItem> ButtleEnemys<T> {
-    pub(crate) fn new(enemy_data: &[Vec<EnemyData>]) -> Self {
+impl<T, D> ButtleEnemys<T, D>
+where
+    T: ButtleEnemysItem<D>,
+{
+    pub(crate) fn new(enemy_data: &[Vec<D>]) -> Self {
         let waves = enemy_data
             .iter()
             .enumerate()
@@ -51,11 +56,12 @@ impl<T: ButtleEnemysItem> ButtleEnemys<T> {
         Self {
             current_wave_idx: 0,
             inner: waves,
+            _marker: PhantomData,
         }
     }
 
-    pub fn current_wave(&self) -> WaveNum {
-        (self.current_wave_idx + 1) as WaveNum
+    pub fn current_wave(&self) -> usize {
+        self.current_wave_idx + 1
     }
 
     pub fn get(&self, id: RuntimeEnemyId) -> &T {
@@ -97,7 +103,6 @@ impl<T: ButtleEnemysItem> ButtleEnemys<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::args::EnemyData;
 
     // ---- テスト用の疑似敵 ----
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -106,8 +111,8 @@ mod tests {
         dead: bool,
     }
 
-    impl ButtleEnemysItem for MockEnemy {
-        fn new(_data: &EnemyData, id: RuntimeEnemyId) -> Self {
+    impl ButtleEnemysItem<MockEnemyData> for MockEnemy {
+        fn new(_data: &MockEnemyData, id: RuntimeEnemyId) -> Self {
             MockEnemy { id, dead: false }
         }
 
@@ -122,10 +127,11 @@ mod tests {
         }
     }
 
+    struct MockEnemyData;
     #[test]
     fn test_get() {
-        let data = vec![vec![EnemyData { level: 1 }, EnemyData { level: 1 }]];
-        let mut enemys = ButtleEnemys::<MockEnemy>::new(&data);
+        let data = vec![vec![MockEnemyData, MockEnemyData]];
+        let mut enemys = ButtleEnemys::<MockEnemy, MockEnemyData>::new(&data);
         let id = RuntimeEnemyId {
             wave_idx: 0,
             idx: 1,
@@ -137,18 +143,18 @@ mod tests {
 
     #[test]
     fn test_current_wave_is_one() {
-        let data = vec![vec![EnemyData { level: 1 }, EnemyData { level: 1 }]];
+        let data = vec![vec![MockEnemyData, MockEnemyData]];
 
-        let enemys = ButtleEnemys::<MockEnemy>::new(&data);
+        let enemys = ButtleEnemys::<MockEnemy, MockEnemyData>::new(&data);
 
         assert_eq!(enemys.current_wave(), 1);
     }
 
     #[test]
     fn test_current_wave_all_dead() {
-        let data = vec![vec![EnemyData { level: 1 }, EnemyData { level: 1 }]];
+        let data = vec![vec![MockEnemyData, MockEnemyData]];
 
-        let mut enemys = ButtleEnemys::<MockEnemy>::new(&data);
+        let mut enemys = ButtleEnemys::<MockEnemy, MockEnemyData>::new(&data);
 
         // すべての敵を kill する
         for e in enemys.inner[0].iter_mut() {
@@ -160,9 +166,9 @@ mod tests {
 
     #[test]
     fn test_go_next_wave() {
-        let data = vec![vec![EnemyData { level: 1 }], vec![EnemyData { level: 1 }]];
+        let data = vec![vec![MockEnemyData], vec![MockEnemyData]];
 
-        let mut enemys = ButtleEnemys::<MockEnemy>::new(&data);
+        let mut enemys = ButtleEnemys::<MockEnemy, MockEnemyData>::new(&data);
 
         assert_eq!(enemys.current_wave(), 1);
 
@@ -174,9 +180,9 @@ mod tests {
 
     #[test]
     fn test_current_wave_enemys_filters_dead() {
-        let data = vec![vec![EnemyData { level: 1 }, EnemyData { level: 1 }]];
+        let data = vec![vec![MockEnemyData, MockEnemyData]];
 
-        let mut enemys = ButtleEnemys::<MockEnemy>::new(&data);
+        let mut enemys = ButtleEnemys::<MockEnemy, MockEnemyData>::new(&data);
 
         // 1体だけ倒す
         enemys.inner[0][0].dead = true;

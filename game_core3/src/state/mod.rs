@@ -1,5 +1,6 @@
 use crate::{
     MpNum,
+    args::{ContainerArgs, EnemyData},
     buttle_enemy::ButtleEnemy,
     enemys::{ButtleEnemys, RuntimeEnemyId},
     event::Event,
@@ -8,6 +9,7 @@ use crate::{
 };
 
 pub mod chars;
+mod mp;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LtId {
@@ -25,19 +27,88 @@ pub enum Side {
 pub struct GameState {
     focused_enemy: Option<RuntimeEnemyId>,
     chars: ButtleChars,
-    enemys: ButtleEnemys<ButtleEnemy>,
+    enemys: ButtleEnemys<ButtleEnemy, EnemyData>,
+    player_mp: mp::Mp,
+    enemy_mp: mp::Mp,
 }
 
 impl GameState {
+    pub(crate) fn new(arg: &ContainerArgs) -> Result<Self, crate::Error> {
+        Ok(Self {
+            focused_enemy: None,
+            chars: ButtleChars::new(&arg.chars)?,
+            enemys: ButtleEnemys::new(&arg.enemy),
+            player_mp: mp::Mp::default(),
+            enemy_mp: mp::Mp::default(),
+        })
+    }
     pub fn accept_event(&mut self, event: Event) {
-        todo!()
+        match event {
+            Event::AddHate { char_id, hate } => {
+                self.chars.get_mut_char(char_id).add_hate(hate);
+            }
+            Event::AddPassive { target_id, passive } => {
+                let target = self.get_lt_mut(target_id);
+                target.passive.add(passive).unwrap();
+            }
+            Event::ChangeFocusEnemy { enemy_id } => self.focused_enemy = Some(enemy_id),
+            Event::ConsumeMp { side, mp } => match side {
+                Side::Enemy => self.enemy_mp.consume(mp),
+                Side::Player => self.player_mp.consume(mp),
+            },
+            Event::Damage(dmg) => {
+                let target = self.get_lt_mut(dmg.target());
+                target.accept_damage(dmg.dmg());
+            }
+            Event::DeadEnemy { enemy_id: _ } => {}
+            Event::ForwordEnemyAction {} => {
+                todo!()
+            }
+            Event::GameEnd(_) => {}
+            Event::GoNextWave => {
+                self.enemys.go_next_wave();
+            }
+            Event::HealMp { side, mp } => match side {
+                Side::Enemy => self.enemy_mp.heal(mp),
+                Side::Player => self.player_mp.heal(mp),
+            },
+            Event::HealSkillCooldown {
+                char_id,
+                skill_id,
+                heal_num,
+            } => {
+                let char = self.chars.get_mut_char(char_id);
+                char.skills.heal_skill_cooldown(skill_id, heal_num).unwrap();
+            }
+            Event::Log(_) => {}
+            Event::SetSkillCooldown {
+                char_id,
+                skill_id,
+                cooldown,
+            } => {
+                self.chars
+                    .get_mut_char(char_id)
+                    .skills
+                    .set_cooldown(skill_id, cooldown)
+                    .unwrap();
+            }
+            Event::TurnStart(_) => {}
+            Event::UpdatePassiveState {
+                target_id,
+                passive_id,
+                msg,
+            } => {
+                let target = self.get_lt_mut(target_id);
+                target.passive.update_state(passive_id, &msg).unwrap();
+            }
+        }
     }
 
     pub fn chars(&self) -> &ButtleChars {
         &self.chars
     }
 
-    pub fn enemys(&self) -> &ButtleEnemys<ButtleEnemy> {
+    pub fn enemys(&self) -> &ButtleEnemys<ButtleEnemy, EnemyData> {
         &self.enemys
     }
 
@@ -73,6 +144,13 @@ impl GameState {
         }
     }
 
+    fn get_lt_mut(&mut self, lt_id: LtId) -> &mut LtCommon {
+        match lt_id {
+            LtId::Char(id) => self.chars.get_mut_char(id).lt_mut(),
+            LtId::Enemy(id) => self.enemys.get_mut(id).lt_mut(),
+        }
+    }
+
     pub fn check_game_end(&self) -> CheckGameEndResult {
         if self.chars.chars().iter().any(|char| char.lt().is_dead()) {
             return CheckGameEndResult::Lose;
@@ -89,7 +167,11 @@ impl GameState {
     }
 
     pub fn player_mp(&self) -> MpNum {
-        todo!()
+        self.player_mp.get()
+    }
+
+    pub fn enemy_mp(&self) -> MpNum {
+        self.enemy_mp.get()
     }
 }
 
