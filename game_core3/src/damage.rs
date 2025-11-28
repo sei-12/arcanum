@@ -1,9 +1,6 @@
 use crate::{
     StatusNum,
-    buttle_char::ButtleChar,
-    buttle_enemy::ButtleEnemy,
     state::{GameState, LtId, chars::RuntimeCharId},
-    static_char::StaticCharData,
 };
 
 #[derive(Debug, Clone, Copy)]
