@@ -61,9 +61,6 @@ impl GameState {
                 target.accept_damage(dmg.dmg());
             }
             Event::DeadEnemy { enemy_id: _ } => {}
-            Event::ForwordEnemyAction {} => {
-                todo!()
-            }
             Event::GameEnd(_) => {}
             Event::GoNextWave => {
                 self.enemys.go_next_wave();

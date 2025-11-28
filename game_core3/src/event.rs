@@ -48,7 +48,6 @@ pub enum Event {
         skill_id: StaticSkillId,
         heal_num: CooldownNum,
     },
-    ForwordEnemyAction {},
     GoNextWave,
     ChangeFocusEnemy {
         enemy_id: RuntimeEnemyId,
