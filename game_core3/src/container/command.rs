@@ -1,4 +1,4 @@
-use crate::{skill::StaticSkillId, static_char::StaticCharId};
+use crate::{enemys::RuntimeEnemyId, skill::StaticSkillId, static_char::StaticCharId};
 
 pub enum GameCoreActorCommand {
     TurnEnd,
@@ -7,4 +7,7 @@ pub enum GameCoreActorCommand {
         skill: StaticSkillId,
     },
     GameStart,
+    ChangeFocusEnemy {
+        enemy_id: RuntimeEnemyId
+    }
 }

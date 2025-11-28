@@ -19,6 +19,10 @@ pub struct GameCoreActor<S: ScreenActorSender> {
 
 impl<S: ScreenActorSender> GameCoreActor<S> {
     pub fn accept(&mut self, cmd: GameCoreActorCommand) -> Result<(), crate::Error> {
+        if self.game_ended() {
+            return Err(crate::Error::AlreadyGameEnd);
+        }
+
         match cmd {
             GameCoreActorCommand::UseSkill { user, skill } => {
                 self.use_skill(user, skill)?;
@@ -29,8 +33,15 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
             GameCoreActorCommand::GameStart => {
                 self.game_start();
             }
+            GameCoreActorCommand::ChangeFocusEnemy { enemy_id } => {
+                todo!()
+            }
         }
         Ok(())
+    }
+
+    pub fn game_ended(&self) -> bool {
+        todo!()
     }
 }
 
@@ -58,8 +69,9 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
     fn turn_end(&mut self) {
         let mut events = EventsQue::default();
         self.enemy_turn_start(&mut events);
-        let enemy = self.state.enemy();
-        enemy.play_action(&self.state, &mut events);
+
+        // let enemy = self.state.enemy();
+        // enemy.play_action(&self.state, &mut events);
 
         if self.accept_events(&mut events) {
             return;
@@ -75,19 +87,36 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
 
     fn enemy_turn_start(&mut self, events: &mut EventsQue) {
         events.push(event::Event::TurnStart(crate::state::Side::Enemy));
+        let heal_mp = {
+            let sum: MpNum = self
+                .state
+                .enemys()
+                .current_wave_enemys()
+                .iter()
+                .map(|enemy| enemy.lt().add_heal_mp())
+                .sum();
+
+            TURN_START_HEAL_MP_NUM + sum
+        };
         events.push(event::Event::HealMp {
             side: crate::state::Side::Enemy,
-            mp: TURN_START_HEAL_MP_NUM + self.state.enemy().lt().passive.status().add_heal_mp,
+            mp: heal_mp,
         });
 
         if self.accept_events(events) {
             return;
         };
 
-        let enemy = self.state.enemy().lt();
-        enemy
-            .passive
-            .trigger_turn_start(crate::state::LtId::Enemy, &self.state, events);
+        self.state
+            .enemys()
+            .current_wave_enemys()
+            .iter()
+            .for_each(|enemy| {
+                enemy
+                    .lt()
+                    .passive
+                    .trigger_turn_start(enemy.lt_id(), &self.state, events);
+            });
 
         self.accept_events(events);
     }
@@ -114,11 +143,9 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
         };
 
         self.state.chars().chars().iter().for_each(|char| {
-            char.lt().passive.trigger_turn_start(
-                crate::state::LtId::Char(char.runtime_id()),
-                &self.state,
-                events,
-            );
+            char.lt()
+                .passive
+                .trigger_turn_start(char.lt_id(), &self.state, events);
         });
 
         self.accept_events(events);
@@ -130,12 +157,26 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
             self.state.accept_event(event.clone());
             self.screen_actor_sender.send(event);
 
-            if let Some(result) = self.state.check_game_end() {
-                events.clear();
-                let event = event::Event::GameEnd(result);
-                self.state.accept_event(event.clone());
-                self.screen_actor_sender.send(event);
-                return true;
+            let check = self.state.check_game_end();
+            match check {
+                crate::state::CheckGameEndResult::Win | crate::state::CheckGameEndResult::Lose => {
+                    let result = match check {
+                        crate::state::CheckGameEndResult::Lose => crate::GameResult::Lose,
+                        crate::state::CheckGameEndResult::Win => crate::GameResult::Win,
+                        _ => panic!(),
+                    };
+
+                    events.clear();
+                    let event = event::Event::GameEnd(result);
+                    self.state.accept_event(event.clone());
+                    self.screen_actor_sender.send(event);
+                    return true;
+                }
+                crate::state::CheckGameEndResult::GoNextWave => {
+                    events.clear();
+                    events.push(event::Event::GoNextWave);
+                }
+                _ => {}
             }
         }
 

@@ -4,6 +4,9 @@ use crate::{skill::StaticSkillId, static_char::StaticCharId};
 pub enum Error {
     #[error("すでにゲームが開始されています")]
     AlreadyGameStart,
+    
+    #[error("すでにゲームは終了しています")]
+    AlreadyGameEnd,
 
     #[error("保持していないキャラIDです: got_id={0}")]
     NotFoundChar(StaticCharId),

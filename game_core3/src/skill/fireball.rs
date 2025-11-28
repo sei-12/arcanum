@@ -24,7 +24,7 @@ impl SkillTrait for Fireball {
             need_mp: 80,
             hate: 80,
             cooldown: 80,
-            text: "敵に倍率1.1の魔法ダメージを与える。
+            text: "敵1体に倍率1.1の魔法ダメージを与える。
         INTが16以上なら倍率が+0.2される。
         DEXが5以下なら自身に3ターンの火傷を与える。
         AGIが17以上なら消費MPが20減少、CDが20減少、倍率が0.2減少。",
@@ -63,10 +63,12 @@ impl SkillTrait for Fireball {
             dmg_mag += 0.2;
         }
 
+        let target = state.get_enemy_with_highest_target_priority();
+
         let dmg = Event::Damage(Damage::new_magic_damage(
             state,
             user.lt_id(),
-            crate::state::LtId::Enemy,
+            crate::state::LtId::Enemy(target.runtime_id()),
             dmg_mag,
         ));
 

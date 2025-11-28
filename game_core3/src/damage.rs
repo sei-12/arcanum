@@ -1,5 +1,6 @@
 use crate::{
     StatusNum,
+    enemys::RuntimeEnemyId,
     state::{GameState, LtId, chars::RuntimeCharId},
 };
 
@@ -12,7 +13,7 @@ pub enum DamageType {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DamageCauser {
-    Enemy,
+    Enemy(RuntimeEnemyId),
     Char(RuntimeCharId),
     None,
 }
@@ -20,7 +21,7 @@ impl From<LtId> for DamageCauser {
     fn from(value: LtId) -> Self {
         match value {
             LtId::Char(id) => DamageCauser::Char(id),
-            LtId::Enemy => DamageCauser::Enemy,
+            LtId::Enemy(id) => DamageCauser::Enemy(id),
         }
     }
 }

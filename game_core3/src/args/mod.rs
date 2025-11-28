@@ -16,5 +16,5 @@ pub struct EnemyData {
 #[derive(Debug, Clone)]
 pub struct ContainerArgs {
     pub chars: Vec<CharData>,
-    pub enemy: EnemyData,
+    pub enemy: Vec<Vec<EnemyData>>,
 }

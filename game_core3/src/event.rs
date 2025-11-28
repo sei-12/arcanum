@@ -1,9 +1,5 @@
 use crate::{
-    CooldownNum, GameResult, HateNum, MpNum,
-    damage::Damage,
-    passive::{PassiveUpdateStateMessage, RuntimePassiveId, traits::Passive},
-    skill::StaticSkillId,
-    state::{LtId, Side, chars::RuntimeCharId},
+    CooldownNum, GameResult, HateNum, MpNum, damage::Damage, enemys::RuntimeEnemyId, passive::{PassiveUpdateStateMessage, RuntimePassiveId, traits::Passive}, skill::StaticSkillId, state::{LtId, Side, chars::RuntimeCharId}
 };
 
 pub trait EventsQuePusher {
@@ -48,4 +44,11 @@ pub enum Event {
         heal_num: CooldownNum,
     },
     ForwordEnemyAction {},
+    GoNextWave,
+    ChangeFocusEnemy {
+        enemy_id: RuntimeEnemyId,
+    },
+    DeadEnemy {
+        enemy_id: RuntimeEnemyId
+    }
 }
