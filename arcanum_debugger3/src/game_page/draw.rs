@@ -12,10 +12,7 @@ use eframe::egui::{self, Rect};
 use game_core3::{
     HateNum,
     buttle_char::ButtleChar,
-    buttle_enemy::{
-        ButtleEnemy,
-        static_datas::StaticEnemyTrait,
-    },
+    buttle_enemy::{ButtleEnemy, static_datas::StaticEnemyTrait},
     lt_common::LtCommon,
     skill::{SkillTrait, SkillWithState},
     static_char::StaticCharId,
@@ -142,7 +139,11 @@ fn draw_enemy_item(ui: &mut egui::Ui, size: Size, page_state: &GamePageState, en
 fn draw_enemy_side(ui: &mut egui::Ui, size: Size, page_state: &GamePageState) {
     size.assign_to(ui);
     ui.horizontal_top(|ui| {
-        for enemy in page_state.game_state().enemys().current_wave_enemys() {
+        for enemy in page_state
+            .game_state()
+            .enemys()
+            .current_wave_living_enemys()
+        {
             let item_size = Size {
                 height: size.height,
                 width: size.width * 0.3,

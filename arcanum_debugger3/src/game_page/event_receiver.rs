@@ -1,10 +1,6 @@
 use std::sync::mpsc;
 
-use game_core3::{
-    GameResult,
-    event::Event,
-    state::{GameState, LtId},
-};
+use game_core3::{GameResult, event::Event, state::GameState};
 
 use crate::game_page::event_to_log::event_to_log;
 

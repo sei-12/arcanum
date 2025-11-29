@@ -1,4 +1,5 @@
 use game_core3::{
+    GameResult,
     event::{self, Event},
     skill::SkillTrait,
     state::{GameState, Side},
@@ -6,6 +7,25 @@ use game_core3::{
 
 pub fn event_to_log(event: &event::Event, state: &GameState) -> Option<String> {
     match event {
+        Event::ConsumeSp {
+            enemy_id: _,
+            num: _,
+        } => None,
+        Event::HealSp {
+            enemy_id: _,
+            num: _,
+        } => None,
+        Event::SetSkillCooldown {
+            char_id: _,
+            skill_id: _,
+            cooldown: _,
+        } => None,
+        Event::HeallSkillCooldownAll {
+            char_id: _,
+            heal_num: _,
+        } => None,
+        Event::UnFocusEnemy => None,
+        Event::ChangeFocusEnemy { enemy_id: _ } => None,
         Event::AddHate { char_id, hate } => {
             let char_name = state.chars().get_char(*char_id).static_data().name;
             Some(format!("{char_name}のヘイト値が{hate}上昇した"))
@@ -35,10 +55,6 @@ pub fn event_to_log(event: &event::Event, state: &GameState) -> Option<String> {
                 }
             };
             Some(msg)
-        }
-        Event::DeadEnemy { enemy_id } => {
-            let enemy_name = state.enemys().get(*enemy_id).lt().name();
-            Some(format!("{enemy_name}は戦闘不能になった"))
         }
         Event::UseSkill {
             user_name,
@@ -74,6 +90,17 @@ pub fn event_to_log(event: &event::Event, state: &GameState) -> Option<String> {
         }),
 
         Event::Log(log) => Some(log.clone()),
-        _ => None,
+        Event::HealMp { mp } => Some(format!("MPが{}回復した", mp)),
+
+        Event::UpdatePassiveState {
+            target_id: _,
+            passive_id: _,
+            msg: _,
+        } => None,
+
+        Event::GameEnd(result) => match result {
+            GameResult::Lose => Some("LOSE".to_string()),
+            GameResult::Win => Some("WIN".to_string()),
+        },
     }
 }
