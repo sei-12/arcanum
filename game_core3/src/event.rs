@@ -1,5 +1,5 @@
 use crate::{
-    CooldownNum, GameResult, HateNum, MpNum,
+    CooldownNum, GameResult, HateNum, MpNum, SpNum,
     damage::Damage,
     enemys::RuntimeEnemyId,
     passive::{PassiveUpdateStateMessage, RuntimePassiveId, traits::Passive},
@@ -46,12 +46,21 @@ pub enum Event {
         skill_id: StaticSkillId,
         heal_num: CooldownNum,
     },
+    HeallSkillCooldownAll {
+        char_id: RuntimeCharId,
+        heal_num: CooldownNum,
+    },
+    ConsumeSp {
+        enemy_id: RuntimeEnemyId,
+        num: SpNum,
+    },
+    HealSp {
+        enemy_id: RuntimeEnemyId,
+        num: SpNum,
+    },
     GoNextWave,
     UnFocusEnemy,
     ChangeFocusEnemy {
-        enemy_id: RuntimeEnemyId,
-    },
-    DeadEnemy {
         enemy_id: RuntimeEnemyId,
     },
     UseSkill {

@@ -97,7 +97,7 @@ where
         )
     }
 
-    pub fn current_wave_enemys(&self) -> impl Iterator<Item = &T> {
+    pub fn current_wave_living_enemys(&self) -> impl Iterator<Item = &T> {
         self.inner[self.current_wave_idx]
             .iter()
             .filter(|e| !e.is_dead())
@@ -232,7 +232,7 @@ mod tests {
         // 1体だけ倒す
         enemys.inner[0][0].dead = true;
 
-        let alive: Vec<_> = enemys.current_wave_enemys().collect();
+        let alive: Vec<_> = enemys.current_wave_living_enemys().collect();
         assert_eq!(alive.len(), 1);
     }
 

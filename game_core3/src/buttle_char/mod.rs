@@ -1,5 +1,5 @@
 use crate::{
-    HateNum,
+    CooldownNum, HateNum, SKILL_COOLDOWN_HEAL_BASE,
     args::CharData,
     lt_common::LtCommon,
     skill::skills::ButtleSkills,
@@ -61,5 +61,10 @@ impl ButtleChar {
 
     pub fn lt_id(&self) -> LtId {
         LtId::Char(self.runtime_id)
+    }
+
+    pub fn cooldown_heal(&self) -> CooldownNum {
+        let agi = self.lt().agi() as CooldownNum;
+        SKILL_COOLDOWN_HEAL_BASE + agi * 5
     }
 }

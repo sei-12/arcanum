@@ -3,7 +3,7 @@ pub mod command;
 mod event_que;
 
 use crate::{
-    TURN_START_HEAL_MP_NUM,
+    TURN_START_HEAL_MP_NUM, TURN_START_HEAL_SP_NUM,
     args::ContainerArgs,
     event::{self, Event, EventsQuePusher},
     game_core::{command::GameCoreActorCommand, event_que::EventsQue},
@@ -106,16 +106,29 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
     fn enemy_turn_start(&mut self, events: &mut EventsQue) {
         events.push(event::Event::TurnStart(crate::state::Side::Enemy));
 
+        self.state
+            .enemys()
+            .current_wave_living_enemys()
+            .for_each(|enemy| {
+                events.push(event::Event::HealSp {
+                    enemy_id: enemy.runtime_id(),
+                    num: TURN_START_HEAL_SP_NUM,
+                });
+            });
+
         if self.accept_events(events) {
             return;
         };
 
-        self.state.enemys().current_wave_enemys().for_each(|enemy| {
-            enemy
-                .lt()
-                .passive
-                .trigger_turn_start(enemy.lt_id(), &self.state, events);
-        });
+        self.state
+            .enemys()
+            .current_wave_living_enemys()
+            .for_each(|enemy| {
+                enemy
+                    .lt()
+                    .passive
+                    .trigger_turn_start(enemy.lt_id(), &self.state, events);
+            });
 
         self.accept_events(events);
     }
@@ -124,6 +137,17 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
         events.push(event::Event::TurnStart(crate::state::Side::Player));
         events.push(event::Event::HealMp {
             mp: TURN_START_HEAL_MP_NUM,
+        });
+
+        if self.accept_events(events) {
+            return;
+        };
+
+        self.state.chars().chars().iter().for_each(|char| {
+            events.push(event::Event::HeallSkillCooldownAll {
+                char_id: char.runtime_id(),
+                heal_num: char.cooldown_heal(),
+            });
         });
 
         if self.accept_events(events) {

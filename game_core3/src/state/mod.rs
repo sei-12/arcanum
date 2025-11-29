@@ -60,7 +60,6 @@ impl GameState {
                 let target = self.get_lt_mut(dmg.target());
                 target.accept_damage(dmg.dmg());
             }
-            Event::DeadEnemy { enemy_id: _ } => {}
             Event::GameEnd(_) => {}
             Event::GoNextWave => {
                 self.enemys.go_next_wave();
@@ -73,6 +72,12 @@ impl GameState {
             } => {
                 let char = self.chars.get_mut_char(char_id);
                 char.skills.heal_skill_cooldown(skill_id, heal_num).unwrap();
+            }
+            Event::HeallSkillCooldownAll { char_id, heal_num } => {
+                self.chars
+                    .get_mut_char(char_id)
+                    .skills
+                    .heal_skill_cooldown_all(heal_num);
             }
             Event::Log(_) => {}
             Event::SetSkillCooldown {
@@ -94,6 +99,12 @@ impl GameState {
             } => {
                 let target = self.get_lt_mut(target_id);
                 target.passive.update_state(passive_id, &msg).unwrap();
+            }
+            Event::ConsumeSp { enemy_id, num } => {
+                self.enemys.get_mut(enemy_id).consume_sp(num);
+            }
+            Event::HealSp { enemy_id, num } => {
+                self.enemys.get_mut(enemy_id).heal_sp(num);
             }
             Event::UseSkill {
                 user_name: _,
@@ -128,11 +139,15 @@ impl GameState {
         let f = self.focused_enemy();
 
         // Optionをinto_iterするとSomeの場合は要素が追加され、Noneの場合は何も追加されない
-        f.into_iter()
-            .chain(self.enemys.current_wave_enemys().filter(move |enemy| {
-                let is_not_focused_enemy = Some(enemy.runtime_id()) != f.map(|f| f.runtime_id());
-                !enemy.lt().is_dead() && is_not_focused_enemy
-            }))
+        f.into_iter().chain(
+            self.enemys
+                .current_wave_living_enemys()
+                .filter(move |enemy| {
+                    let is_not_focused_enemy =
+                        Some(enemy.runtime_id()) != f.map(|f| f.runtime_id());
+                    !enemy.lt().is_dead() && is_not_focused_enemy
+                }),
+        )
     }
 
     pub fn get_lt(&self, lt_id: LtId) -> &LtCommon {

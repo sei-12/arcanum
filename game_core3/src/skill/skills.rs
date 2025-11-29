@@ -30,7 +30,7 @@ impl ButtleSkills {
             .find(|skill| skill.id() == id)
             .ok_or(crate::Error::NotFoundSkill { skill: id })
     }
-    
+
     pub fn skills(&self) -> &Vec<SkillWithState> {
         &self.inner
     }
@@ -62,5 +62,15 @@ impl ButtleSkills {
         };
 
         Ok(())
+    }
+
+    pub fn heal_skill_cooldown_all(&mut self, heal_num: CooldownNum) {
+        for item in self.inner.iter_mut() {
+            if item.cooldown > heal_num {
+                item.cooldown -= heal_num;
+            } else {
+                item.cooldown = 0;
+            };
+        }
     }
 }

@@ -33,6 +33,17 @@ impl ButtleEnemy {
         self.runtime_id
     }
 
+    pub fn heal_sp(&mut self, num: SpNum) {
+        self.sp += num;
+    }
+    pub fn consume_sp(&mut self, num: SpNum) {
+        if self.sp > num {
+            self.sp -= num;
+        } else {
+            self.sp = 0;
+        }
+    }
+
     pub fn sp(&self) -> SpNum {
         self.sp
     }

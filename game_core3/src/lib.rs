@@ -28,6 +28,8 @@ pub type WaveNum = u8;
 pub const NUM_MAX_CHAR_IN_TEAM: usize = 4;
 pub const NUM_MAX_LEARN_SKILLS: usize = 6;
 pub const TURN_START_HEAL_MP_NUM: MpNum = 100;
+pub const SKILL_COOLDOWN_HEAL_BASE: CooldownNum = 50;
+pub const TURN_START_HEAL_SP_NUM: SpNum = 50;
 
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
