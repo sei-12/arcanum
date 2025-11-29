@@ -108,6 +108,14 @@ impl SkillWithState {
             static_skill,
         }
     }
+    
+    pub fn static_data(&self) -> &StaticSkill {
+        &self.static_skill
+    }
+
+    pub fn cooldown(&self) -> &CooldownNum {
+        &self.cooldown
+    }
 }
 
 impl Deref for SkillWithState {

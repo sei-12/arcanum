@@ -11,7 +11,7 @@ use crate::{
 mod skill;
 pub mod static_datas;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ButtleEnemy {
     sp: SpNum,
     lt_common: LtCommon,
@@ -35,6 +35,10 @@ impl ButtleEnemy {
 
     pub fn sp(&self) -> SpNum {
         self.sp
+    }
+    
+    pub fn static_data(&self) -> &StaticEnemy {
+        &self.static_data
     }
 
     pub fn play_action(&self, state: &GameState, events: &mut impl EventsQuePusher) {

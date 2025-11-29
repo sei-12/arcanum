@@ -8,7 +8,7 @@ use crate::{
 pub mod goblin;
 
 #[enum_dispatch::enum_dispatch]
-pub trait StaticEnemyTrait: Debug {
+pub trait StaticEnemyTrait: Debug + Clone {
     fn name(&self) -> &'static str;
     fn potential(&self) -> &'static Potential;
     fn abilitys(&self) -> &'static [EnemyAbility];
@@ -17,7 +17,7 @@ pub trait StaticEnemyTrait: Debug {
     fn action(&self, enemy: RuntimeEnemyId, state: &GameState, events: &mut impl EventsQuePusher);
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[enum_dispatch::enum_dispatch(StaticEnemyTrait)]
 pub enum StaticEnemy {
     Goblin(goblin::Goblin),

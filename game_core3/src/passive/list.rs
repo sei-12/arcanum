@@ -6,7 +6,7 @@ use std::{
 use crate::{
     event::{Event, EventsQuePusher},
     passive::{
-        PassiveUpdateStateError, PassiveUpdateStateMessage, RuntimePassiveId,
+        DisplayPassiveInfo, PassiveUpdateStateError, PassiveUpdateStateMessage, RuntimePassiveId,
         cached_status::CachedPassiveStatus, status::PassiveStatus, traits::Passive,
     },
     state::{GameState, LtId},
@@ -48,6 +48,9 @@ impl Default for PassiveList {
 impl PassiveList {
     pub fn have(&self, static_id: TypeId) -> bool {
         self.static_id_map.contains_key(&static_id)
+    }
+    pub fn display_passives(&self) -> impl Iterator<Item = DisplayPassiveInfo<'_>> {
+        self.runtime_id_map.values().map(|p| p.display()).flatten()
     }
 
     fn merge(&mut self, passive: Box<dyn Passive>) {

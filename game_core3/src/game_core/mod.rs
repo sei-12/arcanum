@@ -3,7 +3,7 @@ pub mod command;
 mod event_que;
 
 use crate::{
-     TURN_START_HEAL_MP_NUM,
+    TURN_START_HEAL_MP_NUM,
     args::ContainerArgs,
     event::{self, Event, EventsQuePusher},
     game_core::{command::GameCoreActorCommand, event_que::EventsQue},
@@ -13,6 +13,7 @@ use crate::{
     static_char::StaticCharId,
 };
 
+#[derive(Debug)]
 pub struct GameCoreActor<S: ScreenActorSender> {
     screen_actor_sender: S,
     state: GameState,
@@ -25,6 +26,11 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
             state: GameState::new(arg)?,
         })
     }
+
+    pub fn get_state(&self) -> &GameState {
+        &self.state
+    }
+
     pub fn accept(&mut self, cmd: GameCoreActorCommand) -> Result<(), crate::Error> {
         if self.state.check_game_end().game_ended() {
             return Err(crate::Error::AlreadyGameEnd);

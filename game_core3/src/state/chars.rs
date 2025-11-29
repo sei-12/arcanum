@@ -55,7 +55,9 @@ impl ButtleChars {
             set.len() == chars.len()
         });
 
-        Ok(Self { chars })
+        Ok(Self {
+            chars,
+        })
     }
 }
 

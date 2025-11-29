@@ -9,7 +9,7 @@ use crate::{
     potential::Potential,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Goblin;
 
 const POTENTIAL: Potential = Potential::new(3.0, 13.0, 13.0, 7.0, 14.0);

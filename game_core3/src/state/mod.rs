@@ -23,7 +23,7 @@ pub enum Side {
     Enemy,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GameState {
     focused_enemy: Option<RuntimeEnemyId>,
     chars: ButtleChars,
@@ -42,6 +42,7 @@ impl GameState {
             enemy_mp: mp::Mp::default(),
         })
     }
+    // Cowでeventを渡してもいいかも
     pub fn accept_event(&mut self, event: Event) {
         match event {
             Event::AddHate { char_id, hate } => {

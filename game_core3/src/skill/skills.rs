@@ -30,6 +30,10 @@ impl ButtleSkills {
             .find(|skill| skill.id() == id)
             .ok_or(crate::Error::NotFoundSkill { skill: id })
     }
+    
+    pub fn skills(&self) -> &Vec<SkillWithState> {
+        &self.inner
+    }
 
     pub fn set_cooldown(
         &mut self,

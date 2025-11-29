@@ -11,7 +11,7 @@ pub trait ButtleEnemysItem<D> {
     fn is_dead(&self) -> bool;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ButtleEnemys<T, D>
 where
     T: ButtleEnemysItem<D>,
