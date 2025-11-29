@@ -9,6 +9,7 @@ pub struct RuntimeEnemyId {
 pub trait ButtleEnemysItem<D> {
     fn new(data: &D, id: RuntimeEnemyId) -> Self;
     fn is_dead(&self) -> bool;
+    fn runtime_id(&self) -> RuntimeEnemyId;
 }
 
 #[derive(Debug, Clone)]
@@ -88,10 +89,51 @@ where
         self.current_wave_idx + 1 == self.inner.len()
     }
 
+    pub(crate) fn current_wave_enemys_with_check_living(&self) -> EnemysIntoIterWithCheckLiving {
+        EnemysIntoIterWithCheckLiving::new(
+            self.inner[self.current_wave_idx]
+                .iter()
+                .map(|char| char.runtime_id()),
+        )
+    }
+
     pub fn current_wave_enemys(&self) -> impl Iterator<Item = &T> {
         self.inner[self.current_wave_idx]
             .iter()
             .filter(|e| !e.is_dead())
+    }
+}
+
+//--------------------------------------------------//
+//                                                  //
+//          ENEMYS ITER WITH CHECK LIVING           //
+//                                                  //
+//--------------------------------------------------//
+
+
+/// イテレーターを回している最中に敵に対して可変な操作を行わなければならなかったので
+/// 参照ではなくIDを所有権を持つイテレータを作成した
+/// 行動順に敵を返す
+pub(crate) struct EnemysIntoIterWithCheckLiving {
+    inner: std::vec::IntoIter<RuntimeEnemyId>,
+}
+impl EnemysIntoIterWithCheckLiving {
+    fn new(enemys: impl Iterator<Item = RuntimeEnemyId>) -> Self {
+        let inner = enemys.collect::<Vec<_>>().into_iter();
+        Self { inner }
+    }
+
+    pub(crate) fn next_living_enemy<'a, E: ButtleEnemysItem<D>, D>(
+        &mut self,
+        state: &'a ButtleEnemys<E, D>,
+    ) -> Option<&'a E> {
+        loop {
+            let id = self.inner.next()?;
+            let enemy = state.get(id);
+            if !enemy.is_dead() {
+                break Some(enemy);
+            }
+        }
     }
 }
 
@@ -118,6 +160,9 @@ mod tests {
 
         fn is_dead(&self) -> bool {
             self.dead
+        }
+        fn runtime_id(&self) -> RuntimeEnemyId {
+            self.id
         }
     }
 
@@ -189,5 +234,101 @@ mod tests {
 
         let alive: Vec<_> = enemys.current_wave_enemys().collect();
         assert_eq!(alive.len(), 1);
+    }
+
+    #[test]
+    fn test_next_living_enemy_returns_only_alive() {
+        let data = vec![vec![MockEnemyData, MockEnemyData, MockEnemyData]];
+        let mut enemys = ButtleEnemys::<MockEnemy, MockEnemyData>::new(&data);
+
+        // 1番目と3番目の敵を kill
+        enemys.inner[0][0].kill();
+        enemys.inner[0][2].kill();
+
+        let mut iter = enemys.current_wave_enemys_with_check_living();
+
+        // 最初の生存敵は index=1
+        let first = iter.next_living_enemy(&enemys).unwrap();
+        assert_eq!(first.runtime_id().idx, 1);
+
+        // 次は生存者なし
+        assert!(iter.next_living_enemy(&enemys).is_none());
+    }
+
+    #[test]
+    fn test_next_living_enemy_all_dead() {
+        let data = vec![vec![MockEnemyData, MockEnemyData]];
+        let mut enemys = ButtleEnemys::<MockEnemy, MockEnemyData>::new(&data);
+
+        // 全て kill
+        for e in enemys.inner[0].iter_mut() {
+            e.kill();
+        }
+
+        let mut iter = enemys.current_wave_enemys_with_check_living();
+
+        assert!(iter.next_living_enemy(&enemys).is_none());
+    }
+
+    #[test]
+    fn test_next_living_enemy_order() {
+        let data = vec![vec![
+            MockEnemyData,
+            MockEnemyData,
+            MockEnemyData,
+            MockEnemyData,
+        ]];
+        let mut enemys = ButtleEnemys::<MockEnemy, MockEnemyData>::new(&data);
+
+        // 1と3だけ生かす
+        enemys.inner[0][0].kill();
+        enemys.inner[0][2].kill();
+
+        let mut iter = enemys.current_wave_enemys_with_check_living();
+
+        let r1 = iter.next_living_enemy(&enemys).unwrap();
+        assert_eq!(r1.runtime_id().idx, 1);
+
+        let r2 = iter.next_living_enemy(&enemys).unwrap();
+        assert_eq!(r2.runtime_id().idx, 3);
+
+        assert!(iter.next_living_enemy(&enemys).is_none());
+    }
+
+    #[test]
+    fn test_next_living_enemy_uses_runtime_id() {
+        let data = vec![vec![MockEnemyData, MockEnemyData]];
+        let mut enemys = ButtleEnemys::<MockEnemy, MockEnemyData>::new(&data);
+
+        // index=0 を kill → index=1 のみが生存
+        enemys.inner[0][0].kill();
+
+        let mut iter = enemys.current_wave_enemys_with_check_living();
+
+        let enemy = iter.next_living_enemy(&enemys).unwrap();
+        assert_eq!(enemy.runtime_id().wave_idx, 0);
+        assert_eq!(enemy.runtime_id().idx, 1);
+    }
+
+    #[test]
+    fn test_next_living_enemy_enemy_dies_during_iteration() {
+        let data = vec![vec![MockEnemyData, MockEnemyData, MockEnemyData]];
+        let mut enemys = ButtleEnemys::<MockEnemy, MockEnemyData>::new(&data);
+
+        let mut iter = enemys.current_wave_enemys_with_check_living();
+
+        // 最初の生存敵（0番）を取得
+        let first = iter.next_living_enemy(&enemys).unwrap();
+        assert_eq!(first.runtime_id().idx, 0);
+
+        // イテレーション途中で1番を kill する
+        enemys.inner[0][1].kill();
+
+        // 次の生存敵は idx=2 のはず
+        let second = iter.next_living_enemy(&enemys).unwrap();
+        assert_eq!(second.runtime_id().idx, 2);
+
+        // もう生存者はいない
+        assert!(iter.next_living_enemy(&enemys).is_none());
     }
 }

@@ -6,22 +6,26 @@ pub struct LtCommon {
     potential: &'static Potential,
     level: LevelNum,
     hp: StatusNum,
-    is_enemy: bool,
+    name: String,
 }
 
 impl LtCommon {
-    pub(super) fn new(potential: &'static Potential, level: LevelNum, is_enemy: bool) -> Self {
+    pub(super) fn new(potential: &'static Potential, level: LevelNum, name: String) -> Self {
         let mut tmp = Self {
             potential,
             level,
             hp: 0.0,
-            is_enemy,
+            name,
             passive: PassiveList::default(),
         };
 
         tmp.hp = tmp.max_hp();
 
         tmp
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
     }
 }
 
@@ -90,10 +94,8 @@ impl LtCommon {
     pub fn max_hp(&self) -> StatusNum {
         let base = (self.vit() * 6.0 + self.dex()) / 7.0;
         let hp_scale = 3.0;
-        let enemy_hp_scale = { if self.is_enemy { 4.0 } else { 1.0 } };
 
         base * hp_scale
-            * enemy_hp_scale
             * self.level_scale()
             * self.passive.status().max_hp_mag_buff.get()
             * self.passive.status().max_hp_mag_debuff.get()

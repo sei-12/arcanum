@@ -26,8 +26,6 @@ impl ButtleChars {
 
         let mut chars = Vec::with_capacity(char_datas.len());
 
-        // let id = gen_buttle_chars_id();
-
         for (i, char_data) in char_datas.iter().enumerate() {
             let idx = RuntimeCharId { idx: i };
             chars.push(ButtleChar::new(char_data, idx));
@@ -83,7 +81,7 @@ impl ButtleChars {
             .ok_or(crate::Error::NotFoundChar(id))
     }
 
-    pub(crate) fn get_char(&self, id: RuntimeCharId) -> &ButtleChar {
+    pub fn get_char(&self, id: RuntimeCharId) -> &ButtleChar {
         let char = self
             .chars
             .get(id.idx)
@@ -102,6 +100,7 @@ impl ButtleChars {
         assert!(!self.chars.is_empty());
         self.chars.iter().max_by_key(|char| char.hate()).unwrap()
     }
+    
 }
 
 //--------------------------------------------------//

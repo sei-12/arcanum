@@ -20,7 +20,11 @@ impl ButtleChar {
     pub(crate) fn new(data: &CharData, runtime_id: RuntimeCharId) -> Self {
         let static_data = StaticCharData::get(data.static_char_id);
 
-        let lt_common = LtCommon::new(&static_data.potential, data.level, false);
+        let lt_common = LtCommon::new(
+            &static_data.potential,
+            data.level,
+            static_data.name.to_string(),
+        );
         let skills = ButtleSkills::new(&data.own_skill_ids);
 
         Self {
@@ -54,7 +58,7 @@ impl ButtleChar {
     pub fn lt_mut(&mut self) -> &mut LtCommon {
         &mut self.lt_common
     }
-    
+
     pub fn lt_id(&self) -> LtId {
         LtId::Char(self.runtime_id)
     }

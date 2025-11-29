@@ -10,6 +10,15 @@ pub enum DamageType {
     Physics,
     Fixed,
 }
+impl DamageType {
+    pub fn type_str(&self) -> &'static str {
+        match self {
+            DamageType::Fixed => "固定",
+            DamageType::Magic => "魔法",
+            DamageType::Physics => "物理",
+        }
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DamageCauser {
@@ -22,6 +31,15 @@ impl From<LtId> for DamageCauser {
         match value {
             LtId::Char(id) => DamageCauser::Char(id),
             LtId::Enemy(id) => DamageCauser::Enemy(id),
+        }
+    }
+}
+impl DamageCauser {
+    pub fn to_lt_id(&self) -> Option<LtId> {
+        match self {
+            DamageCauser::Char(id) => Some(LtId::Char(*id)),
+            DamageCauser::Enemy(id) => Some(LtId::Enemy(*id)),
+            DamageCauser::None => None,
         }
     }
 }

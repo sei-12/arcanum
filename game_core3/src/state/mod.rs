@@ -29,7 +29,6 @@ pub struct GameState {
     chars: ButtleChars,
     enemys: ButtleEnemys<ButtleEnemy, EnemyData>,
     player_mp: mp::Mp,
-    enemy_mp: mp::Mp,
 }
 
 impl GameState {
@@ -39,9 +38,11 @@ impl GameState {
             chars: ButtleChars::new(&arg.chars)?,
             enemys: ButtleEnemys::new(&arg.enemy),
             player_mp: mp::Mp::default(),
-            enemy_mp: mp::Mp::default(),
         })
     }
+    // このメソッド以外に可変なメソッドを公開するな
+    // 全ての変更はイベントであるべき
+    //
     // Cowでeventを渡してもいいかも
     pub fn accept_event(&mut self, event: Event) {
         match event {
@@ -53,10 +54,8 @@ impl GameState {
                 target.passive.add(passive).unwrap();
             }
             Event::ChangeFocusEnemy { enemy_id } => self.focused_enemy = Some(enemy_id),
-            Event::ConsumeMp { side, mp } => match side {
-                Side::Enemy => self.enemy_mp.consume(mp),
-                Side::Player => self.player_mp.consume(mp),
-            },
+            Event::UnFocusEnemy => self.focused_enemy = None,
+            Event::ConsumeMp { mp } => self.player_mp.consume(mp),
             Event::Damage(dmg) => {
                 let target = self.get_lt_mut(dmg.target());
                 target.accept_damage(dmg.dmg());
@@ -66,10 +65,7 @@ impl GameState {
             Event::GoNextWave => {
                 self.enemys.go_next_wave();
             }
-            Event::HealMp { side, mp } => match side {
-                Side::Enemy => self.enemy_mp.heal(mp),
-                Side::Player => self.player_mp.heal(mp),
-            },
+            Event::HealMp { mp } => self.player_mp.heal(mp),
             Event::HealSkillCooldown {
                 char_id,
                 skill_id,
@@ -99,6 +95,10 @@ impl GameState {
                 let target = self.get_lt_mut(target_id);
                 target.passive.update_state(passive_id, &msg).unwrap();
             }
+            Event::UseSkill {
+                user_name: _,
+                skill_name: _,
+            } => {}
         }
     }
 
@@ -166,10 +166,6 @@ impl GameState {
 
     pub fn player_mp(&self) -> MpNum {
         self.player_mp.get()
-    }
-
-    pub fn enemy_mp(&self) -> MpNum {
-        self.enemy_mp.get()
     }
 }
 

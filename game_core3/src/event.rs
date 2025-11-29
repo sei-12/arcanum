@@ -17,7 +17,6 @@ pub enum Event {
     Damage(Damage),
     TurnStart(Side),
     HealMp {
-        side: Side,
         mp: MpNum,
     },
     AddPassive {
@@ -31,7 +30,6 @@ pub enum Event {
     },
     GameEnd(GameResult),
     ConsumeMp {
-        side: Side,
         mp: MpNum,
     },
     AddHate {
@@ -49,10 +47,15 @@ pub enum Event {
         heal_num: CooldownNum,
     },
     GoNextWave,
+    UnFocusEnemy,
     ChangeFocusEnemy {
         enemy_id: RuntimeEnemyId,
     },
     DeadEnemy {
         enemy_id: RuntimeEnemyId,
+    },
+    UseSkill {
+        user_name: &'static str,
+        skill_name: &'static str,
     },
 }

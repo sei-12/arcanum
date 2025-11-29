@@ -71,6 +71,12 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
         let mut events = EventsQue::default();
         let user = self.state.chars().get_char_by_static_id(user_id)?;
         let skill = user.skills.get(skill_id)?;
+
+        events.push(Event::UseSkill {
+            user_name: user.static_data().name,
+            skill_name: skill.static_data().document().name,
+        });
+
         let result = skill.call(user, &self.state, &mut events);
         result.to_events(&mut events, user.runtime_id(), skill_id);
         self.accept_events(&mut events);
@@ -81,9 +87,13 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
         let mut events = EventsQue::default();
         self.enemy_turn_start(&mut events);
 
-        if self.accept_events(&mut events) {
-            return;
-        };
+        let mut enemys = self.state.enemys().current_wave_enemys_with_check_living();
+        while let Some(enemy) = enemys.next_living_enemy(self.state.enemys()) {
+            enemy.play_action(&self.state, &mut events);
+            if self.accept_events(&mut events) {
+                return;
+            };
+        }
 
         self.player_turn_start(&mut events);
     }
@@ -95,10 +105,6 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
 
     fn enemy_turn_start(&mut self, events: &mut EventsQue) {
         events.push(event::Event::TurnStart(crate::state::Side::Enemy));
-        events.push(event::Event::HealMp {
-            side: crate::state::Side::Enemy,
-            mp: TURN_START_HEAL_MP_NUM,
-        });
 
         if self.accept_events(events) {
             return;
@@ -117,7 +123,6 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
     fn player_turn_start(&mut self, events: &mut EventsQue) {
         events.push(event::Event::TurnStart(crate::state::Side::Player));
         events.push(event::Event::HealMp {
-            side: crate::state::Side::Player,
             mp: TURN_START_HEAL_MP_NUM,
         });
 

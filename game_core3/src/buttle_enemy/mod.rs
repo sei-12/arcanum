@@ -36,7 +36,7 @@ impl ButtleEnemy {
     pub fn sp(&self) -> SpNum {
         self.sp
     }
-    
+
     pub fn static_data(&self) -> &StaticEnemy {
         &self.static_data
     }
@@ -53,12 +53,19 @@ impl ButtleEnemysItem<EnemyData> for ButtleEnemy {
 
     fn new(data: &EnemyData, id: RuntimeEnemyId) -> Self {
         let static_data = StaticEnemy::new(data.id);
-        let lt_common = LtCommon::new(static_data.potential(), data.level, true);
+        let lt_common = LtCommon::new(
+            static_data.potential(),
+            data.level,
+            static_data.name().to_string(),
+        );
         Self {
             sp: 0,
             lt_common,
             static_data,
             runtime_id: id,
         }
+    }
+    fn runtime_id(&self) -> RuntimeEnemyId {
+        self.runtime_id
     }
 }

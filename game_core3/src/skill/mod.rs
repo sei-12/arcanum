@@ -59,7 +59,6 @@ impl SkillResult {
         skill_id: StaticSkillId,
     ) {
         events.push(crate::event::Event::ConsumeMp {
-            side: crate::state::Side::Player,
             mp: self.consume_mp,
         });
         events.push(crate::event::Event::AddHate {

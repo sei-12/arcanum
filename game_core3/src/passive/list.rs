@@ -50,7 +50,7 @@ impl PassiveList {
         self.static_id_map.contains_key(&static_id)
     }
     pub fn display_passives(&self) -> impl Iterator<Item = DisplayPassiveInfo<'_>> {
-        self.runtime_id_map.values().map(|p| p.display()).flatten()
+        self.runtime_id_map.values().filter_map(|p| p.display())
     }
 
     fn merge(&mut self, passive: Box<dyn Passive>) {
