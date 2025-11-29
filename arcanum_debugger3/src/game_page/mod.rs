@@ -1,9 +1,10 @@
 use game_core3::{
-    args::ContainerArgs, skill::StaticSkillId, state::GameState, static_char::StaticCharId,
+    args::ContainerArgs, state::GameState,
 };
 
 use crate::game_page::{command_sender::CommandSender, event_receiver::EventReceiver};
 
+mod event_to_log;
 mod command_sender;
 pub mod draw;
 mod event_receiver;

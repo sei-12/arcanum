@@ -8,13 +8,13 @@ use crate::{
 // pub fn draw_game_screen(page_state: &mut GamePageState, ui: &mut Ui){
 
 // }
-use eframe::egui::{self, Id, Rect};
+use eframe::egui::{self, Rect};
 use game_core3::{
     HateNum,
     buttle_char::ButtleChar,
     buttle_enemy::{
         ButtleEnemy,
-        static_datas::{StaticEnemy, StaticEnemyTrait},
+        static_datas::StaticEnemyTrait,
     },
     lt_common::LtCommon,
     skill::{SkillTrait, SkillWithState},
@@ -25,7 +25,6 @@ use game_core3::{
 //     lt::{Char, Enemy, LtCommon},
 //     skills::ActiveSkillState,
 // };
-use itertools::Itertools;
 
 // use crate::{
 //     CustomContext,

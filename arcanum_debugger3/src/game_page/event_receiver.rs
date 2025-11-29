@@ -1,6 +1,12 @@
 use std::sync::mpsc;
 
-use game_core3::{GameResult, state::GameState};
+use game_core3::{
+    GameResult,
+    event::Event,
+    state::{GameState, LtId},
+};
+
+use crate::game_page::event_to_log::event_to_log;
 
 pub struct EventReceiver {
     recv: mpsc::Receiver<game_core3::event::Event>,
@@ -21,15 +27,13 @@ impl EventReceiver {
 
     pub fn update(&mut self) {
         while let Ok(event) = self.recv.try_recv() {
-            match &event {
-                game_core3::event::Event::Log(log) => {
-                    self.log.push(log.clone());
-                }
-                game_core3::event::Event::GameEnd(result) => {
-                    self.result = Some(*result);
-                }
-                _ => {}
-            };
+            if let Some(msg) = event_to_log(&event, &self.state) {
+                self.log.push(msg);
+            }
+
+            if let Event::GameEnd(result) = &event {
+                self.result = Some(*result);
+            }
 
             self.state.accept_event(event);
         }

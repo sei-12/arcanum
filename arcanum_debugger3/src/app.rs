@@ -26,10 +26,16 @@ fn arg() -> ContainerArgs {
                 own_skill_ids: vec![StaticSkillId::Fireball],
             },
         ],
-        enemy: vec![vec![EnemyData {
-            id: StaticEnemyId::Goblin,
-            level: 1,
-        }]],
+        enemy: vec![vec![
+            EnemyData {
+                id: StaticEnemyId::Goblin,
+                level: 1,
+            },
+            EnemyData {
+                id: StaticEnemyId::Goblin,
+                level: 1,
+            },
+        ]],
     }
 }
 
