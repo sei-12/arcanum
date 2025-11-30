@@ -23,14 +23,22 @@ pub struct DisplayPassiveInfo<'a> {
 #[derive(Debug, Clone)]
 pub enum PassiveUpdateStateMessage {
     DecrimentTurns,
-
-    UniqueBleeding(u8),
-    
-    UniqueRevengeUpdateCount(u8),
+    TriggerTurnStart,
+    /// どんなふうに使おうが自由
+    ///
+    /// 8byteで表現できる情報ならこれで伝えてほしい
+    Unique(u64),
+    // 必要なら以下を追加する
+    //
+    // UniqueBuffer([u8; 16]),
+    // UniqueBox(std::sync::Arc<dyn std::any::Any>),
 }
 
 #[derive(Debug, Clone, thiserror::Error)]
 pub enum PassiveUpdateStateError {
     #[error("想定していないメッセージ: {0:?}")]
     UnexpectedMessage(PassiveUpdateStateMessage),
+
+    #[error("不正な値のメッセージ")]
+    InvalidValue,
 }

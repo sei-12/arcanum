@@ -3,7 +3,6 @@ use std::{fmt::Debug, ops::Deref};
 use crate::{
     CooldownNum, HateNum, MpNum,
     buttle_char::ButtleChar,
-    event::{self, EventsQuePusher},
     event_accepter::{EventAccepter, WinOrLoseOrNextwave},
     state::{GameState, chars::RuntimeCharId},
 };
@@ -31,13 +30,6 @@ pub(crate) trait SkillTraitPrivate {
 pub trait SkillTrait: Debug + Clone {
     fn id(&self) -> StaticSkillId;
     fn document(&self) -> &'static SkillDocument;
-
-    // fn call(
-    //     &self,
-    //     user: &ButtleChar,
-    //     state: &GameState,
-    //     events: &mut impl EventsQuePusher,
-    // ) -> SkillResult;
 
     fn useable(&self, user: &ButtleChar, state: &GameState) -> bool {
         let cooldown = user.skills.get(self.id()).unwrap().cooldown == 0;

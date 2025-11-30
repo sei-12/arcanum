@@ -6,6 +6,7 @@ use std::{
 use dyn_clone::DynClone;
 
 use crate::{
+    damage::Damage,
     event::Event,
     passive::{
         DisplayPassiveInfo, PassiveUpdateStateError, PassiveUpdateStateMessage, RuntimePassiveId,
@@ -32,10 +33,6 @@ pub trait Passive: DynClone + Debug + Any + Send + 'static {
 
     fn merge_state(&self, buffer: &mut [u8]);
 
-    // /// should_merge_typeがfalseならNone
-    // /// trueならSomeを返さなければならない
-    // fn merge_state(&self) -> Option<Box<dyn Any>>;
-
     #[allow(unused_variables)]
     fn update_state(
         &mut self,
@@ -49,6 +46,16 @@ pub trait Passive: DynClone + Debug + Any + Send + 'static {
 
     #[allow(unused_variables)]
     fn trigger_turn_start(&self, owner_id: LtId, state: &GameState, effects: &mut Vec<Event>) {}
+
+    #[allow(unused_variables)]
+    fn trigger_recv_damage(
+        &self,
+        owner_id: LtId,
+        state: &GameState,
+        dmg: &Damage,
+        effects: &mut Vec<Event>,
+    ) {
+    }
 }
 
 dyn_clone::clone_trait_object!(Passive);

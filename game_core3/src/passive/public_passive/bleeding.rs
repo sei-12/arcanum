@@ -32,7 +32,7 @@ impl Bleeding {
     }
 
     fn add_bleed_count(&mut self, num: u8) {
-        self.bleed_count += num;
+        self.bleed_count = self.bleed_count.saturating_add(num);
         if self.bleed_count > 30 {
             self.bleed_count = 30;
         }
@@ -44,8 +44,9 @@ impl Passive for Bleeding {
         Some(DisplayPassiveInfo {
             header: std::borrow::Cow::Borrowed(&self.header),
             text: "出血
+            変数: 出血量
             ・被物理ダメージ1.05倍
-            ・ターン開始時に「変数: 出血量」を2加算する。VITが7以下ならさらに1加算する。
+            ・ターン開始時に、出血量を2加算する。VITが7以下ならさらに1加算する。
             ・出血量1につき物理攻撃力倍率0.96倍
             ・出血量が20以上ならSTR-1。
             ・出血量の最大値は30
@@ -105,7 +106,7 @@ impl Passive for Bleeding {
         effects.push(Event::UpdatePassiveState {
             target_id: owner_id,
             passive_id: self.runtime_id(),
-            msg: PassiveUpdateStateMessage::UniqueBleeding(add_count),
+            msg: PassiveUpdateStateMessage::Unique(add_count),
         });
     }
 
@@ -119,8 +120,10 @@ impl Passive for Bleeding {
             PassiveUpdateStateMessage::DecrimentTurns => {
                 self.turns -= 1;
             }
-            PassiveUpdateStateMessage::UniqueBleeding(num) => {
-                self.add_bleed_count(*num);
+            PassiveUpdateStateMessage::Unique(num) => {
+                self.add_bleed_count(
+                    u8::try_from(*num).map_err(|_| PassiveUpdateStateError::InvalidValue)?,
+                );
             }
             _ => {
                 return Err(PassiveUpdateStateError::UnexpectedMessage(msg.clone()));
