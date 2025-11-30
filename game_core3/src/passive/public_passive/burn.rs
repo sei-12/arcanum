@@ -31,10 +31,6 @@ impl Burn {
     }
 }
 
-struct MergeState {
-    turns: TurnNum,
-}
-
 impl Passive for Burn {
     fn display(&'_ self) -> Option<crate::passive::DisplayPassiveInfo<'_>> {
         Some(DisplayPassiveInfo {
@@ -68,15 +64,16 @@ impl Passive for Burn {
         true
     }
 
-    fn merge_state(&self) -> Option<Box<dyn Any>> {
-        Some(Box::new(MergeState { turns: self.turns }))
+    fn merge_state(&self, buffer: &mut [u8]) {
+        assert!(buffer.len() == 1);
+        buffer[0] = self.turns;
     }
 
     fn merge(&mut self, passive: Box<dyn Passive>) {
         assert_eq!(self.static_id(), passive.static_id());
-        let state_box = passive.merge_state().unwrap();
-        let state = state_box.downcast_ref::<MergeState>().unwrap();
-        self.turns += state.turns;
+        let mut buffer = [0];
+        passive.merge_state(&mut buffer);
+        self.turns = self.turns.saturating_add(buffer[0]);
         self.header = Self::header(self.turns);
     }
 

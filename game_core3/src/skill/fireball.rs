@@ -1,8 +1,10 @@
 use crate::{
     damage::Damage,
     event::Event,
+    event_accepter::{EventAccepter, WinOrLoseOrNextwave},
     passive::public_passive::burn::Burn,
-    skill::{SkillResult, SkillTrait},
+    skill::{SkillResult, SkillTrait, SkillTraitPrivate},
+    state::chars::RuntimeCharId,
 };
 
 #[derive(Debug, Clone)]
@@ -44,49 +46,64 @@ impl SkillTrait for Fireball {
         }
     }
 
-    fn call(
-        &self,
-        user: &crate::buttle_char::ButtleChar,
-        state: &crate::state::GameState,
-        events: &mut impl crate::event::EventsQuePusher,
-    ) -> super::SkillResult {
-        let mut dmg_mag = 1.1;
-        let burn_flag = user.lt().dex() <= 5.0;
-        let mut cooldown = self.document().cooldown;
+    // fn call(
+    //     &self,
+    //     user: &crate::buttle_char::ButtleChar,
+    //     state: &crate::state::GameState,
+    //     events: &mut impl crate::event::EventsQuePusher,
+    // ) -> super::SkillResult {
+    //     let mut dmg_mag = 1.1;
+    //     let burn_flag = user.lt().dex() <= 5.0;
+    //     let mut cooldown = self.document().cooldown;
 
-        if user.lt().agi() >= 17.0 {
-            cooldown -= 20;
-            dmg_mag -= 0.2;
-        }
+    //     if user.lt().agi() >= 17.0 {
+    //         cooldown -= 20;
+    //         dmg_mag -= 0.2;
+    //     }
 
-        if user.lt().int() >= 16.0 {
-            dmg_mag += 0.2;
-        }
+    //     if user.lt().int() >= 16.0 {
+    //         dmg_mag += 0.2;
+    //     }
 
-        let target = state.get_enemy_with_highest_target_priority();
+    //     let target = state.get_enemy_with_highest_target_priority();
 
-        let dmg = Event::Damage(Damage::new_magic_damage(
-            state,
-            user.lt_id(),
-            crate::state::LtId::Enemy(target.runtime_id()),
-            dmg_mag,
-        ));
+    //     let dmg = Event::Damage(Damage::new_magic_damage(
+    //         state,
+    //         user.lt_id(),
+    //         crate::state::LtId::Enemy(target.runtime_id()),
+    //         dmg_mag,
+    //     ));
 
-        events.push(dmg);
+    //     events.push(dmg);
 
-        if burn_flag {
-            let add_passive_event = Event::AddPassive {
-                target_id: user.lt_id(),
-                passive: Box::new(Burn::new(3)),
-            };
+    //     if burn_flag {
+    //         let add_passive_event = Event::AddPassive {
+    //             target_id: user.lt_id(),
+    //             passive: Box::new(Burn::new(3)),
+    //         };
 
-            events.push(add_passive_event);
-        }
+    //         events.push(add_passive_event);
+    //     }
 
-        SkillResult {
-            consume_mp: self.need_mp(user, state),
-            hate: self.document().hate,
-            cooldown,
-        }
+    //     SkillResult {
+    //         consume_mp: self.need_mp(user, state),
+    //         hate: self.document().hate,
+    //         cooldown,
+    //     }
+    // }
+
+    // fn call_new(&self) -> super::SkillFlow { call }
+}
+
+impl SkillTraitPrivate for Fireball {
+    fn get_skill_fn(&self) -> super::SkillFlow {
+        call
     }
+}
+
+fn call(
+    accepter: &mut EventAccepter,
+    user: RuntimeCharId,
+) -> Result<SkillResult, WinOrLoseOrNextwave> {
+    todo!()
 }

@@ -77,8 +77,8 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
             skill_name: skill.static_data().document().name,
         });
 
-        let result = skill.call(user, &self.state, &mut events);
-        result.to_events(&mut events, user.runtime_id(), skill_id);
+        // let result = skill.call(user, &self.state, &mut events);
+        // result.to_events(&mut events, user.runtime_id(), skill_id);
         self.accept_events(&mut events);
         Ok(())
     }

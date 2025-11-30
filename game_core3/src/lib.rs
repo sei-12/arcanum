@@ -14,6 +14,9 @@ pub mod buttle_enemy;
 pub mod damage;
 pub mod enemys;
 
+mod event_accepter;
+mod flow;
+
 pub use error::Error;
 
 pub type MpNum = u32;

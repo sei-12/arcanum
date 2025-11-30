@@ -3,7 +3,8 @@ use std::{fmt::Debug, ops::Deref};
 use crate::{
     CooldownNum, HateNum, MpNum,
     buttle_char::ButtleChar,
-    event::EventsQuePusher,
+    event::{self, EventsQuePusher},
+    event_accepter::{EventAccepter, WinOrLoseOrNextwave},
     state::{GameState, chars::RuntimeCharId},
 };
 mod fireball;
@@ -18,16 +19,25 @@ pub struct SkillDocument {
     pub name: &'static str,
 }
 
+pub(crate) type SkillFlow =
+    fn(&mut EventAccepter<'_>, RuntimeCharId) -> Result<SkillResult, WinOrLoseOrNextwave>;
+
+#[enum_dispatch::enum_dispatch]
+pub(crate) trait SkillTraitPrivate {
+    fn get_skill_fn(&self) -> SkillFlow;
+}
+
 #[enum_dispatch::enum_dispatch]
 pub trait SkillTrait: Debug + Clone {
     fn id(&self) -> StaticSkillId;
     fn document(&self) -> &'static SkillDocument;
-    fn call(
-        &self,
-        user: &ButtleChar,
-        state: &GameState,
-        events: &mut impl EventsQuePusher,
-    ) -> SkillResult;
+
+    // fn call(
+    //     &self,
+    //     user: &ButtleChar,
+    //     state: &GameState,
+    //     events: &mut impl EventsQuePusher,
+    // ) -> SkillResult;
 
     fn useable(&self, user: &ButtleChar, state: &GameState) -> bool {
         let cooldown = user.skills.get(self.id()).unwrap().cooldown == 0;
@@ -52,30 +62,31 @@ pub struct SkillResult {
 }
 
 impl SkillResult {
-    pub(crate) fn to_events(
+    pub(crate) fn accept_events(
         &self,
-        events: &mut impl EventsQuePusher,
+        accepter: &mut EventAccepter,
         user_id: RuntimeCharId,
         skill_id: StaticSkillId,
-    ) {
-        events.push(crate::event::Event::ConsumeMp {
+    ) -> Result<(), WinOrLoseOrNextwave> {
+        accepter.accpect(crate::event::Event::ConsumeMp {
             mp: self.consume_mp,
-        });
-        events.push(crate::event::Event::AddHate {
+        })?;
+        accepter.accpect(crate::event::Event::AddHate {
             char_id: user_id,
             hate: self.hate,
-        });
+        })?;
 
-        events.push(crate::event::Event::SetSkillCooldown {
+        accepter.accpect(crate::event::Event::SetSkillCooldown {
             char_id: user_id,
             skill_id,
             cooldown: self.cooldown,
-        });
+        })?;
+        Ok(())
     }
 }
 
 #[derive(Debug, Clone)]
-#[enum_dispatch::enum_dispatch(SkillTrait)]
+#[enum_dispatch::enum_dispatch(SkillTrait, SkillTraitPrivate)]
 pub enum StaticSkill {
     Fireball(fireball::Fireball),
 }
@@ -107,7 +118,7 @@ impl SkillWithState {
             static_skill,
         }
     }
-    
+
     pub fn static_data(&self) -> &StaticSkill {
         &self.static_skill
     }

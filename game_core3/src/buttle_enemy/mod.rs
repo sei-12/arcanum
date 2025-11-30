@@ -10,6 +10,7 @@ use crate::{
 
 mod skill;
 pub mod static_datas;
+pub mod abilitys;
 
 #[derive(Debug, Clone)]
 pub struct ButtleEnemy {

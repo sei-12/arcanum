@@ -25,6 +25,8 @@ pub enum PassiveUpdateStateMessage {
     DecrimentTurns,
 
     UniqueBleeding(u8),
+    
+    UniqueRevengeUpdateCount(u8),
 }
 
 #[derive(Debug, Clone, thiserror::Error)]

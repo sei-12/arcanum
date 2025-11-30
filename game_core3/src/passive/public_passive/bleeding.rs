@@ -122,6 +122,9 @@ impl Passive for Bleeding {
             PassiveUpdateStateMessage::UniqueBleeding(num) => {
                 self.add_bleed_count(*num);
             }
+            _ => {
+                return Err(PassiveUpdateStateError::UnexpectedMessage(msg.clone()));
+            }
         }
 
         self.header = Self::header(self.turns, self.bleed_count);
@@ -131,26 +134,20 @@ impl Passive for Bleeding {
 
     fn merge(&mut self, passive: Box<dyn Passive>) {
         assert_eq!(self.static_id(), passive.static_id());
-        let state_box = passive.merge_state().unwrap();
-        let state = state_box.downcast_ref::<MergeState>().unwrap();
-        self.turns += state.turns;
-        self.add_bleed_count(state.count);
+        let mut buffer = [0, 0];
+        passive.merge_state(&mut buffer);
+        self.turns = self.turns.saturating_add(buffer[0]);
+        self.add_bleed_count(buffer[1]);
         self.header = Self::header(self.turns, self.bleed_count);
     }
 
-    fn merge_state(&self) -> Option<Box<dyn Any>> {
-        Some(Box::new(MergeState {
-            turns: self.turns,
-            count: self.bleed_count,
-        }))
+    fn merge_state(&self, buffer: &mut [u8]) {
+        assert_eq!(buffer.len(), 2);
+        buffer[0] = self.turns;
+        buffer[1] = self.bleed_count;
     }
 
     fn should_merge_type(&self) -> bool {
         true
     }
-}
-
-struct MergeState {
-    turns: TurnNum,
-    count: u8,
 }

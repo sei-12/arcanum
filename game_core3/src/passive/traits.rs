@@ -29,9 +29,12 @@ pub trait Passive: DynClone + Debug + Any + Send + 'static {
     /// 引数のpassiveは同じ型(同じstatic_idを返す)ことが保証されている
     /// `assert_eq!(self.static_id(), passive.static_id());`
     fn merge(&mut self, passive: Box<dyn Passive>);
-    /// should_merge_typeがfalseならNone
-    /// trueならSomeを返さなければならない
-    fn merge_state(&self) -> Option<Box<dyn Any>>;
+
+    fn merge_state(&self, buffer: &mut [u8]);
+
+    // /// should_merge_typeがfalseならNone
+    // /// trueならSomeを返さなければならない
+    // fn merge_state(&self) -> Option<Box<dyn Any>>;
 
     #[allow(unused_variables)]
     fn update_state(
