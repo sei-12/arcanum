@@ -1,8 +1,11 @@
 use std::fmt::Debug;
 
 use crate::{
-    buttle_enemy::skill::EnemySkillDocument, enemys::RuntimeEnemyId, event::EventsQuePusher,
-    potential::Potential, state::GameState,
+    buttle_enemy::{abilitys::EnemyAbility, skill::EnemySkillDocument},
+    enemys::RuntimeEnemyId,
+    event::EventsQuePusher,
+    potential::Potential,
+    state::GameState,
 };
 
 pub mod goblin;
@@ -69,16 +72,4 @@ impl EnemyActionText {
             }
         }
     }
-}
-
-//--------------------------------------------------//
-//                                                  //
-//                     ABILITY                      //
-//                                                  //
-//--------------------------------------------------//
-pub enum EnemyAbility {
-    // 変質
-    Transition,
-    // 逆襲
-    Revenge,
 }

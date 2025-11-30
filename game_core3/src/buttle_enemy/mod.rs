@@ -1,16 +1,19 @@
 use crate::{
     SpNum,
     args::EnemyData,
-    buttle_enemy::static_datas::{StaticEnemy, StaticEnemyTrait},
+    buttle_enemy::{
+        abilitys::make_enemy_ability,
+        static_datas::{StaticEnemy, StaticEnemyTrait},
+    },
     enemys::{ButtleEnemysItem, RuntimeEnemyId},
     event::EventsQuePusher,
     lt_common::LtCommon,
     state::{GameState, LtId},
 };
 
+pub mod abilitys;
 mod skill;
 pub mod static_datas;
-pub mod abilitys;
 
 #[derive(Debug, Clone)]
 pub struct ButtleEnemy {
@@ -70,12 +73,22 @@ impl ButtleEnemysItem<EnemyData> for ButtleEnemy {
             data.level,
             static_data.name().to_string(),
         );
-        Self {
+
+        let abilitys = static_data.abilitys();
+
+        let mut self_ = Self {
             sp: 0,
             lt_common,
             static_data,
             runtime_id: id,
+        };
+
+        for avility in abilitys.iter() {
+            let avility_passive = make_enemy_ability(*avility);
+            self_.lt_mut().passive.add(avility_passive).unwrap();
         }
+
+        self_
     }
     fn runtime_id(&self) -> RuntimeEnemyId {
         self.runtime_id

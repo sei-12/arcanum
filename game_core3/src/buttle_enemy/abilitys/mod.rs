@@ -10,6 +10,7 @@ use crate::{
     state::LtId,
 };
 
+#[derive(Debug, Clone, Copy)]
 pub enum EnemyAbility {
     // 変質
     Transition,
@@ -20,9 +21,7 @@ pub enum EnemyAbility {
 pub(crate) fn make_enemy_ability(ability: EnemyAbility) -> Box<dyn Passive> {
     match ability {
         EnemyAbility::Revenge => Box::new(Revenge::new()),
-        _ => {
-            todo!()
-        }
+        EnemyAbility::Transition => Box::new(Transition::new()),
     }
 }
 
@@ -178,7 +177,17 @@ impl Transition {
         todo!()
     }
 
-    fn update_header(&mut self) {}
+    fn update_header(&mut self) {
+        self.header = match self.current_defence_type {
+            Some(DamageType::Magic) => {
+                format!("変質 魔法特化({})", self.count)
+            }
+            Some(DamageType::Physics) => {
+                format!("変質 物理特化({})", self.count)
+            }
+            _ => "変質".to_string(),
+        };
+    }
 
     fn update_msg_type_to_u64(ty: DamageType) -> u64 {
         match ty {
@@ -215,7 +224,7 @@ impl Passive for Transition {
     fn merge(&mut self, passive: Box<dyn Passive>) {
         assert_eq!(self.static_id(), passive.static_id());
     }
-    fn merge_state(&self, buffer: &mut [u8]) {
+    fn merge_state(&self, _buffer: &mut [u8]) {
         panic!()
     }
     fn runtime_id(&self) -> RuntimePassiveId {
@@ -280,6 +289,10 @@ impl Passive for Transition {
         effects: &mut Vec<Event>,
     ) {
         assert!(matches!(owner_id, LtId::Enemy(_)), "敵限定のアビリティ");
+        if dmg.ty() == DamageType::Fixed {
+            return;
+        }
+
         effects.push(Event::UpdatePassiveState {
             target_id: owner_id,
             passive_id: self.id,
