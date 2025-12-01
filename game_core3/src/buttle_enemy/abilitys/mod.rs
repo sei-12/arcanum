@@ -126,7 +126,7 @@ impl Passive for Revenge {
         let Some(LtId::Char(causer_char_id)) = dmg.causer().to_lt_id() else {
             return;
         };
-        
+
         if self.count >= 10 {
             return;
         }
@@ -178,7 +178,12 @@ struct Transition {
 
 impl Transition {
     fn new() -> Self {
-        todo!()
+        Self {
+            id: gen_passive_runtime_id(),
+            count: 0,
+            current_defence_type: None,
+            header: "変質".to_string(),
+        }
     }
 
     fn update_header(&mut self) {

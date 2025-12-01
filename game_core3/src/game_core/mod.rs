@@ -49,11 +49,15 @@ impl<S: ScreenActorSender> GameCoreActor<S> {
                 let _ = flow::start_game(&mut accepter, &mut self.state);
                 accepter
             }
-            GameCoreActorCommand::ChangeFocusEnemy { enemy_id: _ } => {
-                /*                 let mut events = EventsQue::default();
-                events.push(Event::ChangeFocusEnemy { enemy_id });
-                self.accept_events(&mut events); */
-                todo!()
+            GameCoreActorCommand::ChangeFocusEnemy { enemy_id } => {
+                let mut accepter = EventAccepter::new();
+                accepter
+                    .accpect(
+                        crate::event::Event::ChangeFocusEnemy { enemy_id },
+                        &mut self.state,
+                    )
+                    .unwrap_or_else(|_| panic!("フォーカスを変更するだけなので勝ちも負けもしない"));
+                accepter
             }
         };
 
