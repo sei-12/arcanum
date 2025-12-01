@@ -48,7 +48,7 @@ impl App {
         let game = GamePageState::new(&arg()).unwrap();
         game.sender().game_start().unwrap();
         Self {
-            page: Page::GamePage(game),
+            page: Page::GamePage(Box::new(game)),
         }
     }
 }
@@ -58,7 +58,7 @@ impl eframe::App for App {
             Page::GamePage(state) => {
                 draw_game_screen(ui, ctx.screen_rect(), state);
             }
-            Page::HomePage(_) => {}
+            // Page::HomePage(_) => {}
         });
     }
 }

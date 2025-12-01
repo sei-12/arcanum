@@ -5,7 +5,6 @@ use crate::{
 
 use eframe::egui::{self, Rect};
 use game_core3::{
-    HateNum,
     buttle_char::ButtleChar,
     buttle_enemy::ButtleEnemy,
     lt_common::LtCommon,
@@ -310,14 +309,7 @@ fn draw_char_hate(ui: &mut egui::Ui, page_state: &GamePageState, size: Size) {
         size.assign_to(ui);
         ui.label(rich_txt("ヘイト順"));
 
-        let mut chars = page_state
-            .game_state()
-            .chars()
-            .chars()
-            .iter()
-            .collect::<Vec<_>>();
-
-        chars.sort_by_key(|char| HateNum::MAX - char.hate());
+        let chars = page_state.game_state().chars().chars_sorted_by_hate();
 
         debug_assert!({
             // キャラクターは1体以上いる

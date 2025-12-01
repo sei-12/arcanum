@@ -43,7 +43,7 @@ impl EventReceiver {
         &self.state
     }
 
-    pub fn result(&self) -> &Option<GameResult> {
-        &self.result
-    }
+    // pub fn result(&self) -> &Option<GameResult> {
+    //     &self.result
+    // }
 }
