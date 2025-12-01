@@ -126,6 +126,10 @@ impl Passive for Revenge {
         let Some(LtId::Char(causer_char_id)) = dmg.causer().to_lt_id() else {
             return;
         };
+        
+        if self.count >= 10 {
+            return;
+        }
 
         effects.push(Event::HealSp {
             enemy_id: owner_enemy_id,

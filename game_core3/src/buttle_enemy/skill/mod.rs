@@ -1,5 +1,6 @@
 use crate::SpNum;
 
+#[derive(Debug)]
 pub struct EnemySkillDocument {
     pub name: &'static str,
     pub text: &'static str,
@@ -8,8 +9,7 @@ pub struct EnemySkillDocument {
 
 pub mod hikkaku {
     use crate::{
-        buttle_enemy::skill::EnemySkillDocument, damage::Damage,
-        passive::public_passive::bleeding::Bleeding,
+        buttle_enemy::skill::EnemySkillDocument, damage::Damage, event_accepter::WinOrLoseOrNextwave, passive::public_passive::bleeding::Bleeding
     };
     pub const DOCUMENT: EnemySkillDocument = EnemySkillDocument {
         need_sp: 80,
@@ -24,7 +24,7 @@ pub mod hikkaku {
         enemy_id: crate::enemys::RuntimeEnemyId,
         state: &crate::state::GameState,
         events: &mut impl crate::event::EventsQuePusher,
-    ) {
+    ) -> Result<(), WinOrLoseOrNextwave>{
         let target = state.chars().get_highest_hate_char();
         let user = state.enemys().get(enemy_id);
         let mut dmg_mag = 0.5;
@@ -37,7 +37,7 @@ pub mod hikkaku {
         }
 
         for _ in 0..damage_count {
-            events.push(crate::event::Event::Damage(Damage::new_physics_damage(
+            events.push_event(crate::event::Event::Damage(Damage::new_physics_damage(
                 state,
                 user.lt_id(),
                 target.lt_id(),
@@ -46,16 +46,18 @@ pub mod hikkaku {
         }
 
         if user.lt().dex() >= 17.0 {
-            events.push(crate::event::Event::AddPassive {
+            events.push_event(crate::event::Event::AddPassive {
                 target_id: target.lt_id(),
                 passive: Box::new(Bleeding::new(3)),
             });
         }
+        
+        Ok(())
     }
 }
 
 pub mod isinage {
-    use crate::{buttle_enemy::skill::EnemySkillDocument, damage::Damage};
+    use crate::{buttle_enemy::skill::EnemySkillDocument, damage::Damage, event_accepter::WinOrLoseOrNextwave};
     pub const DOCUMENT: EnemySkillDocument = EnemySkillDocument {
         need_sp: 0,
         name: "石投げ",
@@ -66,16 +68,18 @@ pub mod isinage {
         enemy_id: crate::enemys::RuntimeEnemyId,
         state: &crate::state::GameState,
         events: &mut impl crate::event::EventsQuePusher,
-    ) {
+    ) -> Result<(), WinOrLoseOrNextwave>{
         let target = state.chars().get_highest_hate_char();
         let user = state.enemys().get(enemy_id);
         let dmg_mag = 0.3;
 
-        events.push(crate::event::Event::Damage(Damage::new_physics_damage(
+        events.push_event(crate::event::Event::Damage(Damage::new_physics_damage(
             state,
             user.lt_id(),
             target.lt_id(),
             dmg_mag,
         )));
+        
+        Ok(())
     }
 }

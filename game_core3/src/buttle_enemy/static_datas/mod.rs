@@ -3,34 +3,16 @@ use std::fmt::Debug;
 use crate::{
     buttle_enemy::{abilitys::EnemyAbility, skill::EnemySkillDocument},
     enemys::RuntimeEnemyId,
-    event::EventsQuePusher,
+    event_accepter::{EventAccepter, WinOrLoseOrNextwave},
     potential::Potential,
     state::GameState,
 };
 
 pub mod goblin;
 
-#[enum_dispatch::enum_dispatch]
-pub trait StaticEnemyTrait: Debug + Clone {
-    fn name(&self) -> &'static str;
-    fn potential(&self) -> &'static Potential;
-    fn abilitys(&self) -> &'static [EnemyAbility];
-    fn action_text(&self) -> &'static [EnemyActionText];
-
-    fn action(&self, enemy: RuntimeEnemyId, state: &GameState, events: &mut impl EventsQuePusher);
-}
-
-#[derive(Debug, Clone)]
-#[enum_dispatch::enum_dispatch(StaticEnemyTrait)]
-pub enum StaticEnemy {
-    Goblin(goblin::Goblin),
-}
-
-impl StaticEnemy {
-    pub(crate) fn new(id: StaticEnemyId) -> Self {
-        match id {
-            StaticEnemyId::Goblin => Self::Goblin(goblin::Goblin),
-        }
+pub(crate) fn get_static_enemy_data(id: StaticEnemyId) -> &'static StaticEnemyData {
+    match id {
+        StaticEnemyId::Goblin => &goblin::DATA,
     }
 }
 
@@ -45,6 +27,7 @@ pub enum StaticEnemyId {
 //                                                  //
 //--------------------------------------------------//
 
+#[derive(Debug)]
 pub enum EnemyActionText {
     /// もし{condition}なら「{skill_doc.name}」を行い、行動を終了する。
     IfThenReturn {
@@ -72,4 +55,14 @@ impl EnemyActionText {
             }
         }
     }
+}
+
+#[derive(Debug)]
+pub struct StaticEnemyData {
+    pub name: &'static str,
+    pub potential: &'static Potential,
+    pub abilitys: &'static [EnemyAbility],
+    pub action_text: &'static [EnemyActionText],
+    pub(crate) action_fn:
+        fn(RuntimeEnemyId, &mut EventAccepter, &mut GameState) -> Result<(), WinOrLoseOrNextwave>,
 }

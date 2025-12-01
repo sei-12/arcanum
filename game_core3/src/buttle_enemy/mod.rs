@@ -3,12 +3,11 @@ use crate::{
     args::EnemyData,
     buttle_enemy::{
         abilitys::make_enemy_ability,
-        static_datas::{StaticEnemy, StaticEnemyTrait},
+        static_datas::{StaticEnemyData, get_static_enemy_data},
     },
     enemys::{ButtleEnemysItem, RuntimeEnemyId},
-    event::EventsQuePusher,
     lt_common::LtCommon,
-    state::{GameState, LtId},
+    state::{LtId},
 };
 
 pub mod abilitys;
@@ -19,7 +18,7 @@ pub mod static_datas;
 pub struct ButtleEnemy {
     sp: SpNum,
     lt_common: LtCommon,
-    static_data: static_datas::StaticEnemy,
+    static_data: &'static StaticEnemyData,
     runtime_id: RuntimeEnemyId,
 }
 
@@ -52,12 +51,8 @@ impl ButtleEnemy {
         self.sp
     }
 
-    pub fn static_data(&self) -> &StaticEnemy {
-        &self.static_data
-    }
-
-    pub fn play_action(&self, state: &GameState, events: &mut impl EventsQuePusher) {
-        self.static_data.action(self.runtime_id(), state, events);
+    pub fn static_data(&self) -> &StaticEnemyData {
+        self.static_data
     }
 }
 
@@ -67,14 +62,14 @@ impl ButtleEnemysItem<EnemyData> for ButtleEnemy {
     }
 
     fn new(data: &EnemyData, id: RuntimeEnemyId) -> Self {
-        let static_data = StaticEnemy::new(data.id);
+        let static_data = get_static_enemy_data(data.id);
         let lt_common = LtCommon::new(
-            static_data.potential(),
+            static_data.potential,
             data.level,
-            static_data.name().to_string(),
+            static_data.name.to_string(),
         );
 
-        let abilitys = static_data.abilitys();
+        let abilitys = static_data.abilitys;
 
         let mut self_ = Self {
             sp: 0,

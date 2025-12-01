@@ -4,6 +4,7 @@ use std::{
 };
 
 use crate::{
+    damage::Damage,
     event::{Event, EventsQuePusher},
     passive::{
         DisplayPassiveInfo, PassiveUpdateStateError, PassiveUpdateStateMessage, RuntimePassiveId,
@@ -179,7 +180,26 @@ impl PassiveList {
             passive.trigger_turn_start(owner, state, &mut buffer);
             buffer.sort_by_key(event_exec_priority);
             buffer.drain(0..buffer.len()).for_each(|event| {
-                pusher.push(event);
+                pusher.push_event(event);
+            });
+        }
+    }
+
+    pub(crate) fn trigger_recv_damage(
+        &self,
+        owner: LtId,
+        state: &GameState,
+        dmg: &Damage,
+        pusher: &mut impl EventsQuePusher,
+    ) {
+        let mut buffer = Vec::<Event>::new();
+        for runtime_id in self.added_order.iter() {
+            let passive = self.runtime_id_map.get(&runtime_id).unwrap();
+            debug_assert_eq!(passive.runtime_id(), runtime_id);
+            passive.trigger_recv_damage(owner, state, dmg, &mut buffer);
+            buffer.sort_by_key(event_exec_priority);
+            buffer.drain(0..buffer.len()).for_each(|event| {
+                pusher.push_event(event);
             });
         }
     }

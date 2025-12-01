@@ -1,3 +1,5 @@
+use std::cell::RefMut;
+
 use crate::{
     CooldownNum, GameResult, HateNum, MpNum, SpNum,
     damage::Damage,
@@ -8,7 +10,18 @@ use crate::{
 };
 
 pub trait EventsQuePusher {
-    fn push(&mut self, event: Event);
+    fn push_event(&mut self, event: Event);
+}
+
+impl EventsQuePusher for Vec<Event> {
+    fn push_event(&mut self, event: Event) {
+        self.push(event);
+    }
+}
+impl<'a> EventsQuePusher for RefMut<'a, Vec<Event>> {
+    fn push_event(&mut self, event: Event) {
+        self.push(event);
+    }
 }
 
 #[derive(Debug, Clone)]

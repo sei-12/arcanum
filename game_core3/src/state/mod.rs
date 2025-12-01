@@ -40,10 +40,17 @@ impl GameState {
             player_mp: mp::Mp::default(),
         })
     }
+    
+    // 
+    // 
     // このメソッド以外に可変なメソッドを公開するな
     // 全ての変更はイベントであるべき
     //
     // Cowでeventを渡してもいいかも
+    //
+    //
+    /// EventAccepter以外からこのメソッドにアクセスするな
+    /// TODO: ドキュメントではなく、型なりスコープなりでルールにする
     pub fn accept_event(&mut self, event: Event) {
         match event {
             Event::AddHate { char_id, hate } => {

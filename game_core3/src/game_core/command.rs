@@ -1,14 +1,14 @@
 use crate::{enemys::RuntimeEnemyId, skill::StaticSkillId, static_char::StaticCharId};
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub enum GameCoreActorCommand {
     TurnEnd,
     UseSkill {
-        user: StaticCharId,
-        skill: StaticSkillId,
+        user_id: StaticCharId,
+        skill_id: StaticSkillId,
     },
     GameStart,
     ChangeFocusEnemy {
-        enemy_id: RuntimeEnemyId
-    }
+        enemy_id: RuntimeEnemyId,
+    },
 }

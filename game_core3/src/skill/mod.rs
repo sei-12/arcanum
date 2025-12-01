@@ -19,7 +19,7 @@ pub struct SkillDocument {
 }
 
 pub(crate) type SkillFlow =
-    fn(&mut EventAccepter<'_>, RuntimeCharId) -> Result<SkillResult, WinOrLoseOrNextwave>;
+    fn(&mut EventAccepter, &mut GameState, RuntimeCharId) -> Result<SkillResult, WinOrLoseOrNextwave>;
 
 #[enum_dispatch::enum_dispatch]
 pub(crate) trait SkillTraitPrivate {
@@ -57,23 +57,24 @@ impl SkillResult {
     pub(crate) fn accept_events(
         &self,
         accepter: &mut EventAccepter,
+        game_state: &mut GameState,
         user_id: RuntimeCharId,
         skill_id: StaticSkillId,
     ) -> Result<(), WinOrLoseOrNextwave> {
-        accepter.accpect(crate::event::Event::ConsumeMp {
+        accepter.push_to_tmp(crate::event::Event::ConsumeMp {
             mp: self.consume_mp,
-        })?;
-        accepter.accpect(crate::event::Event::AddHate {
+        });
+        accepter.push_to_tmp(crate::event::Event::AddHate {
             char_id: user_id,
             hate: self.hate,
-        })?;
-
-        accepter.accpect(crate::event::Event::SetSkillCooldown {
+        });
+        accepter.push_to_tmp(crate::event::Event::SetSkillCooldown {
             char_id: user_id,
             skill_id,
             cooldown: self.cooldown,
-        })?;
-        Ok(())
+        });
+
+        accepter.flush(game_state)
     }
 }
 
