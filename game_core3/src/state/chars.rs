@@ -5,7 +5,9 @@ pub struct RuntimeCharId {
 
 use std::collections::HashSet;
 
-use crate::{NUM_MAX_CHAR_IN_TEAM, args, buttle_char::ButtleChar, static_char::StaticCharId};
+use crate::{
+    HateNum, NUM_MAX_CHAR_IN_TEAM, args, buttle_char::ButtleChar, static_char::StaticCharId,
+};
 
 #[derive(Debug, Clone)]
 pub struct ButtleChars {
@@ -53,9 +55,7 @@ impl ButtleChars {
             set.len() == chars.len()
         });
 
-        Ok(Self {
-            chars,
-        })
+        Ok(Self { chars })
     }
 }
 
@@ -98,9 +98,29 @@ impl ButtleChars {
 
     pub(crate) fn get_highest_hate_char(&self) -> &ButtleChar {
         assert!(!self.chars.is_empty());
-        self.chars.iter().max_by_key(|char| char.hate()).unwrap()
+        // MEMO: iter().max()は最後の値になってしまう。
+        // 最初の値を取得する方法が見つかったら書き換えたい
+        let mut max_hate_char = &self.chars[0];
+        for char in self.chars.iter().skip(1) {
+            if max_hate_char.hate() < char.hate() {
+                max_hate_char = char
+            }
+        }
+
+        debug_assert!({
+            let v = self.chars_sorted_by_hate();
+            v.first().unwrap().runtime_id() == max_hate_char.runtime_id()
+        });
+
+        max_hate_char
     }
-    
+
+    pub fn chars_sorted_by_hate(&self) -> Vec<&ButtleChar> {
+        let mut chars = self.chars.iter().collect::<Vec<_>>();
+        chars.sort_by_key(|char| HateNum::MAX - char.hate());
+        assert_eq!(self.chars.len(), chars.len());
+        chars
+    }
 }
 
 //--------------------------------------------------//
