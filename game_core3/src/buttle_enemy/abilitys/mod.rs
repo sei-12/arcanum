@@ -48,7 +48,7 @@ impl Revenge {
 
     fn update_header(&mut self) {
         if self.count == 0 {
-            self.header = "逆集".to_string()
+            self.header = "逆襲".to_string()
         } else {
             self.header = format!("逆襲 ({})", self.count);
         }
@@ -90,7 +90,7 @@ impl Passive for Revenge {
         msg: &crate::passive::PassiveUpdateStateMessage,
     ) -> Result<(), crate::passive::PassiveUpdateStateError> {
         match msg {
-            PassiveUpdateStateMessage::DecrimentTurns => {
+            PassiveUpdateStateMessage::TriggerTurnStart => {
                 self.count = 0;
             }
             PassiveUpdateStateMessage::Unique(_) => {

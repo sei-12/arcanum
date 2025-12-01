@@ -55,8 +55,8 @@ impl CommandSender {
     ) -> Result<(), game_core3::Error> {
         let mut core_mut = self.core.borrow_mut();
         core_mut.accept(GameCoreActorCommand::UseSkill {
-            user: static_char_id,
-            skill: skill_id,
+            user_id: static_char_id,
+            skill_id,
         })
     }
 

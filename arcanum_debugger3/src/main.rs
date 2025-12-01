@@ -1,4 +1,3 @@
-use std::borrow::Cow;
 
 mod state;
 mod app;

@@ -1,32 +1,17 @@
-// use eframe::egui::Ui;
-
 use crate::{
     game_page::GamePageState,
     text::{rich_small_text, rich_title, rich_txt},
 };
 
-// pub fn draw_game_screen(page_state: &mut GamePageState, ui: &mut Ui){
-
-// }
 use eframe::egui::{self, Rect};
 use game_core3::{
     HateNum,
     buttle_char::ButtleChar,
-    buttle_enemy::{ButtleEnemy, static_datas::StaticEnemyTrait},
+    buttle_enemy::ButtleEnemy,
     lt_common::LtCommon,
     skill::{SkillTrait, SkillWithState},
     static_char::StaticCharId,
 };
-// use game_core::{
-//     chars::StaticCharId,
-//     lt::{Char, Enemy, LtCommon},
-//     skills::ActiveSkillState,
-// };
-
-// use crate::{
-//     CustomContext,
-//     text::{rich_small_text, rich_title, rich_txt},
-// };
 
 #[derive(Debug, Clone, Copy)]
 struct Size {
@@ -105,7 +90,7 @@ fn draw_enemy_item(ui: &mut egui::Ui, size: Size, page_state: &GamePageState, en
                 width: size.width * 0.9,
                 height: size.height * 0.3,
             };
-            draw_lt_status(ui, itemsize, enemy.lt(), enemy.static_data().name());
+            draw_lt_status(ui, itemsize, enemy.lt(), enemy.static_data().name);
         });
 
         ui.label(rich_txt(format!("SP: {}", enemy.sp())));
@@ -155,14 +140,6 @@ fn draw_enemy_side(ui: &mut egui::Ui, size: Size, page_state: &GamePageState) {
         }
     });
 }
-
-// fn draw_enemy_item(ui: &mut egui::Ui, ctx: &CustomContext<'_>, size: Size, enemy: &Enemy) {
-// }
-
-// fn draw_enemy_side(ui: &mut egui::Ui, page_state: &mut GamePageState, size: Size) {
-//     let enemy = page_state.game_state().enemys();
-//     // draw_enemy_item(ui, ctx, size, enemy);
-// }
 
 fn draw_char_item(ui: &mut egui::Ui, page_state: &GamePageState, size: Size, char: &ButtleChar) {
     ui.group(|ui| {
