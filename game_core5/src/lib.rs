@@ -1,6 +1,8 @@
 use crate::game_core_output_receiver::GameCoreOutputReceiver;
 
+pub mod passive;
 pub mod game_core_output_receiver;
+pub mod state;
 
 pub type MpNum = u32;
 pub type SpNum = u32;
@@ -11,6 +13,7 @@ pub type CooldownNum = u32;
 pub type HateNum = u32;
 pub type WaveNum = u8;
 pub type SkillId = u32;
+pub type StaticPassiveId = u32;
 pub type AnimationId = u32;
 
 //--------------------------------------------------//
@@ -27,7 +30,7 @@ pub fn new_game_core<S, R, A>(
     sender: S,
     receiver: R,
     assets_server: A,
-) -> (GameCoreActor<S, A>, GameCoreOutputReceiver<R, A>)
+) -> (GameCoreActor<S, A>, GameCoreOutputReceiver<R>)
 where
     S: MessegeSender,
     R: MessageReceiver,
@@ -189,13 +192,6 @@ pub enum WinOrLoseOrNextwave {
     Nextwave,
 }
 
-pub struct GameState {}
-
-impl GameState {
-    pub(crate) fn update(&mut self, message: &UpdateStateMessage) -> Option<WinOrLoseOrNextwave> {
-        todo!()
-    }
-}
 
 //--------------------------------------------------//
 //                                                  //

@@ -1,8 +1,8 @@
 mod effects;
 
 use crate::{
-    AssetsServer, Frame, GameState, MessageReceiver, Output, OutputFrame, PrivateMessage, SkillId,
-    UpdateStateMessage, WinOrLoseOrNextwave,
+    Frame, MessageReceiver, Output, OutputFrame, PrivateMessage, SkillId, WinOrLoseOrNextwave,
+    state::GameState,
 };
 
 //--------------------------------------------------//
@@ -10,8 +10,7 @@ use crate::{
 //            GAME CORE OUTPUT RECEIVER             //
 //                                                  //
 //--------------------------------------------------//
-pub struct GameCoreOutputReceiver<R: MessageReceiver, A: AssetsServer> {
-    assets_server: A,
+pub struct GameCoreOutputReceiver<R: MessageReceiver> {
     receiver: R,
     state: GameState,
     buffer: Option<BeginedMessageBuffer>,
@@ -22,7 +21,7 @@ pub struct GameCoreOutputReceiver<R: MessageReceiver, A: AssetsServer> {
     output_tmp: Option<Output>,
 }
 
-impl<R: MessageReceiver, A: AssetsServer> GameCoreOutputReceiver<R, A> {
+impl<R: MessageReceiver> GameCoreOutputReceiver<R> {
     pub fn forword(&mut self) -> Result<Option<Output>, Box<dyn std::error::Error>> {
         if let Some(output) = self.output_tmp.take() {
             debug_assert!({
