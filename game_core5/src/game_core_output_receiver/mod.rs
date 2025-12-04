@@ -1,8 +1,8 @@
 mod effects;
 
 use crate::{
-    Frame, MessageReceiver, Output, OutputFrame, PrivateMessage, StaticEnemySkillId, StaticSkillId,
-    WinOrLoseOrNextwave, state::GameState,
+    CoreOutput, Frame, MessageReceiver, OutputFrame, PrivateMessage, StaticEnemySkillId,
+    StaticSkillId, WinOrLoseOrNextwave, state::GameState,
 };
 
 //--------------------------------------------------//
@@ -18,7 +18,7 @@ pub struct GameCoreOutputReceiver<R: MessageReceiver> {
     // MEMO: ロジックが複雑になってきたらドキュメントレベルのルールではなく、型レベルでの制約にしてもいい
     // 現状は必要ないと判断した
     /// Rule: Win, Lose, GonextWaveのいずれかしか入らない
-    output_tmp: Option<Output>,
+    output_tmp: Option<CoreOutput>,
 }
 
 impl<R: MessageReceiver> GameCoreOutputReceiver<R> {
@@ -31,12 +31,12 @@ impl<R: MessageReceiver> GameCoreOutputReceiver<R> {
         }
     }
 
-    pub fn forword(&mut self) -> Result<Option<Output>, Box<dyn std::error::Error>> {
+    pub fn forword(&mut self) -> Result<Option<CoreOutput>, Box<dyn std::error::Error>> {
         if let Some(output) = self.output_tmp.take() {
             debug_assert!({
-                matches!(output, Output::Win)
-                    || matches!(output, Output::Lose)
-                    || matches!(output, Output::GoNextWave)
+                matches!(output, CoreOutput::Win)
+                    || matches!(output, CoreOutput::Lose)
+                    || matches!(output, CoreOutput::GoNextWave)
             },);
             return Ok(Some(output));
         }
@@ -77,22 +77,22 @@ impl<R: MessageReceiver> GameCoreOutputReceiver<R> {
 
         if let Some(result) = apply_frames_to_state(&mut self.state, &frames) {
             match result {
-                WinOrLoseOrNextwave::Lose => self.output_tmp = Some(Output::Lose),
-                WinOrLoseOrNextwave::Win => self.output_tmp = Some(Output::Win),
-                WinOrLoseOrNextwave::Nextwave => self.output_tmp = Some(Output::GoNextWave),
+                WinOrLoseOrNextwave::Lose => self.output_tmp = Some(CoreOutput::Lose),
+                WinOrLoseOrNextwave::Win => self.output_tmp = Some(CoreOutput::Win),
+                WinOrLoseOrNextwave::Nextwave => self.output_tmp = Some(CoreOutput::GoNextWave),
             }
         }
 
         let output = match begin {
-            Begin::EnemySkill(skill_id) => Output::AnimatableFrames(crate::AnimatableFrames {
+            Begin::EnemySkill(skill_id) => CoreOutput::AnimatableFrames(crate::AnimatableFrames {
                 animation_id: crate::AnimationId::EnemySkill(skill_id),
                 frames: output_frames,
             }),
-            Begin::Skill(skill_id) => Output::AnimatableFrames(crate::AnimatableFrames {
+            Begin::Skill(skill_id) => CoreOutput::AnimatableFrames(crate::AnimatableFrames {
                 animation_id: crate::AnimationId::CharSkill(skill_id),
                 frames: output_frames,
             }),
-            Begin::SameTime => Output::SameTime(output_frames),
+            Begin::SameTime => CoreOutput::SameTime(output_frames),
         };
 
         Ok(Some(output))
@@ -135,15 +135,15 @@ impl BeginedMessageBuffer {
     }
 
     fn into_same_time_message_block(self) -> MessageBlock {
-        if matches!(self.begin, Begin::SameTime) {
-            panic!("beginとendが対応していない");
+        if !matches!(self.begin, Begin::SameTime) {
+            panic!("beginとendが対応していない self={:?}", self);
         }
         MessageBlock::SameTime(self.frames)
     }
 
     fn into_skill_message_block(self) -> MessageBlock {
         let Begin::Skill(skill_id) = self.begin else {
-            panic!("beginとendが対応していない");
+            panic!("beginとendが対応していない self={:?}", self);
         };
 
         MessageBlock::Skill(skill_id, self.frames)
@@ -151,7 +151,7 @@ impl BeginedMessageBuffer {
 
     fn into_enemy_skill_message_block(self) -> MessageBlock {
         let Begin::EnemySkill(skill_id) = self.begin else {
-            panic!("beginとendが対応していない");
+            panic!("beginとendが対応していない self={:?}", self);
         };
 
         MessageBlock::EnemySkill(skill_id, self.frames)

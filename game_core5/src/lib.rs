@@ -64,7 +64,7 @@ pub fn new_game_core<S, R>(
     buttle_args: ButtleArgs,
 ) -> Result<(GameCoreActor<S>, GameCoreOutputReceiver<R>), crate::Error>
 where
-    S: MessegeSender,
+    S: MessageSender,
     R: MessageReceiver,
 {
     let core_actor = GameCoreActor::new(sender, buttle_args)?;
@@ -72,12 +72,12 @@ where
     Ok((core_actor, receiver))
 }
 
-pub struct GameCoreActor<S: MessegeSender> {
+pub struct GameCoreActor<S: MessageSender> {
     sender: S,
     state: GameState,
 }
 
-impl<S: MessegeSender> GameCoreActor<S> {
+impl<S: MessageSender> GameCoreActor<S> {
     fn new(sender: S, args: ButtleArgs) -> Result<Self, crate::Error> {
         Ok(Self {
             sender,
@@ -113,7 +113,7 @@ impl<S: MessegeSender> GameCoreActor<S> {
 //                      OUTPUT                      //
 //                                                  //
 //--------------------------------------------------//
-pub enum Output {
+pub enum CoreOutput {
     AnimatableFrames(AnimatableFrames),
     SameTime(Vec<OutputFrame>),
     GoNextWave,
@@ -203,21 +203,6 @@ enum PrivateMessage {
     Frame(Frame),
 }
 
-// impl PrivateMessage {
-//     pub(crate) fn is_begin(&self) -> bool {
-//         matches!(
-//             self,
-//             PrivateMessage::SameTimeBegin
-//                 | PrivateMessage::SkillBegin(_)
-//                 | PrivateMessage::EnemySkillBegin(_)
-//         )
-//     }
-
-//     pub(crate) fn is_end(&self) -> bool {
-//         matches!(self, Self::SameTimeEnd | Self::SkillEnd)
-//     }
-// }
-
 #[derive(Debug, Clone)]
 struct Frame {
     main_effect: UpdateStateMessage,
@@ -248,7 +233,7 @@ impl WinOrLoseOrNextwave {
 //             MESSAGE SENDER RECEIVER              //
 //                                                  //
 //--------------------------------------------------//
-pub trait MessegeSender {
+pub trait MessageSender {
     fn send(&mut self, output: Message) -> Result<(), Box<dyn std::error::Error>>;
 }
 pub trait MessageReceiver {
@@ -273,7 +258,6 @@ pub struct StaticEnemyData {
     pub name: &'static str,
     pub potential: Potential,
     pub select_skill_fn: SelectEnemySkillFn,
-    pub action_fn: EnemyActionFn,
 }
 
 pub struct EnemySkill {
@@ -281,7 +265,7 @@ pub struct EnemySkill {
     pub call: EnemyActionFn,
 }
 
-pub type SelectEnemySkillFn = fn(RuntimeEnemyId, &GameState) -> EnemySkill;
+pub type SelectEnemySkillFn = fn(RuntimeEnemyId, &GameState) -> &'static EnemySkill;
 pub type EnemyActionFn = fn(RuntimeEnemyId, &mut Effecter) -> Result<(), WinOrLoseOrNextwave>;
 
 #[derive(Debug, thiserror::Error)]
@@ -299,7 +283,7 @@ pub enum Error {
     WavesIsEmpty,
 
     #[error("wave内の敵の数が不正です: got={0:?}")]
-    InvalidNumEnemysInWave(Arc<Vec<Vec<(LevelNum, &'static StaticEnemyData)>>>),
+    InvalidNumEnemysInWave(Arc<Vec<Vec<EnemyArg>>>),
 
     #[error("使用できないスキルを使用しようとしています")]
     UnUseableSkill,
@@ -315,10 +299,18 @@ pub enum Error {
 }
 
 pub struct ButtleArgs {
-    pub chars: Vec<(
-        LevelNum,
-        &'static StaticCharData,
-        Vec<&'static StaticSkillData>,
-    )>,
-    pub enemys: Arc<Vec<Vec<(LevelNum, &'static StaticEnemyData)>>>,
+    pub chars: Vec<CharArg>,
+    pub enemys: Arc<Vec<Vec<EnemyArg>>>,
+}
+
+pub struct CharArg {
+    pub level: LevelNum,
+    pub static_data: &'static StaticCharData,
+    pub skills: Vec<&'static StaticSkillData>,
+}
+
+#[derive(Debug)]
+pub struct EnemyArg {
+    pub level: LevelNum,
+    pub static_data: &'static StaticEnemyData,
 }

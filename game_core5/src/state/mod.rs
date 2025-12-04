@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    ButtleArgs, CooldownNum, HateNum, LevelNum, MpNum, NUM_MAX_CHAR_IN_TEAM,
+    ButtleArgs, CharArg, CooldownNum, EnemyArg, HateNum, LevelNum, MpNum, NUM_MAX_CHAR_IN_TEAM,
     NUM_MAX_ENEMYS_IN_WAVE, SpNum, StaticCharData, StaticEnemyData, StaticPassiveId, StatusNum,
     WinOrLoseOrNextwave,
     damage::{self, Damage},
@@ -272,13 +272,7 @@ struct Chars<T: ButtleCharsItem> {
 }
 
 impl<T: ButtleCharsItem> Chars<T> {
-    fn new(
-        char_datas: &[(
-            LevelNum,
-            &'static StaticCharData,
-            Vec<&'static StaticSkillData>,
-        )],
-    ) -> Result<Self, crate::Error> {
+    fn new(char_datas: &[CharArg]) -> Result<Self, crate::Error> {
         if char_datas.is_empty() || char_datas.len() > NUM_MAX_CHAR_IN_TEAM as usize {
             return Err(crate::Error::InvalidNumTeamMembers {
                 got_num_members: char_datas.len(),
@@ -286,9 +280,9 @@ impl<T: ButtleCharsItem> Chars<T> {
         };
 
         let mut chars = Vec::new();
-        for (i, (level, data, skills)) in char_datas.iter().enumerate() {
+        for (i, c) in char_datas.iter().enumerate() {
             let id = RuntimeCharId(i as u8);
-            let t = T::new(data, *level, id, skills)?;
+            let t = T::new(c.static_data, c.level, id, &c.skills)?;
             chars.push(t);
         }
 
@@ -330,15 +324,13 @@ pub(crate) trait ButtleEnemysItem {
 #[derive(Debug, Clone)]
 struct Enemys<T: ButtleEnemysItem> {
     // 不変であり、コピーのコストが高いと判断した
-    data: Arc<Vec<Vec<(LevelNum, &'static StaticEnemyData)>>>,
+    data: Arc<Vec<Vec<EnemyArg>>>,
     current_wave: Vec<T>,
     current_wave_idx: usize,
 }
 
 impl<T: ButtleEnemysItem> Enemys<T> {
-    pub fn new(
-        data: Arc<Vec<Vec<(LevelNum, &'static StaticEnemyData)>>>,
-    ) -> Result<Self, crate::Error> {
+    pub fn new(data: Arc<Vec<Vec<EnemyArg>>>) -> Result<Self, crate::Error> {
         if data.is_empty() {
             return Err(crate::Error::WavesIsEmpty);
         }
@@ -355,10 +347,10 @@ impl<T: ButtleEnemysItem> Enemys<T> {
             .unwrap()
             .iter()
             .enumerate()
-            .map(|(i, (level, data))| {
+            .map(|(i, enemy)| {
                 T::new(
-                    data,
-                    *level,
+                    enemy.static_data,
+                    enemy.level,
                     RuntimeEnemyId {
                         wave_idx: 0,
                         idx: i as u8,
