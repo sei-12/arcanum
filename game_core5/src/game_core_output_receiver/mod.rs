@@ -1,8 +1,8 @@
 mod effects;
 
 use crate::{
-    Frame, MessageReceiver, Output, OutputFrame, PrivateMessage, SkillId, WinOrLoseOrNextwave,
-    state::GameState,
+    Frame, MessageReceiver, Output, OutputFrame, PrivateMessage, StaticEnemySkillId, StaticSkillId,
+    WinOrLoseOrNextwave, state::GameState,
 };
 
 //--------------------------------------------------//
@@ -22,6 +22,15 @@ pub struct GameCoreOutputReceiver<R: MessageReceiver> {
 }
 
 impl<R: MessageReceiver> GameCoreOutputReceiver<R> {
+    pub(crate) fn new(receiver: R, state: GameState) -> Self {
+        Self {
+            receiver,
+            state,
+            buffer: None,
+            output_tmp: None,
+        }
+    }
+
     pub fn forword(&mut self) -> Result<Option<Output>, Box<dyn std::error::Error>> {
         if let Some(output) = self.output_tmp.take() {
             debug_assert!({
@@ -40,6 +49,7 @@ impl<R: MessageReceiver> GameCoreOutputReceiver<R> {
             let begin = match msg.inner {
                 PrivateMessage::SkillBegin(skill_id) => Begin::Skill(skill_id),
                 PrivateMessage::SameTimeBegin => Begin::SameTime,
+                PrivateMessage::EnemySkillBegin(skill_id) => Begin::EnemySkill(skill_id),
                 _ => panic!("メッセージはbeginから始まる必要がある"),
             };
 
@@ -54,9 +64,10 @@ impl<R: MessageReceiver> GameCoreOutputReceiver<R> {
             }
         };
 
-        let (skill_id, frames) = match msg_block {
-            MessageBlock::SameTime(frames) => (None, frames),
-            MessageBlock::Skill(skill_id, frames) => (Some(skill_id), frames),
+        let (begin, frames) = match msg_block {
+            MessageBlock::SameTime(frames) => (Begin::SameTime, frames),
+            MessageBlock::Skill(skill_id, frames) => (Begin::Skill(skill_id), frames),
+            MessageBlock::EnemySkill(skill_id, frames) => (Begin::EnemySkill(skill_id), frames),
         };
 
         let output_frames = frames
@@ -72,13 +83,19 @@ impl<R: MessageReceiver> GameCoreOutputReceiver<R> {
             }
         }
 
-        match skill_id {
-            Some(id) => Ok(Some(Output::AnimatableFrames(crate::AnimatableFrames {
-                animation_id: id,
+        let output = match begin {
+            Begin::EnemySkill(skill_id) => Output::AnimatableFrames(crate::AnimatableFrames {
+                animation_id: crate::AnimationId::EnemySkill(skill_id),
                 frames: output_frames,
-            }))),
-            None => Ok(Some(Output::SameTime(output_frames))),
-        }
+            }),
+            Begin::Skill(skill_id) => Output::AnimatableFrames(crate::AnimatableFrames {
+                animation_id: crate::AnimationId::CharSkill(skill_id),
+                frames: output_frames,
+            }),
+            Begin::SameTime => Output::SameTime(output_frames),
+        };
+
+        Ok(Some(output))
     }
 
     pub fn state(&self) -> &GameState {
@@ -87,7 +104,8 @@ impl<R: MessageReceiver> GameCoreOutputReceiver<R> {
 }
 
 enum MessageBlock {
-    Skill(SkillId, Vec<Frame>),
+    Skill(StaticSkillId, Vec<Frame>),
+    EnemySkill(StaticEnemySkillId, Vec<Frame>),
     SameTime(Vec<Frame>),
 }
 
@@ -99,7 +117,8 @@ struct BeginedMessageBuffer {
 
 #[derive(Debug)]
 enum Begin {
-    Skill(SkillId),
+    Skill(StaticSkillId),
+    EnemySkill(StaticEnemySkillId),
     SameTime,
 }
 
@@ -129,6 +148,14 @@ impl BeginedMessageBuffer {
 
         MessageBlock::Skill(skill_id, self.frames)
     }
+
+    fn into_enemy_skill_message_block(self) -> MessageBlock {
+        let Begin::EnemySkill(skill_id) = self.begin else {
+            panic!("beginとendが対応していない");
+        };
+
+        MessageBlock::EnemySkill(skill_id, self.frames)
+    }
 }
 
 /// receiverからメッセージを取り出してバッファーに入れる
@@ -151,7 +178,12 @@ where
             PrivateMessage::SkillEnd => {
                 return Ok(Ok(buffer.into_skill_message_block()));
             }
-            PrivateMessage::SameTimeBegin | PrivateMessage::SkillBegin(_) => panic!(
+            PrivateMessage::EnemySkillEnd => {
+                return Ok(Ok(buffer.into_enemy_skill_message_block()));
+            }
+            PrivateMessage::SameTimeBegin
+            | PrivateMessage::SkillBegin(_)
+            | PrivateMessage::EnemySkillBegin(_) => panic!(
                 "endが呼ばれる前にbeginが呼ばれた: buffer={:?} got={:?}",
                 &buffer, msg.inner
             ),

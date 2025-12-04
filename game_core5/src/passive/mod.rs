@@ -18,7 +18,7 @@ pub mod status;
 #[derive(Debug, Clone)]
 pub struct DisplayPassiveInfo<'a> {
     pub header: Cow<'a, str>,
-    pub text: Cow<'a, str>,
+    pub text: &'static str,
 }
 
 #[derive(Debug, Clone)]
@@ -135,9 +135,9 @@ impl AddedOrder {
         }
     }
 
-    fn iter(&self) -> impl Iterator<Item = TypeId> {
-        self.sorted.values().copied()
-    }
+    // fn iter(&self) -> impl Iterator<Item = TypeId> {
+    //     self.sorted.values().copied()
+    // }
 
     fn add(&mut self, id: TypeId) {
         self.count += 1;

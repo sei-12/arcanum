@@ -1,8 +1,28 @@
-use crate::game_core_output_receiver::GameCoreOutputReceiver;
+use std::{any::TypeId, sync::Arc};
 
-pub mod passive;
+use crate::{
+    effector::Effecter,
+    game_core_output_receiver::GameCoreOutputReceiver,
+    living_thing::Potential,
+    skill::{RuntimeSkillId, StaticSkillData},
+    state::{GameState, RuntimeCharId, RuntimeEnemyId, UpdateStateMessage},
+};
+
+mod damage;
+pub mod effector;
+mod flow;
 pub mod game_core_output_receiver;
+pub mod living_thing;
+pub mod passive;
+pub mod skill;
 pub mod state;
+
+pub const NUM_MAX_CHAR_IN_TEAM: u8 = 4;
+pub const NUM_MAX_LEARN_SKILLS: usize = 6;
+pub const NUM_MAX_ENEMYS_IN_WAVE: usize = 5;
+pub const TURN_START_HEAL_MP_NUM: MpNum = 100;
+pub const SKILL_COOLDOWN_HEAL_BASE: CooldownNum = 50;
+pub const TURN_START_HEAL_SP_NUM: SpNum = 50;
 
 pub type MpNum = u32;
 pub type SpNum = u32;
@@ -12,9 +32,13 @@ pub type TurnNum = u8;
 pub type CooldownNum = u32;
 pub type HateNum = u32;
 pub type WaveNum = u8;
-pub type SkillId = u32;
-pub type StaticPassiveId = u32;
-pub type AnimationId = u32;
+pub type StaticEnemySkillId = u32;
+pub type StaticSkillId = u32;
+// MEMO: 絶対こんなにサイズいらない
+pub type StaticPassiveId = TypeId;
+pub type StaticCharId = u32;
+pub type StaticEnemyId = u32;
+// pub type AnimationId = u32;
 
 //--------------------------------------------------//
 //                                                  //
@@ -22,51 +46,67 @@ pub type AnimationId = u32;
 //                                                  //
 //--------------------------------------------------//
 
-pub struct GameCoreActorCommand {}
+pub enum GameCoreActorCommand {
+    UseSkill {
+        user_id: RuntimeCharId,
+        skill_id: RuntimeSkillId,
+        focused_enemy_id: Option<RuntimeEnemyId>,
+    },
+    TurnEnd,
+    GameStart,
+}
 
 pub struct GameCoreArgment {}
 
-pub fn new_game_core<S, R, A>(
+pub fn new_game_core<S, R>(
     sender: S,
     receiver: R,
-    assets_server: A,
-) -> (GameCoreActor<S, A>, GameCoreOutputReceiver<R>)
+    buttle_args: ButtleArgs,
+) -> Result<(GameCoreActor<S>, GameCoreOutputReceiver<R>), crate::Error>
 where
     S: MessegeSender,
     R: MessageReceiver,
-    A: AssetsServer,
 {
-    todo!()
-    /*     let core_actor = GameCoreActor {
-        sender,
-        assets_server,
-    };
-
-    let core_receiver = GameCoreOutputReceiver {
-        receiver,
-        assets_server,
-    };
-
-    (core_actor, core_receiver) */
+    let core_actor = GameCoreActor::new(sender, buttle_args)?;
+    let receiver = GameCoreOutputReceiver::new(receiver, core_actor.state.clone());
+    Ok((core_actor, receiver))
 }
 
-pub struct GameCoreActor<S: MessegeSender, A: AssetsServer> {
-    assets_server: A,
+pub struct GameCoreActor<S: MessegeSender> {
     sender: S,
+    state: GameState,
 }
 
-impl<S: MessegeSender, A: AssetsServer> GameCoreActor<S, A> {
-    pub fn send(&mut self, command: GameCoreActorCommand) {}
-}
+impl<S: MessegeSender> GameCoreActor<S> {
+    fn new(sender: S, args: ButtleArgs) -> Result<Self, crate::Error> {
+        Ok(Self {
+            sender,
+            state: GameState::new(&args)?,
+        })
+    }
 
-//--------------------------------------------------//
-//                                                  //
-//                  ASSETS SERVER                   //
-//                                                  //
-//--------------------------------------------------//
-/// 関数郡のようなもの
-/// 実態は軽量でコピー可能であるべき
-pub trait AssetsServer: Copy {}
+    pub fn send(
+        &mut self,
+        command: GameCoreActorCommand,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut effector = Effecter::new(&mut self.state);
+        let _ = match command {
+            GameCoreActorCommand::GameStart => flow::game_start(&mut effector),
+            GameCoreActorCommand::TurnEnd => flow::turn_end(&mut effector),
+            GameCoreActorCommand::UseSkill {
+                user_id,
+                skill_id,
+                focused_enemy_id,
+            } => flow::use_skill(&mut effector, user_id, skill_id, focused_enemy_id),
+        };
+
+        for msg in effector.take_messages().into_iter() {
+            self.sender.send(Message { inner: msg })?;
+        }
+
+        Ok(())
+    }
+}
 
 //--------------------------------------------------//
 //                                                  //
@@ -81,9 +121,14 @@ pub enum Output {
     Lose,
 }
 
+pub enum AnimationId {
+    CharSkill(StaticSkillId),
+    EnemySkill(StaticEnemySkillId),
+}
+
 pub struct AnimatableFrames {
-    animation_id: AnimationId,
-    frames: Vec<OutputFrame>,
+    pub animation_id: AnimationId,
+    pub frames: Vec<OutputFrame>,
 }
 
 pub struct OutputFrame {
@@ -131,7 +176,7 @@ impl TryFrom<&UpdateStateMessage> for OutputEffect {
     type Error = ();
     fn try_from(value: &UpdateStateMessage) -> Result<Self, Self::Error> {
         match value {
-            UpdateStateMessage::Damage => Ok(Self::Damage),
+            UpdateStateMessage::Damage(_) => Ok(Self::Damage),
             _ => Err(()),
         }
     }
@@ -146,38 +191,37 @@ pub struct Message {
     inner: PrivateMessage,
 }
 
+// TurnStartなどの情報も加えなければいけない
 #[derive(Debug, Clone)]
 enum PrivateMessage {
-    SkillBegin(SkillId),
+    EnemySkillBegin(StaticEnemySkillId),
+    EnemySkillEnd,
+    SkillBegin(StaticSkillId),
     SkillEnd,
     SameTimeBegin,
     SameTimeEnd,
     Frame(Frame),
 }
 
-impl PrivateMessage {
-    pub(crate) fn is_begin(&self) -> bool {
-        matches!(
-            self,
-            PrivateMessage::SameTimeBegin | PrivateMessage::SkillBegin(_)
-        )
-    }
+// impl PrivateMessage {
+//     pub(crate) fn is_begin(&self) -> bool {
+//         matches!(
+//             self,
+//             PrivateMessage::SameTimeBegin
+//                 | PrivateMessage::SkillBegin(_)
+//                 | PrivateMessage::EnemySkillBegin(_)
+//         )
+//     }
 
-    pub(crate) fn is_end(&self) -> bool {
-        matches!(self, Self::SameTimeEnd | Self::SkillEnd)
-    }
-}
+//     pub(crate) fn is_end(&self) -> bool {
+//         matches!(self, Self::SameTimeEnd | Self::SkillEnd)
+//     }
+// }
 
 #[derive(Debug, Clone)]
 struct Frame {
     main_effect: UpdateStateMessage,
     sub_effects: Vec<UpdateStateMessage>,
-}
-
-#[derive(Debug, Clone)]
-enum UpdateStateMessage {
-    Damage,
-    HealMp,
 }
 
 //--------------------------------------------------//
@@ -186,12 +230,18 @@ enum UpdateStateMessage {
 //                                                  //
 //--------------------------------------------------//
 
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum WinOrLoseOrNextwave {
     Win,
     Lose,
     Nextwave,
 }
 
+impl WinOrLoseOrNextwave {
+    fn is_win_or_lose(&self) -> bool {
+        *self == WinOrLoseOrNextwave::Win || *self == WinOrLoseOrNextwave::Lose
+    }
+}
 
 //--------------------------------------------------//
 //                                                  //
@@ -203,4 +253,72 @@ pub trait MessegeSender {
 }
 pub trait MessageReceiver {
     fn unblock_recv(&mut self) -> Result<Option<Message>, Box<dyn std::error::Error>>;
+}
+
+//--------------------------------------------------//
+//                                                  //
+//                 STATIC CHAR DATA                 //
+//                                                  //
+//--------------------------------------------------//
+#[derive(Debug)]
+pub struct StaticCharData {
+    pub id: StaticCharId,
+    pub name: &'static str,
+    pub potential: Potential,
+}
+
+#[derive(Debug, Clone)]
+pub struct StaticEnemyData {
+    pub id: StaticEnemyId,
+    pub name: &'static str,
+    pub potential: Potential,
+    pub select_skill_fn: SelectEnemySkillFn,
+    pub action_fn: EnemyActionFn,
+}
+
+pub struct EnemySkill {
+    pub id: StaticEnemySkillId,
+    pub call: EnemyActionFn,
+}
+
+pub type SelectEnemySkillFn = fn(RuntimeEnemyId, &GameState) -> EnemySkill;
+pub type EnemyActionFn = fn(RuntimeEnemyId, &mut Effecter) -> Result<(), WinOrLoseOrNextwave>;
+
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[error("すでにゲームが開始されています")]
+    AlreadyGameStart,
+
+    #[error("すでにゲームは終了しています")]
+    AlreadyGameEnd,
+
+    #[error("保持していないキャラIDです: got_id={0}")]
+    NotFoundChar(StaticCharId),
+
+    #[error("wave数が0です")]
+    WavesIsEmpty,
+
+    #[error("wave内の敵の数が不正です: got={0:?}")]
+    InvalidNumEnemysInWave(Arc<Vec<Vec<(LevelNum, &'static StaticEnemyData)>>>),
+
+    #[error("使用できないスキルを使用しようとしています")]
+    UnUseableSkill,
+
+    #[error("チームメンバーの数が不正な値です: メンバー数={}", got_num_members)]
+    InvalidNumTeamMembers { got_num_members: usize },
+
+    #[error("習得スキル数が不正です")]
+    InvalidNumLearnSkills(usize),
+
+    #[error("チーム内に同じキャラクターがいます: id={0}")]
+    ConfrictChar(StaticCharId),
+}
+
+pub struct ButtleArgs {
+    pub chars: Vec<(
+        LevelNum,
+        &'static StaticCharData,
+        Vec<&'static StaticSkillData>,
+    )>,
+    pub enemys: Arc<Vec<Vec<(LevelNum, &'static StaticEnemyData)>>>,
 }
