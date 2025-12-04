@@ -3,7 +3,8 @@ use std::sync::Arc;
 use crate::{
     ButtleArgs, CooldownNum, HateNum, LevelNum, MpNum, NUM_MAX_CHAR_IN_TEAM,
     NUM_MAX_ENEMYS_IN_WAVE, SpNum, StaticCharData, StaticEnemyData, StaticPassiveId, StatusNum,
-    WinOrLoseOrNextwave, damage,
+    WinOrLoseOrNextwave,
+    damage::{self, Damage},
     living_thing::{ButtleChar, ButtleEnemy, LtCommon, LtId},
     passive::{Passive, PassiveUpdateStateMessage},
     skill::{RuntimeSkillId, StaticSkillData},
@@ -39,12 +40,10 @@ impl GameState {
                 self.enemys.get_mut(*enemy_id).consume_sp(*num);
             }
             UpdateStateMessage::Damage(dmg) => {
-                let target = self.get_lt_mut(dmg.target());
-                target.accept_damage(dmg.dmg());
-
-                if target.is_dead() {
-                    todo!()
-                }
+                // 複雑ではなかったけど処理が冗長だったので関数に切り出した
+                if let Some(res) = self.accept_damage(dmg) {
+                    return Some(res);
+                };
             }
             UpdateStateMessage::HealHp(lt_id, num) => {
                 self.get_lt_mut(*lt_id).accept_heal(*num);
@@ -83,6 +82,27 @@ impl GameState {
                 // 初期化ずみのデータを渡すのではなく、初期化するための情報を渡すとかに変えるくらい
                 // 面倒なのでやらない
                 self.get_lt_mut(*lt_id).passive.add(passive.clone());
+            }
+        }
+
+        None
+    }
+
+    fn accept_damage(&mut self, dmg: &Damage) -> Option<WinOrLoseOrNextwave> {
+        let target = self.get_lt_mut(dmg.target());
+        target.accept_damage(dmg.dmg());
+
+        if target.is_dead() {
+            if dmg.target().is_char() {
+                return Some(WinOrLoseOrNextwave::Lose);
+            }
+
+            if self.current_wave_enemys_all_dead() {
+                if self.current_wave_is_last_wave() {
+                    return Some(WinOrLoseOrNextwave::Win);
+                } else {
+                    return Some(WinOrLoseOrNextwave::Nextwave);
+                }
             }
         }
 

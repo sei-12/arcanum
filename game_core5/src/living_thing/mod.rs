@@ -227,6 +227,14 @@ pub enum LtId {
     Char(RuntimeCharId),
     Enemy(RuntimeEnemyId),
 }
+impl LtId {
+    pub fn is_char(&self) -> bool {
+        matches!(self, Self::Char(_))
+    }
+    pub fn is_enemy(&self) -> bool {
+        matches!(self, Self::Enemy(_))
+    }
+}
 
 //--------------------------------------------------//
 //                                                  //
