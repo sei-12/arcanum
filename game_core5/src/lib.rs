@@ -16,6 +16,7 @@ pub mod living_thing;
 pub mod passive;
 pub mod skill;
 pub mod state;
+pub mod output;
 
 pub const NUM_MAX_CHAR_IN_TEAM: u8 = 4;
 pub const NUM_MAX_LEARN_SKILLS: usize = 6;

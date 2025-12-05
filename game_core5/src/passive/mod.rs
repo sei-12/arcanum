@@ -10,7 +10,12 @@ use std::{
 
 use dyn_clone::DynClone;
 
-use crate::passive::status::PassiveStatus;
+use crate::{
+    effector::PassiveEffecter,
+    living_thing::LtId,
+    passive::status::PassiveStatus,
+    state::{GameState, RuntimeCharId},
+};
 
 mod cached_status;
 pub mod status;
@@ -27,6 +32,8 @@ pub enum PassiveUpdateStateMessage {
     UniqueBuffer([u8; 16]),
     UniqueBox(std::sync::Arc<dyn std::any::Any>),
 }
+
+pub enum TriggerPassiveEffect {}
 
 //--------------------------------------------------//
 //                                                  //
@@ -46,6 +53,8 @@ pub trait Passive: Send + DynClone + Debug + 'static {
     fn merge_state(&self, buffer: &mut [u8]);
     fn update(&mut self, msg: &PassiveUpdateStateMessage);
     fn status(&self, field: &mut PassiveStatus) {}
+
+    fn trigger_turn_start(&self, owner: LtId, state: &GameState, effector: &mut PassiveEffecter) {}
 }
 
 dyn_clone::clone_trait_object!(Passive);
@@ -111,6 +120,20 @@ impl PassiveList {
     pub fn status(&self) -> std::cell::Ref<'_, PassiveStatus> {
         self.cached_status.get(self.map.values())
     }
+
+    pub fn trigger_turn_start(
+        &self,
+        owner: LtId,
+        state: &GameState,
+        effector: &mut PassiveEffecter,
+    ) {
+        self.added_order.iter().for_each(|a| {
+            let passive = self.map.get(&a).unwrap();
+            effector.begin();
+            passive.trigger_turn_start(owner, state, effector);
+            effector.end();
+        });
+    }
 }
 
 impl Default for PassiveList {
@@ -135,9 +158,9 @@ impl AddedOrder {
         }
     }
 
-    // fn iter(&self) -> impl Iterator<Item = TypeId> {
-    //     self.sorted.values().copied()
-    // }
+    fn iter(&self) -> impl Iterator<Item = TypeId> {
+        self.sorted.values().copied()
+    }
 
     fn add(&mut self, id: TypeId) {
         self.count += 1;

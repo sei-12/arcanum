@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::{
     ButtleArgs, CharArg, CooldownNum, EnemyArg, HateNum, LevelNum, MpNum, NUM_MAX_CHAR_IN_TEAM,
-    NUM_MAX_ENEMYS_IN_WAVE, SpNum, StaticCharData, StaticEnemyData, StaticPassiveId, StatusNum,
+    NUM_MAX_ENEMYS_IN_WAVE, SpNum, StaticEnemyData, StaticPassiveId, StatusNum,
     WinOrLoseOrNextwave,
     damage::{self, Damage},
     living_thing::{ButtleChar, ButtleEnemy, LtCommon, LtId},
@@ -78,9 +78,7 @@ impl GameState {
                     .update_state(*passive_id, msg);
             }
             UpdateStateMessage::AddPassive(lt_id, passive) => {
-                // cloneしない方法が思い浮かばない
-                // 初期化ずみのデータを渡すのではなく、初期化するための情報を渡すとかに変えるくらい
-                // 面倒なのでやらない
+                // 関数の引数をimpl Cowにしたら無駄なクローンは防げる
                 self.get_lt_mut(*lt_id).passive.add(passive.clone());
             }
         }

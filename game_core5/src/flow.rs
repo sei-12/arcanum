@@ -39,6 +39,11 @@ fn start_player_turn(effector: &mut Effecter) -> Result<(), WinOrLoseOrNextwave>
     }
 
     effector.same_time_end();
+    
+    effector.same_time_begin();
+
+    effector.same_time_end();
+    
     Ok(())
 }
 
