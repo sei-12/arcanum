@@ -18,7 +18,7 @@ pub(crate) enum CoreMessage {
     WaitUserInput,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum EffectedBy {
     CharSkill(StaticSkillId),
     EnemySkill,

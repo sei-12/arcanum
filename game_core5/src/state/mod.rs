@@ -1,7 +1,14 @@
-use std::sync::Arc;
+use std::{result, sync::Arc};
 
 use crate::{
-    ButtleArgs, CharArg, CooldownNum, EnemyArg, HateNum, LevelNum, MpNum, NUM_MAX_CHAR_IN_TEAM, NUM_MAX_ENEMYS_IN_WAVE, SpNum, StaticEnemyData, StaticPassiveId, StatusNum, WinOrLoseOrNextwave, damage::{self, Damage}, effect::Effect, living_thing::{ButtleChar, ButtleEnemy, LtCommon, LtId}, passive::{Passive, PassiveUpdateStateMessage}, skill::{RuntimeSkillId, StaticSkillData}
+    ButtleArgs, CharArg, CooldownNum, EnemyArg, HateNum, LevelNum, MpNum, NUM_MAX_CHAR_IN_TEAM,
+    NUM_MAX_ENEMYS_IN_WAVE, SpNum, StaticEnemyData, StaticPassiveId, StatusNum,
+    WinOrLoseOrNextwave,
+    damage::{self, Damage},
+    effect::Effect,
+    living_thing::{ButtleChar, ButtleEnemy, LtCommon, LtId},
+    passive::{Passive, PassiveUpdateStateMessage},
+    skill::{RuntimeSkillId, StaticSkillData},
 };
 
 #[derive(Debug, Clone)]
@@ -9,6 +16,12 @@ pub struct GameState {
     chars: Chars<ButtleChar>,
     enemys: Enemys<ButtleEnemy>,
     player_mp: mp::Mp,
+}
+
+pub(crate) struct AcceptEffectResult {
+    /// すでに戦闘不能になっているltに対しての操作は受け入れられない
+    pub accepted: bool,
+    pub result: Result<(), WinOrLoseOrNextwave>,
 }
 
 impl GameState {
@@ -22,7 +35,13 @@ impl GameState {
         })
     }
 
-    pub(crate) fn accept_effect(&mut self, effect: &Effect) -> Option<WinOrLoseOrNextwave> {
+    // 勝ちが確定した状況、負けが確定した状況でも続行する。
+    // HPは負の値になり得る。かつ、HPが0を下回ったとしても回復を受け付ける。
+    pub(crate) fn accept_effect(&mut self, effect: &Effect) -> AcceptEffectResult {
+        todo!()
+    }
+
+    pub(crate) fn win_or_lose_or_go_next_wave(&self) -> Result<(), WinOrLoseOrNextwave> {
         todo!()
     }
 

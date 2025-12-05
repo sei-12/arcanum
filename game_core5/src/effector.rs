@@ -1,8 +1,10 @@
+use std::collections::VecDeque;
+
 use crate::{
     CooldownNum, HateNum, MpNum, SpNum, StaticEnemySkillId, StaticPassiveId, StaticSkillId,
     StatusNum, WinOrLoseOrNextwave, damage,
     effect::Effect,
-    game_core_output_receiver::CoreMessage,
+    game_core_output_receiver::{CoreMessage, EffectedBy},
     living_thing::LtId,
     passive::{Passive, PassiveUpdateStateMessage},
     skill::RuntimeSkillId,
@@ -13,16 +15,48 @@ pub trait EffectAccepter {
     fn accept(&mut self, effect: Effect) -> Result<(), WinOrLoseOrNextwave>;
 }
 
-pub(crate) struct Accepter {
+enum CurrentEffectCauser {}
+
+pub(crate) struct Accepter<'a> {
+    state: &'a mut GameState,
     message_buffer: Vec<CoreMessage>,
+    current_effect_causer: Option<EffectedBy>,
 }
 
-impl EffectAccepter for Accepter {
+impl<'a> Accepter<'a> {
+    fn skill_begin(&mut self, skill_id: RuntimeSkillId) {}
+}
+
+impl<'a> EffectAccepter for Accepter<'a> {
     fn accept(&mut self, effect: Effect) -> Result<(), WinOrLoseOrNextwave> {
-        todo!()
+        let current_effect_causer = self.current_effect_causer.unwrap();
+        assert!(!matches!(current_effect_causer, EffectedBy::SubEffect));
+
+        let result = self.state.accept_effect(&effect);
+        if !result.accepted {
+            return result.result;
+        }
+
+        let mut sub_effects_buffer = VecDeque::<Effect>::new();
+        get_sub_effects(&effect, &mut sub_effects_buffer);
+
+        if result.accepted {
+            self.message_buffer
+                .push(CoreMessage::Effect(current_effect_causer, effect));
+        }
+
+        while let Some(current_effect) = sub_effects_buffer.pop_front() {
+            self.state.accept_effect(&current_effect);
+            get_sub_effects(&current_effect, &mut sub_effects_buffer);
+        }
+
+        self.state.win_or_lose_or_go_next_wave()
     }
 }
 
+fn get_sub_effects(_effect: &Effect, _buffer: &mut VecDeque<Effect>) {
+    // 今は副作用はない
+}
 
 // use std::{any::type_name, collections::VecDeque};
 
@@ -47,10 +81,6 @@ impl EffectAccepter for Accepter {
 // //                     PRIVATE                      //
 // //                                                  //
 // //--------------------------------------------------//
-
-// fn get_sub_effects(_effect: &UpdateStateMessage, _buffer: &mut VecDeque<UpdateStateMessage>) {
-//     // 今は副作用はない
-// }
 
 // impl<'a> Effecter<'a> {
 //     pub(crate) fn take_messages(self) -> Vec<PrivateMessage> {
