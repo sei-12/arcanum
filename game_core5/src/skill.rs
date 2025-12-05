@@ -1,6 +1,6 @@
 use crate::{
     CooldownNum, HateNum, MpNum, NUM_MAX_LEARN_SKILLS, StaticSkillId, WinOrLoseOrNextwave,
-    effector::Effecter,
+    effector::EffectAccepter,
     state::{RuntimeCharId, RuntimeEnemyId},
 };
 
@@ -10,11 +10,10 @@ pub struct SkillCost {
     pub cooldown: CooldownNum,
 }
 
-/// (user_id, target_enemy_id, effector)
 pub type SkillFn = fn(
     RuntimeCharId,
     Option<RuntimeEnemyId>,
-    &mut Effecter,
+    &mut dyn EffectAccepter,
 ) -> Result<SkillCost, WinOrLoseOrNextwave>;
 
 #[derive(Debug)]
@@ -101,6 +100,7 @@ impl ButtleSkill {
     pub fn runtime_id(&self) -> RuntimeSkillId {
         self.runtime_id
     }
+
     pub fn static_data(&self) -> &'static StaticSkillData {
         self.static_data
     }

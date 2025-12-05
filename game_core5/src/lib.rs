@@ -1,22 +1,26 @@
 use std::{any::TypeId, sync::Arc};
 
 use crate::{
-    effector::Effecter,
-    game_core_output_receiver::GameCoreOutputReceiver,
+    effector::EffectAccepter,
+    game_core_output_receiver::{CoreMessage, GameCoreOutputReceiver},
     living_thing::Potential,
     skill::{RuntimeSkillId, StaticSkillData},
-    state::{GameState, RuntimeCharId, RuntimeEnemyId, UpdateStateMessage},
+    state::{GameState, RuntimeCharId, RuntimeEnemyId},
 };
+
+pub mod effect;
 
 mod damage;
 pub mod effector;
+pub mod error;
 mod flow;
 pub mod game_core_output_receiver;
 pub mod living_thing;
 pub mod passive;
 pub mod skill;
 pub mod state;
-pub mod output;
+
+pub use crate::error::Error;
 
 pub const NUM_MAX_CHAR_IN_TEAM: u8 = 4;
 pub const NUM_MAX_LEARN_SKILLS: usize = 6;
@@ -90,7 +94,8 @@ impl<S: MessageSender> GameCoreActor<S> {
         &mut self,
         command: GameCoreActorCommand,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let mut effector = Effecter::new(&mut self.state);
+        todo!()
+/*         let mut effector = Effecter::new(&mut self.state);
         let _ = match command {
             GameCoreActorCommand::GameStart => flow::game_start(&mut effector),
             GameCoreActorCommand::TurnEnd => flow::turn_end(&mut effector),
@@ -105,81 +110,7 @@ impl<S: MessageSender> GameCoreActor<S> {
             self.sender.send(Message { inner: msg })?;
         }
 
-        Ok(())
-    }
-}
-
-//--------------------------------------------------//
-//                                                  //
-//                      OUTPUT                      //
-//                                                  //
-//--------------------------------------------------//
-pub enum CoreOutput {
-    AnimatableFrames(AnimatableFrames),
-    SameTime(Vec<OutputFrame>),
-    GoNextWave,
-    Win,
-    Lose,
-}
-
-pub enum AnimationId {
-    CharSkill(StaticSkillId),
-    EnemySkill(StaticEnemySkillId),
-}
-
-pub struct AnimatableFrames {
-    pub animation_id: AnimationId,
-    pub frames: Vec<OutputFrame>,
-}
-
-pub struct OutputFrame {
-    // 副作用が存在するが、作用自体は描画できない内部的な効果である場合、None
-    main_effect: Option<OutputEffect>,
-    sub_effects: Vec<OutputEffect>,
-}
-impl OutputFrame {
-    pub fn main_effect(&self) -> Option<&OutputEffect> {
-        self.main_effect.as_ref()
-    }
-    pub fn sub_effects(&self) -> &Vec<OutputEffect> {
-        &self.sub_effects
-    }
-}
-impl TryFrom<&Frame> for OutputFrame {
-    // 特に伝えることはない
-    // Optionでいいならそうする
-    type Error = ();
-    fn try_from(value: &Frame) -> Result<Self, Self::Error> {
-        let main_effect = OutputEffect::try_from(&value.main_effect).ok();
-        let sub_effects = value
-            .sub_effects
-            .iter()
-            .filter_map(|e| OutputEffect::try_from(e).ok())
-            .collect::<Vec<_>>();
-
-        if main_effect.is_some() || !sub_effects.is_empty() {
-            Ok(Self {
-                main_effect,
-                sub_effects,
-            })
-        } else {
-            Err(())
-        }
-    }
-}
-
-pub enum OutputEffect {
-    Damage,
-    Heal,
-}
-
-impl TryFrom<&UpdateStateMessage> for OutputEffect {
-    type Error = ();
-    fn try_from(value: &UpdateStateMessage) -> Result<Self, Self::Error> {
-        match value {
-            UpdateStateMessage::Damage(_) => Ok(Self::Damage),
-            _ => Err(()),
-        }
+        Ok(()) */
     }
 }
 //--------------------------------------------------//
@@ -189,25 +120,7 @@ impl TryFrom<&UpdateStateMessage> for OutputEffect {
 //--------------------------------------------------//
 #[derive(Debug, Clone)]
 pub struct Message {
-    inner: PrivateMessage,
-}
-
-// TurnStartなどの情報も加えなければいけない
-#[derive(Debug, Clone)]
-enum PrivateMessage {
-    EnemySkillBegin(StaticEnemySkillId),
-    EnemySkillEnd,
-    SkillBegin(StaticSkillId),
-    SkillEnd,
-    SameTimeBegin,
-    SameTimeEnd,
-    Frame(Frame),
-}
-
-#[derive(Debug, Clone)]
-struct Frame {
-    main_effect: UpdateStateMessage,
-    sub_effects: Vec<UpdateStateMessage>,
+    inner: CoreMessage,
 }
 
 //--------------------------------------------------//
@@ -267,37 +180,8 @@ pub struct EnemySkill {
 }
 
 pub type SelectEnemySkillFn = fn(RuntimeEnemyId, &GameState) -> &'static EnemySkill;
-pub type EnemyActionFn = fn(RuntimeEnemyId, &mut Effecter) -> Result<(), WinOrLoseOrNextwave>;
-
-#[derive(Debug, thiserror::Error)]
-pub enum Error {
-    #[error("すでにゲームが開始されています")]
-    AlreadyGameStart,
-
-    #[error("すでにゲームは終了しています")]
-    AlreadyGameEnd,
-
-    #[error("保持していないキャラIDです: got_id={0}")]
-    NotFoundChar(StaticCharId),
-
-    #[error("wave数が0です")]
-    WavesIsEmpty,
-
-    #[error("wave内の敵の数が不正です: got={0:?}")]
-    InvalidNumEnemysInWave(Arc<Vec<Vec<EnemyArg>>>),
-
-    #[error("使用できないスキルを使用しようとしています")]
-    UnUseableSkill,
-
-    #[error("チームメンバーの数が不正な値です: メンバー数={}", got_num_members)]
-    InvalidNumTeamMembers { got_num_members: usize },
-
-    #[error("習得スキル数が不正です")]
-    InvalidNumLearnSkills(usize),
-
-    #[error("チーム内に同じキャラクターがいます: id={0}")]
-    ConfrictChar(StaticCharId),
-}
+pub type EnemyActionFn =
+    fn(RuntimeEnemyId, &mut dyn EffectAccepter) -> Result<(), WinOrLoseOrNextwave>;
 
 pub struct ButtleArgs {
     pub chars: Vec<CharArg>,

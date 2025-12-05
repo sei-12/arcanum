@@ -1,13 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    ButtleArgs, CharArg, CooldownNum, EnemyArg, HateNum, LevelNum, MpNum, NUM_MAX_CHAR_IN_TEAM,
-    NUM_MAX_ENEMYS_IN_WAVE, SpNum, StaticEnemyData, StaticPassiveId, StatusNum,
-    WinOrLoseOrNextwave,
-    damage::{self, Damage},
-    living_thing::{ButtleChar, ButtleEnemy, LtCommon, LtId},
-    passive::{Passive, PassiveUpdateStateMessage},
-    skill::{RuntimeSkillId, StaticSkillData},
+    ButtleArgs, CharArg, CooldownNum, EnemyArg, HateNum, LevelNum, MpNum, NUM_MAX_CHAR_IN_TEAM, NUM_MAX_ENEMYS_IN_WAVE, SpNum, StaticEnemyData, StaticPassiveId, StatusNum, WinOrLoseOrNextwave, damage::{self, Damage}, effect::Effect, living_thing::{ButtleChar, ButtleEnemy, LtCommon, LtId}, passive::{Passive, PassiveUpdateStateMessage}, skill::{RuntimeSkillId, StaticSkillData}
 };
 
 #[derive(Debug, Clone)]
@@ -28,63 +22,67 @@ impl GameState {
         })
     }
 
-    pub(crate) fn update(&mut self, message: &UpdateStateMessage) -> Option<WinOrLoseOrNextwave> {
-        match message {
-            UpdateStateMessage::ConsumeMp(mp) => {
-                self.player_mp.consume(*mp);
-            }
-            UpdateStateMessage::AddHate(char_id, hate) => {
-                self.chars.get_mut(*char_id).add_hate(*hate);
-            }
-            UpdateStateMessage::ConsumeSp(enemy_id, num) => {
-                self.enemys.get_mut(*enemy_id).consume_sp(*num);
-            }
-            UpdateStateMessage::Damage(dmg) => {
-                // 複雑ではなかったけど処理が冗長だったので関数に切り出した
-                if let Some(res) = self.accept_damage(dmg) {
-                    return Some(res);
-                };
-            }
-            UpdateStateMessage::HealHp(lt_id, num) => {
-                self.get_lt_mut(*lt_id).accept_heal(*num);
-            }
-            UpdateStateMessage::HealMp(num) => {
-                self.player_mp.heal(*num);
-            }
-            UpdateStateMessage::HealSkillCooldown(char_id, skill_id, num) => {
-                self.chars
-                    .get_mut(*char_id)
-                    .skills
-                    .heal_skill_cooldown(*skill_id, *num);
-            }
-            UpdateStateMessage::HealSkillCooldownAll(char_id, num) => {
-                self.chars
-                    .get_mut(*char_id)
-                    .skills
-                    .heal_skill_cooldown_all(*num);
-            }
-            UpdateStateMessage::HealSp(enemy_id, num) => {
-                self.enemys.get_mut(*enemy_id).heal_sp(*num);
-            }
-            UpdateStateMessage::SetSkillCooldown(char_id, skill_id, num) => {
-                self.chars
-                    .get_mut(*char_id)
-                    .skills
-                    .set_cooldown(*skill_id, *num);
-            }
-            UpdateStateMessage::UpdatePassiveState(lt_id, passive_id, msg) => {
-                self.get_lt_mut(*lt_id)
-                    .passive
-                    .update_state(*passive_id, msg);
-            }
-            UpdateStateMessage::AddPassive(lt_id, passive) => {
-                // 関数の引数をimpl Cowにしたら無駄なクローンは防げる
-                self.get_lt_mut(*lt_id).passive.add(passive.clone());
-            }
-        }
-
-        None
+    pub(crate) fn accept_effect(&mut self, effect: &Effect) -> Option<WinOrLoseOrNextwave> {
+        todo!()
     }
+
+    // pub(crate) fn update(&mut self, message: &UpdateStateMessage) -> Option<WinOrLoseOrNextwave> {
+    //     match message {
+    //         UpdateStateMessage::ConsumeMp(mp) => {
+    //             self.player_mp.consume(*mp);
+    //         }
+    //         UpdateStateMessage::AddHate(char_id, hate) => {
+    //             self.chars.get_mut(*char_id).add_hate(*hate);
+    //         }
+    //         UpdateStateMessage::ConsumeSp(enemy_id, num) => {
+    //             self.enemys.get_mut(*enemy_id).consume_sp(*num);
+    //         }
+    //         UpdateStateMessage::Damage(dmg) => {
+    //             // 複雑ではなかったけど処理が冗長だったので関数に切り出した
+    //             if let Some(res) = self.accept_damage(dmg) {
+    //                 return Some(res);
+    //             };
+    //         }
+    //         UpdateStateMessage::HealHp(lt_id, num) => {
+    //             self.get_lt_mut(*lt_id).accept_heal(*num);
+    //         }
+    //         UpdateStateMessage::HealMp(num) => {
+    //             self.player_mp.heal(*num);
+    //         }
+    //         UpdateStateMessage::HealSkillCooldown(char_id, skill_id, num) => {
+    //             self.chars
+    //                 .get_mut(*char_id)
+    //                 .skills
+    //                 .heal_skill_cooldown(*skill_id, *num);
+    //         }
+    //         UpdateStateMessage::HealSkillCooldownAll(char_id, num) => {
+    //             self.chars
+    //                 .get_mut(*char_id)
+    //                 .skills
+    //                 .heal_skill_cooldown_all(*num);
+    //         }
+    //         UpdateStateMessage::HealSp(enemy_id, num) => {
+    //             self.enemys.get_mut(*enemy_id).heal_sp(*num);
+    //         }
+    //         UpdateStateMessage::SetSkillCooldown(char_id, skill_id, num) => {
+    //             self.chars
+    //                 .get_mut(*char_id)
+    //                 .skills
+    //                 .set_cooldown(*skill_id, *num);
+    //         }
+    //         UpdateStateMessage::UpdatePassiveState(lt_id, passive_id, msg) => {
+    //             self.get_lt_mut(*lt_id)
+    //                 .passive
+    //                 .update_state(*passive_id, msg);
+    //         }
+    //         UpdateStateMessage::AddPassive(lt_id, passive) => {
+    //             // 関数の引数をimpl Cowにしたら無駄なクローンは防げる
+    //             self.get_lt_mut(*lt_id).passive.add(passive.clone());
+    //         }
+    //     }
+
+    //     None
+    // }
 
     fn accept_damage(&mut self, dmg: &Damage) -> Option<WinOrLoseOrNextwave> {
         let target = self.get_lt_mut(dmg.target());
@@ -230,21 +228,21 @@ impl CharIterWithLivingCheck {
 //               UPDATE STATE MESSAGE               //
 //                                                  //
 //--------------------------------------------------//
-#[derive(Debug, Clone)]
-pub(crate) enum UpdateStateMessage {
-    Damage(damage::Damage),
-    HealHp(LtId, StatusNum),
-    ConsumeMp(MpNum),
-    HealMp(MpNum),
-    ConsumeSp(RuntimeEnemyId, SpNum),
-    HealSp(RuntimeEnemyId, SpNum),
-    UpdatePassiveState(LtId, StaticPassiveId, PassiveUpdateStateMessage),
-    AddPassive(LtId, Box<dyn Passive>),
-    SetSkillCooldown(RuntimeCharId, RuntimeSkillId, CooldownNum),
-    HealSkillCooldown(RuntimeCharId, RuntimeSkillId, CooldownNum),
-    HealSkillCooldownAll(RuntimeCharId, CooldownNum),
-    AddHate(RuntimeCharId, HateNum),
-}
+// #[derive(Debug, Clone)]
+// pub(crate) enum UpdateStateMessage {
+//     Damage(damage::Damage),
+//     HealHp(LtId, StatusNum),
+//     ConsumeMp(MpNum),
+//     HealMp(MpNum),
+//     ConsumeSp(RuntimeEnemyId, SpNum),
+//     HealSp(RuntimeEnemyId, SpNum),
+//     UpdatePassiveState(LtId, StaticPassiveId, PassiveUpdateStateMessage),
+//     AddPassive(LtId, Box<dyn Passive>),
+//     SetSkillCooldown(RuntimeCharId, RuntimeSkillId, CooldownNum),
+//     HealSkillCooldown(RuntimeCharId, RuntimeSkillId, CooldownNum),
+//     HealSkillCooldownAll(RuntimeCharId, CooldownNum),
+//     AddHate(RuntimeCharId, HateNum),
+// }
 
 //--------------------------------------------------//
 //                                                  //

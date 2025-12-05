@@ -11,10 +11,10 @@ use std::{
 use dyn_clone::DynClone;
 
 use crate::{
-    effector::PassiveEffecter,
-    living_thing::LtId,
+    // effector::PassiveEffecter,
+    // living_thing::LtId,
     passive::status::PassiveStatus,
-    state::{GameState, RuntimeCharId},
+    // state::{GameState, RuntimeCharId},
 };
 
 mod cached_status;
@@ -54,7 +54,7 @@ pub trait Passive: Send + DynClone + Debug + 'static {
     fn update(&mut self, msg: &PassiveUpdateStateMessage);
     fn status(&self, field: &mut PassiveStatus) {}
 
-    fn trigger_turn_start(&self, owner: LtId, state: &GameState, effector: &mut PassiveEffecter) {}
+    // fn trigger_turn_start(&self, owner: LtId, state: &GameState, effector: &mut PassiveEffecter) {}
 }
 
 dyn_clone::clone_trait_object!(Passive);
@@ -121,19 +121,19 @@ impl PassiveList {
         self.cached_status.get(self.map.values())
     }
 
-    pub fn trigger_turn_start(
-        &self,
-        owner: LtId,
-        state: &GameState,
-        effector: &mut PassiveEffecter,
-    ) {
-        self.added_order.iter().for_each(|a| {
-            let passive = self.map.get(&a).unwrap();
-            effector.begin();
-            passive.trigger_turn_start(owner, state, effector);
-            effector.end();
-        });
-    }
+    // pub fn trigger_turn_start(
+    //     &self,
+    //     owner: LtId,
+    //     state: &GameState,
+    //     effector: &mut PassiveEffecter,
+    // ) {
+    //     self.added_order.iter().for_each(|a| {
+    //         let passive = self.map.get(&a).unwrap();
+    //         effector.begin();
+    //         passive.trigger_turn_start(owner, state, effector);
+    //         effector.end();
+    //     });
+    // }
 }
 
 impl Default for PassiveList {
