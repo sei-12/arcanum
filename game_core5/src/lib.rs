@@ -39,11 +39,9 @@ pub type HateNum = u32;
 pub type WaveNum = u8;
 pub type StaticEnemySkillId = u32;
 pub type StaticSkillId = u32;
-// MEMO: 絶対こんなにサイズいらない
 pub type StaticPassiveId = TypeId;
 pub type StaticCharId = u32;
 pub type StaticEnemyId = u32;
-// pub type AnimationId = u32;
 
 //--------------------------------------------------//
 //                                                  //
