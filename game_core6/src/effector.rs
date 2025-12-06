@@ -1,11 +1,17 @@
+use std::collections::VecDeque;
+
 use crate::{
-    OutputBuffer,
-    runtime_id::{RuntimeCharId, RuntimeSkillId},
+    OutputBuffer, StaticEnemySkillId, StaticPassiveId, StaticSkillId, WinOrLoseOrNextwave,
+    effect::{self, Effect},
+    output::{self, EffectedBy, GameCoreOutput},
+    runtime_id::{RuntimeCharId, RuntimeEnemyId, RuntimeSkillId},
     state::GameState,
 };
 
-pub trait Effector {}
-
+pub trait EffectorTrait {
+    fn state(&self) -> &GameState;
+    fn accept_effect(&mut self, effect: Effect) -> Result<(), WinOrLoseOrNextwave>;
+}
 
 //--------------------------------------------------//
 //                                                  //
@@ -13,29 +19,163 @@ pub trait Effector {}
 //                                                  //
 //--------------------------------------------------//
 
-pub(crate) trait TriggerPassiveEffector: Effector {
-    fn begin(&mut self);
-    fn end(&mut self);
+pub struct PassiveEffector<'a> {
+    buffer: &'a mut VecDeque<(EffectedBy, Effect)>,
+    current_exec_priority: u8,
+    // 開始済みか否かはこの変数に値が入っているかどうかで判断する
+    effected_by: Option<EffectedBy>,
 }
 
-//--------------------------------------------------//
-//                                                  //
-//                  SKILL EFFECTOR                  //
-//                                                  //
-//--------------------------------------------------//
-pub(crate) struct CharSkillEffector<'a, T: OutputBuffer> {
-    buffer: &'a mut T,
-}
-impl<'a, T: OutputBuffer> CharSkillEffector<'a, T> {
-    pub(crate) fn new(
-        user_id: RuntimeCharId,
-        skill_id: RuntimeSkillId,
-        output_buffer: &'a mut T,
-    ) -> Self {
+impl<'a> PassiveEffector<'a> {
+    pub(crate) fn new(buffer: &'a mut VecDeque<(EffectedBy, Effect)>) -> Self {
         Self {
-            buffer: output_buffer,
+            buffer,
+            current_exec_priority: 0,
+            effected_by: None,
+        }
+    }
+
+    fn begined(&self) -> bool {
+        self.effected_by.is_some()
+    }
+
+    pub(crate) fn begin(&mut self, id: StaticPassiveId) {
+        assert!(!self.begined());
+        self.effected_by = Some(EffectedBy::SubEffect(id));
+        self.current_exec_priority = 0;
+    }
+
+    pub(crate) fn end(&mut self) {
+        assert!(self.begined());
+        self.effected_by = None;
+    }
+
+    pub fn accept_effect(&mut self, effect: Effect) {
+        assert!(self.begined());
+
+        let exec_priority = Self::exec_priority(&effect);
+        assert!(self.current_exec_priority <= exec_priority);
+
+        self.current_exec_priority = exec_priority;
+        self.buffer.push_back((self.effected_by.unwrap(), effect));
+    }
+
+    fn exec_priority(effect: &Effect) -> u8 {
+        match effect {
+            Effect::UpdatePassiveState {
+                target_id: _,
+                passive_id: _,
+                message: _,
+            } => 1,
+            _ => 2,
         }
     }
 }
 
-impl<'a, T: OutputBuffer> Effector for CharSkillEffector<'a, T> {}
+//--------------------------------------------------//
+//                                                  //
+//                     EFFECTOR                     //
+//                                                  //
+//--------------------------------------------------//
+pub(crate) struct Effector<'a, T: OutputBuffer> {
+    buffer: &'a mut T,
+    state: &'a mut GameState,
+    current_effected_by: Option<EffectedBy>,
+}
+
+impl<'a, T: OutputBuffer> Effector<'a, T> {
+    pub(crate) fn new(state: &'a mut GameState, buffer: &'a mut T) -> Self {
+        Self {
+            buffer,
+            state,
+            current_effected_by: None,
+        }
+    }
+
+    fn begined(&self) -> bool {
+        self.current_effected_by.is_some()
+    }
+
+    pub(crate) fn begin_char_skill(&mut self, id: StaticSkillId, user_id: RuntimeCharId) {
+        assert!(self.current_effected_by.is_none());
+        self.current_effected_by = Some(EffectedBy::CharSkill(id));
+        self.buffer
+            .push(GameCoreOutput::Event(output::Event::CharUseSkill));
+    }
+    pub(crate) fn end_char_skill(&mut self) {
+        assert!(self.current_effected_by.is_some());
+        self.current_effected_by = None;
+    }
+
+    pub(crate) fn begin_enemy_skill(&mut self, id: StaticEnemySkillId, user_id: RuntimeEnemyId) {
+        assert!(self.current_effected_by.is_none());
+        self.current_effected_by = Some(EffectedBy::EnemySkill(id));
+        self.buffer
+            .push(GameCoreOutput::Event(output::Event::EnemyUseSkill));
+    }
+    pub(crate) fn end_enemy_skill(&mut self) {
+        assert!(self.current_effected_by.is_some());
+        self.current_effected_by = None;
+    }
+
+    pub(crate) fn begin_game_system(&mut self) {
+        assert!(self.current_effected_by.is_none());
+        self.current_effected_by = Some(EffectedBy::GameSystem);
+    }
+    pub(crate) fn end_game_system(&mut self) {
+        assert!(self.current_effected_by.is_some());
+        self.current_effected_by = None;
+    }
+
+    pub(crate) fn start_enemy_turn(&mut self) {
+        self.buffer
+            .push(GameCoreOutput::Event(output::Event::EnemyTurnStart));
+    }
+    pub(crate) fn start_player_turn(&mut self) {
+        self.buffer
+            .push(GameCoreOutput::Event(output::Event::PlayerTurnStart));
+    }
+}
+
+impl<'a, T: OutputBuffer> EffectorTrait for Effector<'a, T> {
+    fn state(&self) -> &GameState {
+        self.state
+    }
+
+    fn accept_effect(&mut self, effect: Effect) -> Result<(), WinOrLoseOrNextwave> {
+        assert!(self.begined());
+
+        let mut effects_buffer = VecDeque::from([(self.current_effected_by.unwrap(), effect)]);
+
+        while let Some((effected_by, effect)) = effects_buffer.pop_front() {
+            let result = self.state.accept(&effect);
+            if !result.accepted {
+                continue;
+            }
+            get_trigger_effect(&effect, &mut effects_buffer, self.state);
+            self.buffer
+                .push(GameCoreOutput::Effect(effected_by, effect));
+        }
+
+        self.state.check_win_or_lose()
+    }
+}
+
+fn get_trigger_effect(
+    trigger: &Effect,
+    buffer: &mut VecDeque<(EffectedBy, Effect)>,
+    state: &GameState,
+) {
+    let mut effector = PassiveEffector::new(buffer);
+
+    #[allow(clippy::single_match)]
+    match trigger {
+        Effect::Damage(dmg) => {
+            let target = state.get_lt(dmg.target());
+            target
+                .passive
+                .trigger_recv_damage(dmg.target(), dmg, state, &mut effector);
+        }
+        _ => {}
+    }
+}

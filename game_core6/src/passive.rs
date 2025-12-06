@@ -3,6 +3,7 @@ use std::{
     collections::{BTreeMap, HashMap, hash_map},
     fmt::Debug,
     ops::{Deref, DerefMut},
+    sync::Arc,
 };
 
 use smallbox::{SmallBox, smallbox, space};
@@ -10,7 +11,7 @@ use smallbox::{SmallBox, smallbox, space};
 use crate::{
     StaticPassiveId,
     damage::Damage,
-    effector::{Effector, TriggerPassiveEffector},
+    effector::PassiveEffector,
     passive::status::PassiveStatus,
     runtime_id::{LtId, RuntimeCharId},
     state::GameState,
@@ -49,15 +50,16 @@ pub trait StaticPassiveData: Debug {
     fn merge(&mut self, passive: &PassiveInstance);
     fn update(&mut self, msg: &PassiveUpdateMessage);
     fn status(&self, status: &mut PassiveStatus) {}
-    fn trigger_turn_start(&self, owner: LtId, effector: &mut dyn Effector) {}
-    fn trigger_recv_damage(&self, owner: LtId, dmg: &Damage, effector: &mut dyn Effector) {}
+    fn trigger_turn_start(&self, owner: LtId, effector: &mut PassiveEffector) {}
+    fn trigger_recv_damage(&self, owner: LtId, dmg: &Damage, effector: &mut PassiveEffector) {}
 }
 
 // SkillUpdateMessageと統一しても良い。本質的に同じな気がする
+#[derive(Debug, Clone)]
 pub enum PassiveUpdateMessage {
     Msg(&'static str),
     Buffer([u8; 16]),
-    Box(Box<dyn Any>),
+    Box(Arc<dyn Any>),
 }
 
 #[derive(Debug, Clone)]
@@ -116,10 +118,10 @@ impl PassiveList {
         self.cached_status.get(self.map.values())
     }
 
-    pub fn trigger_turn_start(&self, owner: LtId, effector: &mut impl TriggerPassiveEffector) {
+    pub fn trigger_turn_start(&self, owner: LtId, effector: &mut PassiveEffector) {
         self.added_order.iter().for_each(|static_id| {
             let passive = self.map.get(&static_id).unwrap();
-            effector.begin();
+            effector.begin(passive.static_id());
             passive.trigger_turn_start(owner, effector);
             effector.end();
         });
@@ -129,12 +131,13 @@ impl PassiveList {
         &self,
         owner: LtId,
         dmg: &Damage,
-        effector: &mut impl TriggerPassiveEffector,
+        state: &GameState,
+        effector: &mut PassiveEffector,
     ) {
         assert_eq!(owner, dmg.target());
         self.added_order.iter().for_each(|static_id| {
             let passive = self.map.get(&static_id).unwrap();
-            effector.begin();
+            effector.begin(passive.static_id());
             passive.trigger_recv_damage(owner, dmg, effector);
             effector.end();
         });

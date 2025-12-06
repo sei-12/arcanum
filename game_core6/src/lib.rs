@@ -107,7 +107,7 @@ mod skill {
         space::{self, S2},
     };
 
-    use crate::{StaticSkillId, effector::Effector, runtime_id::RuntimeCharId};
+    use crate::{StaticSkillId, effector::EffectorTrait, runtime_id::RuntimeCharId};
 
     pub enum SkillUpdateMessage {
         Msg(&'static str),
@@ -143,24 +143,35 @@ mod skill {
 
     pub trait StaticSkillData {
         fn static_id(&self) -> StaticSkillId;
-        fn call(&self, user: RuntimeCharId, effector: &mut dyn Effector);
+        fn call(&self, user: RuntimeCharId, effector: &mut dyn EffectorTrait);
         fn clone(&self) -> SkillInstance;
         fn update(&mut self, msg: &SkillUpdateMessage);
     }
 }
 
-pub mod enemy_skill {
+pub mod enemy {
     use std::ops::{Deref, DerefMut};
 
-    use smallbox::{SmallBox, space};
+    use smallbox::{SmallBox, smallbox, space};
 
-    use crate::{StaticEnemySkillId, effector::Effector, runtime_id::RuntimeEnemyId};
+    use crate::{
+        StaticEnemyId, StaticEnemySkillId, effector::EffectorTrait, living_thing::Potential,
+        runtime_id::RuntimeEnemyId, state::GameState,
+    };
 
+    //--------------------------------------------------//
+    //                   ENEMY SKILL                    //
+    //--------------------------------------------------//
     pub struct EnemySkillInsance(SmallBox<dyn StaticEnemySkillData, space::S1>);
+    impl EnemySkillInsance {
+        pub fn new(skill_data: impl StaticEnemySkillData + 'static) -> Self {
+            Self(smallbox!(skill_data))
+        }
+    }
 
     pub trait StaticEnemySkillData {
         fn static_id(&self) -> StaticEnemySkillId;
-        fn call(&self, user_id: RuntimeEnemyId, effector: &mut dyn Effector);
+        fn call(&self, user_id: RuntimeEnemyId, effector: &mut dyn EffectorTrait);
         fn clone(&self) -> EnemySkillInsance;
     }
 
@@ -180,6 +191,40 @@ pub mod enemy_skill {
             self.0.clone()
         }
     }
+
+    //--------------------------------------------------//
+    //                STATIC ENEMY DATA                 //
+    //--------------------------------------------------//
+    pub struct StaticEnemyDataInstance(SmallBox<dyn StaticEnemyData, space::S1>);
+    impl StaticEnemyDataInstance {
+        pub fn new(enemy_data: impl StaticEnemyData + 'static) -> Self {
+            Self(smallbox!(enemy_data))
+        }
+    }
+
+    impl Deref for StaticEnemyDataInstance {
+        type Target = dyn StaticEnemyData;
+        fn deref(&self) -> &Self::Target {
+            self.0.deref()
+        }
+    }
+    impl DerefMut for StaticEnemyDataInstance {
+        fn deref_mut(&mut self) -> &mut Self::Target {
+            self.0.deref_mut()
+        }
+    }
+    impl Clone for StaticEnemyDataInstance {
+        fn clone(&self) -> Self {
+            self.0.clone()
+        }
+    }
+
+    pub trait StaticEnemyData {
+        fn static_id(&self) -> StaticEnemyId;
+        fn select_skill(&self, user_id: RuntimeEnemyId, state: &GameState) -> EnemySkillInsance;
+        fn potential(&self) -> &Potential;
+        fn clone(&self) -> StaticEnemyDataInstance;
+    }
 }
 
 mod passive;
@@ -190,7 +235,7 @@ mod sender_side {
 
     use crate::{
         OutputBuffer,
-        effector::CharSkillEffector,
+        effector::{Effector, EffectorTrait},
         output::GameCoreOutput,
         runtime_id::{RuntimeCharId, RuntimeSkillId},
         state::GameState,
@@ -206,12 +251,33 @@ mod sender_side {
             skill_id: RuntimeSkillId,
             output_buffer: &mut impl OutputBuffer,
         ) {
-            let mut effector = CharSkillEffector::new(user_id, skill_id, output_buffer);
             let char = self.state.get_char(user_id);
             let skill = char.get_skill(skill_id).clone();
-            skill.call(char.runtime_id(), &mut effector);
+            let char_runtime_id = char.runtime_id();
+            let mut effector = Effector::new(&mut self.state, output_buffer);
+            effector.begin_char_skill(skill.static_id(), user_id);
+            skill.call(char_runtime_id, &mut effector);
         }
-        pub(crate) fn trun_end(&mut self, output_buffer: &mut impl OutputBuffer) {}
+
+        pub(crate) fn trun_end(&mut self, output_buffer: &mut impl OutputBuffer) {
+            let mut effector = Effector::new(&mut self.state, output_buffer);
+            effector.start_enemy_turn();
+
+            effector.begin_game_system();
+            effector.end_game_system();
+
+
+            let mut enemys = effector.state().enemys_with_living_check();
+            while let Some(enemy) = enemys.next_livint_enemy(effector.state()) {
+                let enemy_skill = enemy
+                    .static_data()
+                    .select_skill(enemy.runtime_id(), effector.state());
+
+                enemy_skill.call(enemy.runtime_id(), &mut effector);
+            }
+
+            effector.start_player_turn();
+        }
     }
 }
 
@@ -234,5 +300,18 @@ mod receiver_side {
         pub(crate) fn state(&self) -> &GameState {
             &self.state
         }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum WinOrLoseOrNextwave {
+    Win,
+    Lose,
+    Nextwave,
+}
+
+impl WinOrLoseOrNextwave {
+    fn is_win_or_lose(&self) -> bool {
+        *self == WinOrLoseOrNextwave::Win || *self == WinOrLoseOrNextwave::Lose
     }
 }

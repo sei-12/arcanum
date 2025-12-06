@@ -1,4 +1,4 @@
-use crate::effect::Effect;
+use crate::{StaticEnemySkillId, StaticPassiveId, StaticSkillId, effect::Effect};
 
 pub enum Event {
     CharUseSkill,
@@ -11,8 +11,16 @@ pub enum Event {
     DeadEnemy,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum EffectedBy {
+    CharSkill(StaticSkillId),
+    EnemySkill(StaticEnemySkillId),
+    GameSystem,
+    SubEffect(StaticPassiveId),
+}
+
 pub enum GameCoreOutput {
-    Effect(Effect),
+    Effect(EffectedBy, Effect),
     Event(Event),
     WaitInput,
 }
