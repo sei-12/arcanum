@@ -1,5 +1,5 @@
 use crate::{
-    LevelNum, StatusNum, enemy::StaticEnemyDataInstance, passive::PassiveList, runtime_id::{RuntimeCharId, RuntimeEnemyId, RuntimeSkillId}, skill::SkillInstance
+    CooldownNum, LevelNum, StatusNum, enemy::StaticEnemyDataInstance, passive::PassiveList, runtime_id::{RuntimeCharId, RuntimeEnemyId, RuntimeSkillId}, skill::SkillInstance
 };
 
 //--------------------------------------------------//
@@ -234,6 +234,9 @@ impl ButtleChar {
 
     pub(crate) fn get_skill(&self, id: RuntimeSkillId) -> &SkillInstance {
         assert_eq!(id.char_id, self.runtime_id());
+        todo!()
+    }
+    pub fn skill_cooldown_heal(&self) -> CooldownNum {
         todo!()
     }
 }

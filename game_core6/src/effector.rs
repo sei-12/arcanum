@@ -102,7 +102,8 @@ impl<'a, T: OutputBuffer> Effector<'a, T> {
         self.buffer
             .push(GameCoreOutput::Event(output::Event::CharUseSkill));
     }
-    pub(crate) fn end_char_skill(&mut self) {
+
+    pub(crate) fn end(&mut self) {
         assert!(self.current_effected_by.is_some());
         self.current_effected_by = None;
     }
@@ -113,18 +114,10 @@ impl<'a, T: OutputBuffer> Effector<'a, T> {
         self.buffer
             .push(GameCoreOutput::Event(output::Event::EnemyUseSkill));
     }
-    pub(crate) fn end_enemy_skill(&mut self) {
-        assert!(self.current_effected_by.is_some());
-        self.current_effected_by = None;
-    }
 
     pub(crate) fn begin_game_system(&mut self) {
         assert!(self.current_effected_by.is_none());
         self.current_effected_by = Some(EffectedBy::GameSystem);
-    }
-    pub(crate) fn end_game_system(&mut self) {
-        assert!(self.current_effected_by.is_some());
-        self.current_effected_by = None;
     }
 
     pub(crate) fn start_enemy_turn(&mut self) {
@@ -157,7 +150,25 @@ impl<'a, T: OutputBuffer> EffectorTrait for Effector<'a, T> {
                 .push(GameCoreOutput::Effect(effected_by, effect));
         }
 
-        self.state.check_win_or_lose()
+        let result = self.state.check_win_or_lose();
+
+        if let Err(res) = result {
+            match res {
+                WinOrLoseOrNextwave::Nextwave => {
+                    self.state.go_next_wave();
+                    self.buffer
+                        .push(GameCoreOutput::Event(output::Event::GoNextWave));
+                }
+                WinOrLoseOrNextwave::Lose => {
+                    self.buffer.push(GameCoreOutput::Event(output::Event::Lose));
+                }
+                WinOrLoseOrNextwave::Win => {
+                    self.buffer.push(GameCoreOutput::Event(output::Event::Win));
+                }
+            }
+        }
+
+        result
     }
 }
 

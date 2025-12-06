@@ -29,10 +29,12 @@ impl GameState {
     pub(crate) fn accept(&mut self, effect: &Effect) -> AcceptEffectResult {
         todo!()
     }
-    
+
     pub(crate) fn check_win_or_lose(&self) -> Result<(), WinOrLoseOrNextwave> {
         todo!()
     }
+
+    pub(crate) fn go_next_wave(&mut self) {}
 }
 
 pub struct EnemyIterWithLivingCheck {
