@@ -63,11 +63,22 @@ pub mod game_core_actor {
     use std::collections::VecDeque;
 
     use crate::{
-        output::GameCoreOutput, receiver_side::ReceiverSide, sender_side::SenderSide,
+        OutputBuffer,
+        output::GameCoreOutput,
+        receiver_side::ReceiverSide,
+        runtime_id::{RuntimeCharId, RuntimeSkillId},
+        sender_side::SenderSide,
         state::GameState,
     };
 
-    pub enum GaemCoreActorCommand {}
+    pub enum GaemCoreActorCommand {
+        UseSkill {
+            user_id: RuntimeCharId,
+            skill_id: RuntimeSkillId,
+        },
+        TurnEnd,
+        GameStart,
+    }
 
     pub struct GameCoreActor {
         sender_side: SenderSide,
@@ -77,7 +88,21 @@ pub mod game_core_actor {
 
     impl GameCoreActor {
         pub fn send_cmd(&mut self, cmd: GaemCoreActorCommand) {
-            todo!()
+            match cmd {
+                GaemCoreActorCommand::GameStart => {
+                    self.sender_side.game_start(&mut self.output_bufffer);
+                }
+                GaemCoreActorCommand::TurnEnd => {
+                    let _ = self.sender_side.trun_end(&mut self.output_bufffer);
+                }
+                GaemCoreActorCommand::UseSkill { user_id, skill_id } => {
+                    let _ = self
+                        .sender_side
+                        .use_skill(user_id, skill_id, &mut self.output_bufffer);
+                }
+            }
+
+            self.output_bufffer.push(GameCoreOutput::WaitInput);
         }
 
         pub fn forward(&mut self) -> Option<GameCoreOutput> {
@@ -114,7 +139,9 @@ mod skill {
         space::{self, S2},
     };
 
-    use crate::{StaticSkillId, effector::EffectorTrait, runtime_id::RuntimeCharId};
+    use crate::{
+        StaticSkillId, WinOrLoseOrNextwave, effector::EffectorTrait, runtime_id::RuntimeCharId,
+    };
 
     pub enum SkillUpdateMessage {
         Msg(&'static str),
@@ -150,7 +177,11 @@ mod skill {
 
     pub trait StaticSkillData {
         fn static_id(&self) -> StaticSkillId;
-        fn call(&self, user: RuntimeCharId, effector: &mut dyn EffectorTrait);
+        fn call(
+            &self,
+            user: RuntimeCharId,
+            effector: &mut dyn EffectorTrait,
+        ) -> Result<(), WinOrLoseOrNextwave>;
         fn clone(&self) -> SkillInstance;
         fn update(&mut self, msg: &SkillUpdateMessage);
     }

@@ -18,13 +18,14 @@ impl SenderSide {
         user_id: RuntimeCharId,
         skill_id: RuntimeSkillId,
         output_buffer: &mut impl OutputBuffer,
-    ) {
+    ) -> Result<(), WinOrLoseOrNextwave> {
         let char = self.state.get_char(user_id);
         let skill = char.get_skill(skill_id).clone();
         let char_runtime_id = char.runtime_id();
         let mut effector = Effector::new(&mut self.state, output_buffer);
         effector.begin_char_skill(skill.static_id(), user_id);
-        skill.call(char_runtime_id, &mut effector);
+        skill.call(char_runtime_id, &mut effector)?;
+        Ok(())
     }
 
     pub(crate) fn trun_end(
