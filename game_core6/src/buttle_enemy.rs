@@ -1,19 +1,56 @@
-use crate::{enemy::StaticEnemyDataInstance, passive::PassiveList, runtime_id::RuntimeEnemyId};
+use crate::{
+    LevelNum, SpNum, enemy::StaticEnemyDataInstance, lt_common::LtCommon, passive::PassiveList,
+    runtime_id::RuntimeEnemyId,
+};
 
+pub struct ButtleEnemy {
+    lt_common: LtCommon,
+    runtime_id: RuntimeEnemyId,
+    static_data: StaticEnemyDataInstance,
+    sp: SpNum,
+}
 
-pub struct ButtleEnemy {}
 impl ButtleEnemy {
-    pub(crate) fn passive_list(&self) -> &PassiveList {
-        todo!()
-    }
-    pub(crate) fn get_mut_passive_list(&mut self) -> &mut PassiveList {
-        todo!()
+    pub(crate) fn new(
+        runtime_enemy_id: RuntimeEnemyId,
+        level: LevelNum,
+        data: StaticEnemyDataInstance,
+    ) -> Self {
+        assert!(level > 0);
+
+        let lt_common = LtCommon::new(data.potential().clone(), level);
+
+        Self {
+            lt_common,
+            runtime_id: runtime_enemy_id,
+            static_data: data,
+            sp: 0,
+        }
     }
 
-    pub(crate) fn static_data(&self) -> &StaticEnemyDataInstance {
-        todo!()
+    pub(crate) fn heal_sp(&mut self, num: SpNum) {
+        self.sp = self.sp.saturating_add(num)
     }
-    pub(crate) fn runtime_id(&self) -> RuntimeEnemyId {
-        todo!()
+    pub(crate) fn lt_mut(&mut self) -> &mut LtCommon {
+        &mut self.lt_common
+    }
+
+    pub fn sp(&self) -> SpNum {
+        self.sp
+    }
+    pub fn consume_sp(&mut self, num: SpNum) {
+        self.sp = self.sp.saturating_sub(num);
+    }
+
+    pub fn lt(&self) -> &LtCommon {
+        &self.lt_common
+    }
+
+    pub fn static_data(&self) -> &StaticEnemyDataInstance {
+        &self.static_data
+    }
+
+    pub fn runtime_id(&self) -> RuntimeEnemyId {
+        self.runtime_id
     }
 }

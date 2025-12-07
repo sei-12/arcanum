@@ -1,36 +1,25 @@
 use crate::{LevelNum, StatusNum, passive::PassiveList, potential::Potential};
 
-//--------------------------------------------------//
-//                                                  //
-//                    LT COMMON                     //
-//                                                  //
-//--------------------------------------------------//
 #[derive(Debug, Clone)]
 pub struct LtCommon {
     pub passive: PassiveList,
-    potential: &'static Potential,
+    potential: Potential,
     level: LevelNum,
     hp: StatusNum,
-    name: String,
 }
 
 impl LtCommon {
-    pub(super) fn new(potential: &'static Potential, level: LevelNum, name: String) -> Self {
+    pub(super) fn new(potential: Potential, level: LevelNum) -> Self {
         let mut tmp = Self {
             potential,
             level,
             hp: 0.0,
-            name,
             passive: PassiveList::default(),
         };
 
         tmp.hp = tmp.max_hp();
 
         tmp
-    }
-
-    pub fn name(&self) -> &str {
-        &self.name
     }
 }
 

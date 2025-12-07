@@ -7,12 +7,17 @@ pub mod buttle_enemy;
 pub mod damage;
 pub mod effect;
 pub mod effector;
+pub mod enemy;
+pub mod game_core_actor;
 pub mod lt_common;
 pub mod output;
+mod passive;
 pub mod potential;
+mod sender_side;
+mod skill;
 pub mod state;
 
-use std::{any::TypeId, collections::VecDeque};
+use std::{any::TypeId, collections::VecDeque, sync::Arc};
 
 use crate::{output::GameCoreOutput, state::GameState};
 
@@ -60,9 +65,29 @@ pub mod runtime_id {
         Char(RuntimeCharId),
         Enemy(RuntimeEnemyId),
     }
-}
 
-pub mod game_core_actor;
+    impl From<RuntimeCharId> for LtId {
+        fn from(value: RuntimeCharId) -> Self {
+            LtId::Char(value)
+        }
+    }
+    impl From<&RuntimeCharId> for LtId {
+        fn from(value: &RuntimeCharId) -> Self {
+            LtId::Char(*value)
+        }
+    }
+
+    impl From<RuntimeEnemyId> for LtId {
+        fn from(value: RuntimeEnemyId) -> Self {
+            LtId::Enemy(value)
+        }
+    }
+    impl From<&RuntimeEnemyId> for LtId {
+        fn from(value: &RuntimeEnemyId) -> Self {
+            LtId::Enemy(*value)
+        }
+    }
+}
 
 trait OutputBuffer {
     fn push(&mut self, item: GameCoreOutput);
@@ -77,12 +102,6 @@ impl OutputBuffer for VecDeque<GameCoreOutput> {
     }
 }
 
-mod skill;
-
-pub mod enemy;
-mod passive;
-mod sender_side;
-
 mod receiver_side {
     use crate::{OutputBuffer, output::GameCoreOutput, state::GameState};
     use std::collections::VecDeque;
@@ -96,7 +115,15 @@ mod receiver_side {
             &mut self,
             output_buffer: &mut impl OutputBuffer,
         ) -> Option<GameCoreOutput> {
-            todo!()
+            let output = output_buffer.pop()?;
+
+            if let GameCoreOutput::Effect(_, effect) = &output {
+                let result = self.state.accept(effect);
+                // output_bufferに入っているエフェクトは全てacceptedがtrueである
+                assert!(result.accepted);
+            };
+
+            Some(output)
         }
 
         pub(crate) fn state(&self) -> &GameState {
@@ -116,4 +143,33 @@ impl WinOrLoseOrNextwave {
     fn is_win_or_lose(&self) -> bool {
         *self == WinOrLoseOrNextwave::Win || *self == WinOrLoseOrNextwave::Lose
     }
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[error("すでにゲームが開始されています")]
+    AlreadyGameStart,
+
+    #[error("すでにゲームは終了しています")]
+    AlreadyGameEnd,
+
+    #[error("保持していないキャラIDです: got_id={0}")]
+    NotFoundChar(StaticCharId),
+
+    #[error("wave数が0です")]
+    WavesIsEmpty,
+
+    // #[error("wave内の敵の数が不正です: got={0:?}")]
+    // InvalidNumEnemysInWave(Arc<Vec<Vec<EnemyArg>>>),
+    #[error("使用できないスキルを使用しようとしています")]
+    UnUseableSkill,
+
+    #[error("チームメンバーの数が不正な値です: メンバー数={}", got_num_members)]
+    InvalidNumTeamMembers { got_num_members: usize },
+
+    #[error("習得スキル数が不正です")]
+    InvalidNumLearnSkills(usize),
+
+    #[error("チーム内に同じキャラクターがいます: id={0}")]
+    ConfrictChar(StaticCharId),
 }

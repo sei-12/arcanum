@@ -1,28 +1,60 @@
 use crate::{
-    CooldownNum,
+    CooldownNum, HateNum, LevelNum, NUM_MAX_LEARN_SKILLS, SKILL_COOLDOWN_HEAL_BASE, StaticCharId,
     lt_common::LtCommon,
-    passive::PassiveList,
+    passive::{PassiveInstance, PassiveList},
+    potential::Potential,
     runtime_id::{RuntimeCharId, RuntimeSkillId},
-    skill::SkillInstance,
+    skill::{SkillInstance, StaticSkillData},
 };
 
 pub struct ButtleChar {
     lt_common: LtCommon,
     runtime_id: RuntimeCharId,
-    skills: ButtleSkills,
+    skills: Vec<ButtleSkill>,
+    static_data: StaticCharData,
+    hate: HateNum,
 }
 
 impl ButtleChar {
-    pub(crate) fn new() -> Self {
-        todo!()
+    pub(crate) fn new(
+        runtime_char_id: RuntimeCharId,
+        level: LevelNum,
+        static_data: StaticCharData,
+        skills: Vec<SkillInstance>,
+    ) -> Result<Self, crate::Error> {
+        assert!(level > 0);
+
+        if skills.is_empty() || skills.len() > NUM_MAX_LEARN_SKILLS {
+            return Err(crate::Error::InvalidNumLearnSkills(skills.len()));
+        }
+
+        let skills = skills
+            .into_iter()
+            .enumerate()
+            .map(|(i, skill)| ButtleSkill {
+                id: RuntimeSkillId {
+                    char_id: runtime_char_id,
+                    idx: i as u8,
+                },
+                cooldown: 0,
+                static_data: skill,
+            })
+            .collect();
+
+        Ok(Self {
+            lt_common: LtCommon::new(static_data.potential.clone(), level),
+            runtime_id: runtime_char_id,
+            skills,
+            static_data,
+            hate: 0,
+        })
     }
 
-    pub(crate) fn passive_list(&self) -> &PassiveList {
-        &self.lt_common.passive
+    pub fn lt(&self) -> &LtCommon {
+        &self.lt_common
     }
-
-    pub(crate) fn get_mut_passive_list(&mut self) -> &mut PassiveList {
-        &mut self.lt_common.passive
+    pub fn lt_mut(&mut self) -> &mut LtCommon {
+        &mut self.lt_common
     }
 
     pub fn runtime_id(&self) -> RuntimeCharId {
@@ -31,24 +63,46 @@ impl ButtleChar {
 
     pub(crate) fn get_skill(&self, id: RuntimeSkillId) -> &SkillInstance {
         assert_eq!(id.char_id, self.runtime_id());
-        self.skills.get(id)
+        &self.skills[id.idx as usize].static_data
     }
 
     pub fn skill_cooldown_heal(&self) -> CooldownNum {
-        todo!()
+        SKILL_COOLDOWN_HEAL_BASE + (self.lt().agi() * 5.0) as u32
+    }
+
+    pub(crate) fn set_skill_cooldown(&mut self, id: RuntimeSkillId, num: CooldownNum) {
+        self.skills[id.idx as usize].cooldown = num;
+    }
+    pub(crate) fn heal_skill_cooldown(&mut self, id: RuntimeSkillId, num: CooldownNum) {
+        assert_eq!(id.char_id, self.runtime_id());
+        self.skills[id.idx as usize].heal_cooldown(num);
+    }
+
+    pub(crate) fn heal_skill_cooldown_all(&mut self, num: CooldownNum) {
+        self.skills.iter_mut().for_each(|state| {
+            state.heal_cooldown(num);
+        });
+    }
+
+    pub(crate) fn add_hate(&mut self, num: HateNum) {
+        self.hate = self.hate.saturating_add(num);
     }
 }
 
-struct ButtleSkills {
-    skills: Vec<SkillInstance>,
+struct ButtleSkill {
+    id: RuntimeSkillId,
+    cooldown: CooldownNum,
+    static_data: SkillInstance,
 }
 
-impl ButtleSkills {
-    pub(crate) fn new() -> Self {
-        todo!()
+impl ButtleSkill {
+    fn heal_cooldown(&mut self, num: CooldownNum) {
+        self.cooldown = self.cooldown.saturating_sub(num);
     }
+}
 
-    pub(crate) fn get(&self, skill_id: RuntimeSkillId) -> &SkillInstance {
-        &self.skills[skill_id.idx as usize]
-    }
+pub struct StaticCharData {
+    id: StaticCharId,
+    potential: Potential,
+    passives: fn() -> Vec<PassiveInstance>,
 }

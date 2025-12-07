@@ -1,6 +1,7 @@
 use crate::{
     StatusNum,
     runtime_id::{LtId, RuntimeCharId, RuntimeEnemyId},
+    state::GameState,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -71,57 +72,57 @@ impl Damage {
 }
 
 impl Damage {
-    // pub fn new_hp_per_dmg(state: &GameState, target_id: LtId, per: StatusNum) -> Self {
-    //     assert!(per >= 0.0);
-    //     let target = state.get_lt(target_id);
-    //     let dmg = target.hp() * per;
-    //     Self {
-    //         causer: DamageCauser::None,
-    //         target: target_id,
-    //         ty: DamageType::Fixed,
-    //         dmg,
-    //     }
-    // }
+    pub fn new_hp_per_dmg(state: &GameState, target_id: LtId, per: StatusNum) -> Self {
+        assert!(per >= 0.0);
+        let target = state.get_lt(target_id);
+        let dmg = target.hp() * per;
+        Self {
+            causer: DamageCauser::None,
+            target: target_id,
+            ty: DamageType::Fixed,
+            dmg,
+        }
+    }
 
-    // pub fn new_magic_damage(
-    //     state: &GameState,
-    //     attucker_id: LtId,
-    //     target_id: LtId,
-    //     dmg_mag: StatusNum,
-    // ) -> Self {
-    //     assert!(dmg_mag >= 0.0);
+    pub fn new_magic_damage(
+        state: &GameState,
+        attucker_id: LtId,
+        target_id: LtId,
+        dmg_mag: StatusNum,
+    ) -> Self {
+        assert!(dmg_mag >= 0.0);
 
-    //     let attucker = state.get_lt(attucker_id);
-    //     let target = state.get_lt(target_id);
+        let attucker = state.get_lt(attucker_id);
+        let target = state.get_lt(target_id);
 
-    //     let dmg = attucker.magic_attuck() * target.recv_magic_dmg_mag() * dmg_mag;
+        let dmg = attucker.magic_attuck() * target.recv_magic_dmg_mag() * dmg_mag;
 
-    //     Self {
-    //         causer: attucker_id.into(),
-    //         target: target_id,
-    //         ty: DamageType::Magic,
-    //         dmg,
-    //     }
-    // }
+        Self {
+            causer: attucker_id.into(),
+            target: target_id,
+            ty: DamageType::Magic,
+            dmg,
+        }
+    }
 
-    // pub fn new_physics_damage(
-    //     state: &GameState,
-    //     attucker_id: LtId,
-    //     target_id: LtId,
-    //     dmg_mag: StatusNum,
-    // ) -> Self {
-    //     assert!(dmg_mag >= 0.0);
+    pub fn new_physics_damage(
+        state: &GameState,
+        attucker_id: LtId,
+        target_id: LtId,
+        dmg_mag: StatusNum,
+    ) -> Self {
+        assert!(dmg_mag >= 0.0);
 
-    //     let attucker = state.get_lt(attucker_id);
-    //     let target = state.get_lt(target_id);
+        let attucker = state.get_lt(attucker_id);
+        let target = state.get_lt(target_id);
 
-    //     let dmg = attucker.physics_attuck() * target.recv_physics_dmg_mag() * dmg_mag;
+        let dmg = attucker.physics_attuck() * target.recv_physics_dmg_mag() * dmg_mag;
 
-    //     Self {
-    //         causer: attucker_id.into(),
-    //         target: target_id,
-    //         ty: DamageType::Physics,
-    //         dmg,
-    //     }
-    // }
+        Self {
+            causer: attucker_id.into(),
+            target: target_id,
+            ty: DamageType::Physics,
+            dmg,
+        }
+    }
 }
