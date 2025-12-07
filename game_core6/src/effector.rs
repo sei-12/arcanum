@@ -2,9 +2,8 @@ use std::collections::VecDeque;
 
 use crate::{
     OutputBuffer, StaticEnemySkillId, StaticPassiveId, StaticSkillId, WinOrLoseOrNextwave,
-    effect::{self, Effect},
+    effect::{Effect},
     output::{self, EffectedBy, GameCoreOutput},
-    runtime_id::{RuntimeCharId, RuntimeEnemyId, RuntimeSkillId},
     state::GameState,
 };
 
@@ -96,7 +95,7 @@ impl<'a, T: OutputBuffer> Effector<'a, T> {
         self.current_effected_by.is_some()
     }
 
-    pub(crate) fn begin_char_skill(&mut self, id: StaticSkillId, user_id: RuntimeCharId) {
+    pub(crate) fn begin_char_skill(&mut self, id: StaticSkillId) {
         assert!(self.current_effected_by.is_none());
         self.current_effected_by = Some(EffectedBy::CharSkill(id));
         self.buffer
@@ -108,7 +107,7 @@ impl<'a, T: OutputBuffer> Effector<'a, T> {
         self.current_effected_by = None;
     }
 
-    pub(crate) fn begin_enemy_skill(&mut self, id: StaticEnemySkillId, user_id: RuntimeEnemyId) {
+    pub(crate) fn begin_enemy_skill(&mut self, id: StaticEnemySkillId) {
         assert!(self.current_effected_by.is_none());
         self.current_effected_by = Some(EffectedBy::EnemySkill(id));
         self.buffer

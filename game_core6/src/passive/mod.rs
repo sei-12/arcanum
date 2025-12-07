@@ -10,12 +10,8 @@ use smallbox::{SmallBox, smallbox, space};
 pub mod status;
 
 use crate::{
-    StaticPassiveId,
-    damage::Damage,
-    effector::PassiveEffector,
-    passive::status::PassiveStatus,
-    runtime_id::{LtId, RuntimeCharId},
-    state::GameState,
+    StaticPassiveId, damage::Damage, effector::PassiveEffector, passive::status::PassiveStatus,
+    runtime_id::LtId, state::GameState,
 };
 
 #[derive(Debug)]
@@ -43,6 +39,7 @@ impl Clone for PassiveInstance {
     }
 }
 
+#[allow(unused_variables)]
 pub trait StaticPassiveData: Debug {
     fn static_id(&self) -> StaticPassiveId;
     fn clone(&self) -> PassiveInstance;
@@ -51,8 +48,15 @@ pub trait StaticPassiveData: Debug {
     fn merge(&mut self, passive: &PassiveInstance);
     fn update(&mut self, msg: &PassiveUpdateMessage);
     fn status(&self, status: &mut PassiveStatus) {}
-    fn trigger_turn_start(&self, owner: LtId, effector: &mut PassiveEffector) {}
-    fn trigger_recv_damage(&self, owner: LtId, dmg: &Damage, effector: &mut PassiveEffector) {}
+    fn trigger_turn_start(&self, owner: LtId, state: &GameState, effector: &mut PassiveEffector) {}
+    fn trigger_recv_damage(
+        &self,
+        owner: LtId,
+        dmg: &Damage,
+        state: &GameState,
+        effector: &mut PassiveEffector,
+    ) {
+    }
 }
 
 // SkillUpdateMessageと統一しても良い。本質的に同じな気がする
@@ -120,11 +124,16 @@ impl PassiveList {
         self.cached_status.get(self.map.values())
     }
 
-    pub fn trigger_turn_start(&self, owner: LtId, effector: &mut PassiveEffector) {
+    pub fn trigger_turn_start(
+        &self,
+        owner: LtId,
+        state: &GameState,
+        effector: &mut PassiveEffector,
+    ) {
         self.added_order.iter().for_each(|static_id| {
             let passive = self.map.get(&static_id).unwrap();
             effector.begin(passive.static_id());
-            passive.trigger_turn_start(owner, effector);
+            passive.trigger_turn_start(owner, state, effector);
             effector.end();
         });
     }
@@ -140,7 +149,7 @@ impl PassiveList {
         self.added_order.iter().for_each(|static_id| {
             let passive = self.map.get(&static_id).unwrap();
             effector.begin(passive.static_id());
-            passive.trigger_recv_damage(owner, dmg, effector);
+            passive.trigger_recv_damage(owner, dmg, state, effector);
             effector.end();
         });
     }

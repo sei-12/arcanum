@@ -6,7 +6,7 @@ use crate::{
     receiver_side::ReceiverSide,
     runtime_id::{RuntimeCharId, RuntimeSkillId},
     sender_side::SenderSide,
-    state::GameState,
+    state::{CharData, DungeonData, GameState},
 };
 
 pub enum GaemCoreActorCommand {
@@ -25,6 +25,15 @@ pub struct GameCoreActor {
 }
 
 impl GameCoreActor {
+    pub fn new(chars: Vec<CharData>, dungeon_data: DungeonData) -> Result<Self, crate::Error> {
+        let sender_side = SenderSide::new(chars, dungeon_data)?;
+        Ok(Self {
+            output_bufffer: VecDeque::new(),
+            receiver_side: ReceiverSide::new(sender_side.state().clone()),
+            sender_side,
+        })
+    }
+
     pub fn send_cmd(&mut self, cmd: GaemCoreActorCommand) {
         match cmd {
             GaemCoreActorCommand::GameStart => {

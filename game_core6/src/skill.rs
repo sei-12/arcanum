@@ -1,35 +1,34 @@
 use std::{
     any::Any,
+    fmt::Debug,
     ops::{Deref, DerefMut},
+    sync::Arc,
 };
 
-use smallbox::{
-    SmallBox, smallbox,
-    space::{self, S2},
-};
+use smallbox::{SmallBox, smallbox, space};
 
 use crate::{
-    StaticSkillId, WinOrLoseOrNextwave,
-    effector::EffectorTrait,
-    runtime_id::{RuntimeCharId, RuntimeSkillId},
+    StaticSkillId, WinOrLoseOrNextwave, effector::EffectorTrait, runtime_id::RuntimeCharId,
 };
 
+#[derive(Debug, Clone)]
 pub enum SkillUpdateMessage {
     Msg(&'static str),
     Buffer([u8; 16]),
-    Box(Box<dyn Any>),
+    Box(Arc<dyn Any>),
 }
 
-pub struct SkillInstance(SmallBox<dyn StaticSkillData, space::S1>);
+#[derive(Debug)]
+pub struct SkillInstance(SmallBox<dyn SkillTrait, space::S1>);
 
 impl SkillInstance {
-    pub fn new(inner: impl StaticSkillData + 'static) -> Self {
+    pub fn new(inner: impl SkillTrait + 'static) -> Self {
         Self(smallbox!(inner))
     }
 }
 
 impl Deref for SkillInstance {
-    type Target = dyn StaticSkillData;
+    type Target = dyn SkillTrait;
     fn deref(&self) -> &Self::Target {
         self.0.deref()
     }
@@ -46,7 +45,8 @@ impl Clone for SkillInstance {
     }
 }
 
-pub trait StaticSkillData {
+// todo rename: Staticではない
+pub trait SkillTrait: Debug {
     fn static_id(&self) -> StaticSkillId;
     fn call(
         &self,

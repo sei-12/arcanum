@@ -1,7 +1,3 @@
-#![allow(unused_variables)]
-#![allow(dead_code)]
-#![allow(unused_imports)]
-
 pub mod buttle_char;
 pub mod buttle_enemy;
 pub mod damage;
@@ -17,9 +13,9 @@ mod sender_side;
 mod skill;
 pub mod state;
 
-use std::{any::TypeId, collections::VecDeque, sync::Arc};
+use std::{any::TypeId, collections::VecDeque};
 
-use crate::{output::GameCoreOutput, state::GameState};
+use crate::output::GameCoreOutput;
 
 pub type MpNum = u32;
 pub type SpNum = u32;
@@ -38,6 +34,7 @@ pub type StaticEnemyId = u32;
 pub const NUM_MAX_CHAR_IN_TEAM: u8 = 4;
 pub const NUM_MAX_LEARN_SKILLS: usize = 256;
 pub const NUM_MAX_ENEMYS_IN_WAVE: usize = 5;
+pub const NUM_MAX_WAVES: usize = 256;
 pub const TURN_START_HEAL_MP_NUM: MpNum = 100;
 pub const SKILL_COOLDOWN_HEAL_BASE: CooldownNum = 50;
 pub const TURN_START_HEAL_SP_NUM: SpNum = 50;
@@ -104,13 +101,15 @@ impl OutputBuffer for VecDeque<GameCoreOutput> {
 
 mod receiver_side {
     use crate::{OutputBuffer, output::GameCoreOutput, state::GameState};
-    use std::collections::VecDeque;
 
     pub(crate) struct ReceiverSide {
         state: GameState,
     }
 
     impl ReceiverSide {
+        pub fn new(game_state: GameState) -> Self {
+            Self { state: game_state }
+        }
         pub(crate) fn forward(
             &mut self,
             output_buffer: &mut impl OutputBuffer,
@@ -139,12 +138,6 @@ pub enum WinOrLoseOrNextwave {
     Nextwave,
 }
 
-impl WinOrLoseOrNextwave {
-    fn is_win_or_lose(&self) -> bool {
-        *self == WinOrLoseOrNextwave::Win || *self == WinOrLoseOrNextwave::Lose
-    }
-}
-
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("すでにゲームが開始されています")]
@@ -156,8 +149,8 @@ pub enum Error {
     #[error("保持していないキャラIDです: got_id={0}")]
     NotFoundChar(StaticCharId),
 
-    #[error("wave数が0です")]
-    WavesIsEmpty,
+    #[error("wave数が不正です len={0}")]
+    InvalidNumWaves(usize),
 
     // #[error("wave内の敵の数が不正です: got={0:?}")]
     // InvalidNumEnemysInWave(Arc<Vec<Vec<EnemyArg>>>),

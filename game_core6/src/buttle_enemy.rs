@@ -1,8 +1,10 @@
 use crate::{
-    LevelNum, SpNum, enemy::StaticEnemyDataInstance, lt_common::LtCommon, passive::PassiveList,
+    LevelNum, SpNum, enemy::StaticEnemyDataInstance, lt_common::LtCommon,
     runtime_id::RuntimeEnemyId,
 };
 
+
+#[derive(Debug, Clone)]
 pub struct ButtleEnemy {
     lt_common: LtCommon,
     runtime_id: RuntimeEnemyId,

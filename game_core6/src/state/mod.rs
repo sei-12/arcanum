@@ -1,31 +1,103 @@
-use std::{
-    borrow::Cow,
-    sync::{Arc, Mutex},
-};
+use std::{borrow::Cow, sync::Arc};
 
 use crate::{
-    LevelNum, MpNum, WinOrLoseOrNextwave,
-    buttle_char::ButtleChar,
+    LevelNum, MpNum, NUM_MAX_CHAR_IN_TEAM, NUM_MAX_WAVES, WinOrLoseOrNextwave,
+    buttle_char::{ButtleChar, StaticCharData},
     buttle_enemy::ButtleEnemy,
     effect::Effect,
-    enemy::{StaticEnemyData, StaticEnemyDataInstance},
+    enemy::StaticEnemyDataInstance,
     lt_common::LtCommon,
     runtime_id::{LtId, RuntimeCharId, RuntimeEnemyId},
+    skill::SkillInstance,
 };
 
-struct EnemyData {
-    level: LevelNum,
-    data: StaticEnemyDataInstance,
+#[derive(Debug)]
+pub struct EnemyData {
+    pub level: LevelNum,
+    pub data: StaticEnemyDataInstance,
 }
 
-type DungeonData = Arc<Vec<Vec<EnemyData>>>;
+pub type DungeonData = Arc<Vec<Vec<EnemyData>>>;
 
+#[derive(Debug, Clone)]
+struct WrapDungeonData(DungeonData);
+impl WrapDungeonData {
+    fn new(data: DungeonData) -> Result<Self, crate::Error> {
+        if data.is_empty() || data.len() > NUM_MAX_WAVES {
+            return Err(crate::Error::InvalidNumWaves(data.len()));
+        };
+        Ok(Self(data))
+    }
+
+    fn waves(&self) -> usize {
+        self.0.len()
+    }
+
+    fn make_wave(&self, wave_idx: usize) -> Vec<ButtleEnemy> {
+        self.0
+            .get(wave_idx)
+            .unwrap()
+            .iter()
+            .enumerate()
+            .map(|(i, e)| {
+                let runtime_id = RuntimeEnemyId {
+                    idx: i as u8,
+                    wave_idx: wave_idx as u8,
+                };
+                ButtleEnemy::new(runtime_id, e.level, e.data.clone())
+            })
+            .collect()
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct GameState {
     chars: Vec<ButtleChar>,
     current_wave_enemys: Vec<ButtleEnemy>,
     current_wave_idx: u8,
     player_mp: MpNum,
-    dungeon_data: DungeonData,
+    dungeon_data: WrapDungeonData,
+}
+
+pub struct CharData {
+    pub level: LevelNum,
+    pub data: StaticCharData,
+    pub skills: Vec<SkillInstance>,
+}
+
+impl GameState {
+    pub(crate) fn new(
+        char_datas: Vec<CharData>,
+        dungeon_data: DungeonData,
+    ) -> Result<Self, crate::Error> {
+        let mut chars = Vec::new();
+        if char_datas.is_empty() || char_datas.len() > NUM_MAX_CHAR_IN_TEAM as usize {
+            return Err(crate::Error::InvalidNumTeamMembers {
+                got_num_members: char_datas.len(),
+            });
+        }
+
+        for (i, char_data) in char_datas.into_iter().enumerate() {
+            let runtime_id = RuntimeCharId { idx: i as u8 };
+            chars.push(ButtleChar::new(
+                runtime_id,
+                char_data.level,
+                char_data.data,
+                char_data.skills,
+            )?);
+        }
+
+        let dungeon_data = WrapDungeonData::new(dungeon_data)?;
+        let current_wave_enemys = dungeon_data.make_wave(0);
+
+        Ok(Self {
+            chars,
+            current_wave_enemys,
+            current_wave_idx: 0,
+            player_mp: 0,
+            dungeon_data,
+        })
+    }
 }
 
 //--------------------------------------------------//
@@ -115,6 +187,14 @@ impl GameState {
                     .passive
                     .update_state(*passive_id, message);
             }
+            Effect::UpdateSkillState {
+                target_id,
+                skill_id,
+                msg,
+            } => {
+                self.get_mut_char(*target_id)
+                    .update_skill_state(*skill_id, msg);
+            }
         }
 
         AcceptEffectResult { accepted: true }
@@ -171,8 +251,7 @@ impl GameState {
     }
 
     pub fn current_wave_is_last_wave(&self) -> bool {
-        assert!(!self.dungeon_data.is_empty());
-        self.dungeon_data.len() - 1 == self.current_wave_idx as usize
+        self.dungeon_data.waves() - 1 == self.current_wave_idx as usize
     }
 
     pub fn current_wave_enemys_all_dead(&self) -> bool {

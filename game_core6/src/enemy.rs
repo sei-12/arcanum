@@ -1,4 +1,7 @@
-use std::ops::{Deref, DerefMut};
+use std::{
+    fmt::Debug,
+    ops::{Deref, DerefMut},
+};
 
 use smallbox::{SmallBox, smallbox, space};
 
@@ -47,6 +50,7 @@ impl Clone for EnemySkillInsance {
 //--------------------------------------------------//
 //                STATIC ENEMY DATA                 //
 //--------------------------------------------------//
+#[derive(Debug)]
 pub struct StaticEnemyDataInstance(SmallBox<dyn StaticEnemyData, space::S1>);
 impl StaticEnemyDataInstance {
     pub fn new(enemy_data: impl StaticEnemyData + 'static) -> Self {
@@ -71,7 +75,7 @@ impl Clone for StaticEnemyDataInstance {
     }
 }
 
-pub trait StaticEnemyData {
+pub trait StaticEnemyData: Debug {
     fn static_id(&self) -> StaticEnemyId;
     fn select_skill(&self, user_id: RuntimeEnemyId, state: &GameState) -> EnemySkillInsance;
     fn potential(&self) -> &Potential;

@@ -1,17 +1,27 @@
-use std::collections::VecDeque;
-
 use crate::{
     OutputBuffer, TURN_START_HEAL_MP_NUM, TURN_START_HEAL_SP_NUM, WinOrLoseOrNextwave,
     effect::Effect,
     effector::{Effector, EffectorTrait},
-    output::GameCoreOutput,
     runtime_id::{RuntimeCharId, RuntimeSkillId},
-    state::GameState,
+    state::{CharData, DungeonData, GameState},
 };
 pub(crate) struct SenderSide {
     state: GameState,
 }
 impl SenderSide {
+    pub(crate) fn new(
+        chars: Vec<CharData>,
+        dungeon_data: DungeonData,
+    ) -> Result<Self, crate::Error> {
+        Ok(Self {
+            state: GameState::new(chars, dungeon_data)?,
+        })
+    }
+
+    pub(crate) fn state(&self) -> &GameState {
+        &self.state
+    }
+
     pub(crate) fn game_start(
         &mut self,
         output_buffer: &mut impl OutputBuffer,
@@ -28,7 +38,7 @@ impl SenderSide {
         let skill = char.get_skill(skill_id).clone();
         let char_runtime_id = char.runtime_id();
         let mut effector = Effector::new(&mut self.state, output_buffer);
-        effector.begin_char_skill(skill.static_id(), user_id);
+        effector.begin_char_skill(skill.static_id());
         skill.call(char_runtime_id, &mut effector)?;
         Ok(())
     }
@@ -63,7 +73,7 @@ impl SenderSide {
                 .static_data()
                 .select_skill(enemy.runtime_id(), effector.state());
             let enemy_runtime_id = enemy.runtime_id();
-            effector.begin_enemy_skill(enemy_skill.static_id(), enemy_runtime_id);
+            effector.begin_enemy_skill(enemy_skill.static_id());
             enemy_skill
                 .call(enemy_runtime_id, &mut effector)
                 .inspect_err(|_| effector.end())?;

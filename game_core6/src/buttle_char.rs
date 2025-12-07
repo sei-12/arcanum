@@ -1,12 +1,13 @@
 use crate::{
     CooldownNum, HateNum, LevelNum, NUM_MAX_LEARN_SKILLS, SKILL_COOLDOWN_HEAL_BASE, StaticCharId,
     lt_common::LtCommon,
-    passive::{PassiveInstance, PassiveList},
+    passive::PassiveInstance,
     potential::Potential,
     runtime_id::{RuntimeCharId, RuntimeSkillId},
-    skill::{SkillInstance, StaticSkillData},
+    skill::{SkillInstance, SkillUpdateMessage},
 };
 
+#[derive(Debug, Clone)]
 pub struct ButtleChar {
     lt_common: LtCommon,
     runtime_id: RuntimeCharId,
@@ -37,7 +38,7 @@ impl ButtleChar {
                     idx: i as u8,
                 },
                 cooldown: 0,
-                static_data: skill,
+                instance: skill,
             })
             .collect();
 
@@ -57,13 +58,17 @@ impl ButtleChar {
         &mut self.lt_common
     }
 
+    pub fn static_data(&self) -> &StaticCharData {
+        &self.static_data
+    }
+
     pub fn runtime_id(&self) -> RuntimeCharId {
         self.runtime_id
     }
 
     pub(crate) fn get_skill(&self, id: RuntimeSkillId) -> &SkillInstance {
         assert_eq!(id.char_id, self.runtime_id());
-        &self.skills[id.idx as usize].static_data
+        &self.skills[id.idx as usize].instance
     }
 
     pub fn skill_cooldown_heal(&self) -> CooldownNum {
@@ -87,12 +92,22 @@ impl ButtleChar {
     pub(crate) fn add_hate(&mut self, num: HateNum) {
         self.hate = self.hate.saturating_add(num);
     }
+
+    pub(crate) fn update_skill_state(&mut self, id: RuntimeSkillId, msg: &SkillUpdateMessage) {
+        self.skills[id.idx as usize].instance.update(msg);
+    }
+
+    pub fn skills(&self) -> &Vec<ButtleSkill> {
+        &self.skills
+    }
 }
 
-struct ButtleSkill {
-    id: RuntimeSkillId,
+
+#[derive(Debug, Clone)]
+pub struct ButtleSkill {
+    pub id: RuntimeSkillId,
     cooldown: CooldownNum,
-    static_data: SkillInstance,
+    instance: SkillInstance,
 }
 
 impl ButtleSkill {
@@ -101,8 +116,9 @@ impl ButtleSkill {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct StaticCharData {
-    id: StaticCharId,
-    potential: Potential,
-    passives: fn() -> Vec<PassiveInstance>,
+    pub id: StaticCharId,
+    pub potential: Potential,
+    pub passives: fn() -> Vec<PassiveInstance>,
 }
