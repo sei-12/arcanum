@@ -12,7 +12,12 @@ pub(crate) struct SenderSide {
     state: GameState,
 }
 impl SenderSide {
-    pub(crate) fn game_start(&mut self, output_buffer: &mut impl OutputBuffer) {}
+    pub(crate) fn game_start(
+        &mut self,
+        output_buffer: &mut impl OutputBuffer,
+    ) -> Result<(), WinOrLoseOrNextwave> {
+        start_player_turn(&mut Effector::new(&mut self.state, output_buffer))
+    }
     pub(crate) fn use_skill(
         &mut self,
         user_id: RuntimeCharId,
@@ -64,31 +69,39 @@ impl SenderSide {
                 .inspect_err(|_| effector.end())?;
         }
 
-        // プレイヤーのターンを開始
-        effector.start_player_turn();
-
-        effector.begin_game_system();
-
-        effector
-            .accept_effect(Effect::HealMp {
-                num: TURN_START_HEAL_MP_NUM,
-            })
-            .inspect_err(|_| effector.end())?;
-
-        let mut chars = effector.state().chars_with_living_check();
-        while let Some(char) = chars.next_livint_char(effector.state()) {
-            let runtime_char_id = char.runtime_id();
-            let cooldown_heal = char.skill_cooldown_heal();
-
-            effector
-                .accept_effect(Effect::HealSkillCooldownAll {
-                    target_id: runtime_char_id,
-                    num: cooldown_heal,
-                })
-                .inspect_err(|_| effector.end())?
-        }
-        effector.end();
+        start_player_turn(&mut effector)?;
 
         Ok(())
     }
+}
+
+fn start_player_turn(
+    effector: &mut Effector<'_, impl OutputBuffer>,
+) -> Result<(), WinOrLoseOrNextwave> {
+    // プレイヤーのターンを開始
+    effector.start_player_turn();
+
+    effector.begin_game_system();
+
+    effector
+        .accept_effect(Effect::HealMp {
+            num: TURN_START_HEAL_MP_NUM,
+        })
+        .inspect_err(|_| effector.end())?;
+
+    let mut chars = effector.state().chars_with_living_check();
+    while let Some(char) = chars.next_livint_char(effector.state()) {
+        let runtime_char_id = char.runtime_id();
+        let cooldown_heal = char.skill_cooldown_heal();
+
+        effector
+            .accept_effect(Effect::HealSkillCooldownAll {
+                target_id: runtime_char_id,
+                num: cooldown_heal,
+            })
+            .inspect_err(|_| effector.end())?
+    }
+    effector.end();
+
+    Ok(())
 }

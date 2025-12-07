@@ -90,7 +90,7 @@ pub mod game_core_actor {
         pub fn send_cmd(&mut self, cmd: GaemCoreActorCommand) {
             match cmd {
                 GaemCoreActorCommand::GameStart => {
-                    self.sender_side.game_start(&mut self.output_bufffer);
+                    let _ = self.sender_side.game_start(&mut self.output_bufffer);
                 }
                 GaemCoreActorCommand::TurnEnd => {
                     let _ = self.sender_side.trun_end(&mut self.output_bufffer);
@@ -140,7 +140,10 @@ mod skill {
     };
 
     use crate::{
-        StaticSkillId, WinOrLoseOrNextwave, effector::EffectorTrait, runtime_id::RuntimeCharId,
+        StaticSkillId, WinOrLoseOrNextwave,
+        effector::EffectorTrait,
+        living_thing::ButtleChar,
+        runtime_id::{RuntimeCharId, RuntimeSkillId},
     };
 
     pub enum SkillUpdateMessage {
@@ -184,6 +187,20 @@ mod skill {
         ) -> Result<(), WinOrLoseOrNextwave>;
         fn clone(&self) -> SkillInstance;
         fn update(&mut self, msg: &SkillUpdateMessage);
+    }
+
+    pub struct ButtleSkills {
+        skills: Vec<SkillInstance>,
+    }
+
+    impl ButtleSkills {
+        pub(crate) fn new() -> Self {
+            todo!()
+        }
+
+        pub(crate) fn get(&self, skill_id: RuntimeSkillId) -> &SkillInstance {
+            &self.skills[skill_id.idx as usize]
+        }
     }
 }
 

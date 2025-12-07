@@ -1,5 +1,9 @@
 use crate::{
-    CooldownNum, LevelNum, StatusNum, enemy::StaticEnemyDataInstance, passive::PassiveList, runtime_id::{RuntimeCharId, RuntimeEnemyId, RuntimeSkillId}, skill::SkillInstance
+    CooldownNum, LevelNum, StatusNum,
+    enemy::StaticEnemyDataInstance,
+    passive::PassiveList,
+    runtime_id::{RuntimeCharId, RuntimeEnemyId, RuntimeSkillId},
+    skill::{ButtleSkills, SkillInstance},
 };
 
 //--------------------------------------------------//
@@ -84,7 +88,6 @@ impl Potential {
         self.agi
     }
 }
-
 
 //--------------------------------------------------//
 //                                                  //
@@ -219,28 +222,51 @@ impl LtCommon {
     }
 }
 
-pub struct ButtleChar {}
+//--------------------------------------------------//
+//                                                  //
+//                   BUTTLE CHAR                    //
+//                                                  //
+//--------------------------------------------------//
+
+pub struct ButtleChar {
+    lt_common: LtCommon,
+    runtime_id: RuntimeCharId,
+    skills: ButtleSkills,
+}
+
 impl ButtleChar {
-    pub(crate) fn passive_list(&self) -> &PassiveList {
-        todo!()
-    }
-    pub(crate) fn get_mut_passive_list(&mut self) -> &mut PassiveList {
+    pub(crate) fn new() -> Self {
         todo!()
     }
 
+    pub(crate) fn passive_list(&self) -> &PassiveList {
+        &self.lt_common.passive
+    }
+
+    pub(crate) fn get_mut_passive_list(&mut self) -> &mut PassiveList {
+        &mut self.lt_common.passive
+    }
+
     pub fn runtime_id(&self) -> RuntimeCharId {
-        todo!()
+        self.runtime_id
     }
 
     pub(crate) fn get_skill(&self, id: RuntimeSkillId) -> &SkillInstance {
         assert_eq!(id.char_id, self.runtime_id());
-        todo!()
+        self.skills.get(id)
     }
+
     pub fn skill_cooldown_heal(&self) -> CooldownNum {
         todo!()
     }
 }
 
+
+//--------------------------------------------------//
+//                                                  //
+//                   BUTTLE ENEMY                   //
+//                                                  //
+//--------------------------------------------------//
 pub struct ButtleEnemy {}
 impl ButtleEnemy {
     pub(crate) fn passive_list(&self) -> &PassiveList {

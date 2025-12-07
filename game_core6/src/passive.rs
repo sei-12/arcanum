@@ -86,6 +86,7 @@ impl PassiveList {
                 entry.get_mut().merge(&passive);
 
                 if entry.get().should_trash() {
+                    self.added_order.remove_expect(passive.static_id());
                     entry.remove();
                 }
             }
