@@ -1,7 +1,9 @@
 use crate::{
     WinOrLoseOrNextwave,
+    buttle_char::ButtleChar,
+    buttle_enemy::ButtleEnemy,
     effect::Effect,
-    living_thing::{ButtleChar, ButtleEnemy, LtCommon},
+    lt_common::LtCommon,
     runtime_id::{LtId, RuntimeCharId},
 };
 

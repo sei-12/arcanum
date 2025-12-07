@@ -2,11 +2,14 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+pub mod buttle_char;
+pub mod buttle_enemy;
 pub mod damage;
 pub mod effect;
 pub mod effector;
-pub mod living_thing;
+pub mod lt_common;
 pub mod output;
+pub mod potential;
 pub mod state;
 
 use std::{any::TypeId, collections::VecDeque};
@@ -59,61 +62,7 @@ pub mod runtime_id {
     }
 }
 
-pub mod game_core_actor {
-    use std::collections::VecDeque;
-
-    use crate::{
-        OutputBuffer,
-        output::GameCoreOutput,
-        receiver_side::ReceiverSide,
-        runtime_id::{RuntimeCharId, RuntimeSkillId},
-        sender_side::SenderSide,
-        state::GameState,
-    };
-
-    pub enum GaemCoreActorCommand {
-        UseSkill {
-            user_id: RuntimeCharId,
-            skill_id: RuntimeSkillId,
-        },
-        TurnEnd,
-        GameStart,
-    }
-
-    pub struct GameCoreActor {
-        sender_side: SenderSide,
-        output_bufffer: VecDeque<GameCoreOutput>,
-        receiver_side: ReceiverSide,
-    }
-
-    impl GameCoreActor {
-        pub fn send_cmd(&mut self, cmd: GaemCoreActorCommand) {
-            match cmd {
-                GaemCoreActorCommand::GameStart => {
-                    let _ = self.sender_side.game_start(&mut self.output_bufffer);
-                }
-                GaemCoreActorCommand::TurnEnd => {
-                    let _ = self.sender_side.trun_end(&mut self.output_bufffer);
-                }
-                GaemCoreActorCommand::UseSkill { user_id, skill_id } => {
-                    let _ = self
-                        .sender_side
-                        .use_skill(user_id, skill_id, &mut self.output_bufffer);
-                }
-            }
-
-            self.output_bufffer.push(GameCoreOutput::WaitInput);
-        }
-
-        pub fn forward(&mut self) -> Option<GameCoreOutput> {
-            self.receiver_side.forward(&mut self.output_bufffer)
-        }
-
-        pub fn state(&self) -> &GameState {
-            self.receiver_side.state()
-        }
-    }
-}
+pub mod game_core_actor;
 
 trait OutputBuffer {
     fn push(&mut self, item: GameCoreOutput);
@@ -128,164 +77,9 @@ impl OutputBuffer for VecDeque<GameCoreOutput> {
     }
 }
 
-mod skill {
-    use std::{
-        any::Any,
-        ops::{Deref, DerefMut},
-    };
+mod skill;
 
-    use smallbox::{
-        SmallBox, smallbox,
-        space::{self, S2},
-    };
-
-    use crate::{
-        StaticSkillId, WinOrLoseOrNextwave,
-        effector::EffectorTrait,
-        living_thing::ButtleChar,
-        runtime_id::{RuntimeCharId, RuntimeSkillId},
-    };
-
-    pub enum SkillUpdateMessage {
-        Msg(&'static str),
-        Buffer([u8; 16]),
-        Box(Box<dyn Any>),
-    }
-
-    pub struct SkillInstance(SmallBox<dyn StaticSkillData, space::S1>);
-
-    impl SkillInstance {
-        pub fn new(inner: impl StaticSkillData + 'static) -> Self {
-            Self(smallbox!(inner))
-        }
-    }
-
-    impl Deref for SkillInstance {
-        type Target = dyn StaticSkillData;
-        fn deref(&self) -> &Self::Target {
-            self.0.deref()
-        }
-    }
-    impl DerefMut for SkillInstance {
-        fn deref_mut(&mut self) -> &mut Self::Target {
-            self.0.deref_mut()
-        }
-    }
-
-    impl Clone for SkillInstance {
-        fn clone(&self) -> Self {
-            self.0.clone()
-        }
-    }
-
-    pub trait StaticSkillData {
-        fn static_id(&self) -> StaticSkillId;
-        fn call(
-            &self,
-            user: RuntimeCharId,
-            effector: &mut dyn EffectorTrait,
-        ) -> Result<(), WinOrLoseOrNextwave>;
-        fn clone(&self) -> SkillInstance;
-        fn update(&mut self, msg: &SkillUpdateMessage);
-    }
-
-    pub struct ButtleSkills {
-        skills: Vec<SkillInstance>,
-    }
-
-    impl ButtleSkills {
-        pub(crate) fn new() -> Self {
-            todo!()
-        }
-
-        pub(crate) fn get(&self, skill_id: RuntimeSkillId) -> &SkillInstance {
-            &self.skills[skill_id.idx as usize]
-        }
-    }
-}
-
-pub mod enemy {
-    use std::ops::{Deref, DerefMut};
-
-    use smallbox::{SmallBox, smallbox, space};
-
-    use crate::{
-        StaticEnemyId, StaticEnemySkillId, WinOrLoseOrNextwave, effector::EffectorTrait,
-        living_thing::Potential, runtime_id::RuntimeEnemyId, state::GameState,
-    };
-
-    //--------------------------------------------------//
-    //                   ENEMY SKILL                    //
-    //--------------------------------------------------//
-    pub struct EnemySkillInsance(SmallBox<dyn StaticEnemySkillData, space::S1>);
-    impl EnemySkillInsance {
-        pub fn new(skill_data: impl StaticEnemySkillData + 'static) -> Self {
-            Self(smallbox!(skill_data))
-        }
-    }
-
-    pub trait StaticEnemySkillData {
-        fn static_id(&self) -> StaticEnemySkillId;
-        fn call(
-            &self,
-            user_id: RuntimeEnemyId,
-            effector: &mut dyn EffectorTrait,
-        ) -> Result<(), WinOrLoseOrNextwave>;
-        fn clone(&self) -> EnemySkillInsance;
-    }
-
-    impl Deref for EnemySkillInsance {
-        type Target = dyn StaticEnemySkillData;
-        fn deref(&self) -> &Self::Target {
-            self.0.deref()
-        }
-    }
-    impl DerefMut for EnemySkillInsance {
-        fn deref_mut(&mut self) -> &mut Self::Target {
-            self.0.deref_mut()
-        }
-    }
-    impl Clone for EnemySkillInsance {
-        fn clone(&self) -> Self {
-            self.0.clone()
-        }
-    }
-
-    //--------------------------------------------------//
-    //                STATIC ENEMY DATA                 //
-    //--------------------------------------------------//
-    pub struct StaticEnemyDataInstance(SmallBox<dyn StaticEnemyData, space::S1>);
-    impl StaticEnemyDataInstance {
-        pub fn new(enemy_data: impl StaticEnemyData + 'static) -> Self {
-            Self(smallbox!(enemy_data))
-        }
-    }
-
-    impl Deref for StaticEnemyDataInstance {
-        type Target = dyn StaticEnemyData;
-        fn deref(&self) -> &Self::Target {
-            self.0.deref()
-        }
-    }
-    impl DerefMut for StaticEnemyDataInstance {
-        fn deref_mut(&mut self) -> &mut Self::Target {
-            self.0.deref_mut()
-        }
-    }
-    impl Clone for StaticEnemyDataInstance {
-        fn clone(&self) -> Self {
-            self.0.clone()
-        }
-    }
-
-    pub trait StaticEnemyData {
-        fn static_id(&self) -> StaticEnemyId;
-        fn select_skill(&self, user_id: RuntimeEnemyId, state: &GameState) -> EnemySkillInsance;
-        fn potential(&self) -> &Potential;
-        fn clone(&self) -> StaticEnemyDataInstance;
-    }
-}
-
+pub mod enemy;
 mod passive;
 mod sender_side;
 
