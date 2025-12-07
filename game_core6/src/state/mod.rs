@@ -1,7 +1,8 @@
 use std::{borrow::Cow, sync::Arc};
 
 use crate::{
-    LevelNum, MpNum, NUM_MAX_CHAR_IN_TEAM, NUM_MAX_WAVES, WinOrLoseOrNextwave,
+    LevelNum, MpNum, NUM_MAX_CHAR_IN_TEAM, NUM_MAX_ENEMYS_IN_WAVE, NUM_MAX_WAVES,
+    WinOrLoseOrNextwave,
     buttle_char::{ButtleChar, StaticCharData},
     buttle_enemy::ButtleEnemy,
     effect::Effect,
@@ -26,6 +27,13 @@ impl WrapDungeonData {
         if data.is_empty() || data.len() > NUM_MAX_WAVES {
             return Err(crate::Error::InvalidNumWaves(data.len()));
         };
+
+        if data
+            .iter()
+            .any(|wave| wave.is_empty() || wave.len() > NUM_MAX_ENEMYS_IN_WAVE)
+        {
+            return Err(crate::Error::InvalidNumEnemysInWave(data));
+        }
         Ok(Self(data))
     }
 
@@ -272,6 +280,10 @@ impl GameState {
         }
 
         Ok(())
+    }
+    
+    pub fn player_mp(&self) -> MpNum {
+        self.player_mp
     }
 }
 

@@ -75,7 +75,7 @@ impl Clone for StaticEnemyDataInstance {
     }
 }
 
-pub trait StaticEnemyData: Debug {
+pub trait StaticEnemyData: Debug + Send + Sync{
     fn static_id(&self) -> StaticEnemyId;
     fn select_skill(&self, user_id: RuntimeEnemyId, state: &GameState) -> EnemySkillInsance;
     fn potential(&self) -> &Potential;

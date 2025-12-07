@@ -9,7 +9,7 @@ use crate::{
     state::{CharData, DungeonData, GameState},
 };
 
-pub enum GaemCoreActorCommand {
+pub enum GameCoreActorCommand {
     UseSkill {
         user_id: RuntimeCharId,
         skill_id: RuntimeSkillId,
@@ -34,15 +34,15 @@ impl GameCoreActor {
         })
     }
 
-    pub fn send_cmd(&mut self, cmd: GaemCoreActorCommand) {
+    pub fn send_cmd(&mut self, cmd: GameCoreActorCommand) {
         match cmd {
-            GaemCoreActorCommand::GameStart => {
+            GameCoreActorCommand::GameStart => {
                 let _ = self.sender_side.game_start(&mut self.output_bufffer);
             }
-            GaemCoreActorCommand::TurnEnd => {
+            GameCoreActorCommand::TurnEnd => {
                 let _ = self.sender_side.trun_end(&mut self.output_bufffer);
             }
-            GaemCoreActorCommand::UseSkill { user_id, skill_id } => {
+            GameCoreActorCommand::UseSkill { user_id, skill_id } => {
                 let _ = self
                     .sender_side
                     .use_skill(user_id, skill_id, &mut self.output_bufffer);

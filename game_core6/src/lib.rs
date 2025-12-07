@@ -7,15 +7,15 @@ pub mod enemy;
 pub mod game_core_actor;
 pub mod lt_common;
 pub mod output;
-mod passive;
+pub mod passive;
 pub mod potential;
 mod sender_side;
-mod skill;
+pub mod skill;
 pub mod state;
 
 use std::{any::TypeId, collections::VecDeque};
 
-use crate::output::GameCoreOutput;
+use crate::{output::GameCoreOutput, state::DungeonData};
 
 pub type MpNum = u32;
 pub type SpNum = u32;
@@ -152,8 +152,9 @@ pub enum Error {
     #[error("wave数が不正です len={0}")]
     InvalidNumWaves(usize),
 
-    // #[error("wave内の敵の数が不正です: got={0:?}")]
-    // InvalidNumEnemysInWave(Arc<Vec<Vec<EnemyArg>>>),
+    #[error("wave内の敵の数が不正です: got={0:?}")]
+    InvalidNumEnemysInWave(DungeonData),
+    
     #[error("使用できないスキルを使用しようとしています")]
     UnUseableSkill,
 
