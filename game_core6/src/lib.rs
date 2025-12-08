@@ -154,7 +154,7 @@ pub enum Error {
 
     #[error("wave内の敵の数が不正です: got={0:?}")]
     InvalidNumEnemysInWave(DungeonData),
-    
+
     #[error("使用できないスキルを使用しようとしています")]
     UnUseableSkill,
 

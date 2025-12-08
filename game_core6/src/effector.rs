@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use crate::{
     OutputBuffer, StaticEnemySkillId, StaticPassiveId, StaticSkillId, WinOrLoseOrNextwave,
-    effect::{Effect},
+    effect::Effect,
     output::{self, EffectedBy, GameCoreOutput},
     state::GameState,
 };

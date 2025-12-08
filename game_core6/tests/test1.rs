@@ -223,4 +223,3 @@ fn test_game() {
 
     assert!(matches!(core.forward().unwrap(), GameCoreOutput::WaitInput));
 }
-

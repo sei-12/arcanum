@@ -20,7 +20,6 @@ pub enum EffectedBy {
     SubEffect(StaticPassiveId),
 }
 
-
 #[derive(Debug)]
 pub enum GameCoreOutput {
     Effect(EffectedBy, Effect),
