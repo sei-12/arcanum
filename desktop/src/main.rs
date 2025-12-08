@@ -6,11 +6,18 @@ use game_core6::{
     state::GameState,
 };
 use iced::{
-    Application, Element,
-    widget::{Container, Row, column, container, row, text},
+    Border, Color, Element,
+    Length::{self},
+    alignment::{Horizontal, Vertical},
+    border::{self, Radius},
+    widget::{Column, Container, Row, column, container, row, text},
 };
 
-use crate::game_assets::{get_char_name, get_enemy_name, new_game_core};
+use crate::{
+    common::round_digits::RoundDigits,
+    game_assets::{get_char_name, get_enemy_name, new_game_core},
+};
+mod common;
 mod game_assets;
 
 pub fn main() -> iced::Result {
@@ -38,10 +45,6 @@ struct App {
 
 impl Default for App {
     fn default() -> Self {
-        let setting = iced::Settings {
-            ..Default::default()
-        };
-
         Self {
             game_core: new_game_core(),
         }
@@ -68,27 +71,50 @@ fn game_view(state: &GameState) -> Container<'_, Message> {
 }
 
 fn enemy_side_view(state: &GameState) -> Element<'_, Message> {
-    Row::with_children(
-        state
-            .get_current_wave_enemys()
-            .iter()
-            .map(|e| enemy_item_view(e)),
-    )
+    column![
+        Row::with_children(
+            state
+                .get_current_wave_enemys()
+                .iter()
+                .map(|e| enemy_item_view(e)),
+        )
+        .height(Length::FillPortion(1))
+    ]
+    .width(Length::Fill)
+    .align_x(Horizontal::Center)
     .into()
 }
 
 fn enemy_item_view(enemy: &ButtleEnemy) -> Element<'_, Message> {
     let enemy_name = get_enemy_name(enemy.static_data().static_id());
-    column![text(enemy_name).size(20), lt_common_view(enemy.lt())].into()
+    column![text(enemy_name).size(23), lt_common_view(enemy.lt())]
+        .padding(20)
+        .into()
 }
 
-fn player_side_view(state: &GameState) -> Row<'_, Message> {
-    Row::with_children(state.get_chars().iter().map(|c| char_item_view(c).into()))
+fn player_side_view(state: &GameState) -> Column<'_, Message> {
+    column![
+        Row::with_children(state.get_chars().iter().map(|c| char_item_view(c).into()))
+            .height(Length::FillPortion(1))
+    ]
+    .align_x(Horizontal::Center)
+    .width(Length::Fill)
 }
 
 fn char_item_view(char: &ButtleChar) -> Container<'_, Message> {
     let char_name = get_char_name(char.static_data().id);
-    container(column![text(char_name).size(20), lt_common_view(char.lt())])
+
+    container(column![text(char_name).size(23), lt_common_view(char.lt())])
+        .height(Length::Fill)
+        .style(|_t| container::Style {
+            border: Border {
+                color: Color::BLACK,
+                width: 4.0,
+                radius: Radius::new(10),
+            },
+            ..Default::default()
+        })
+        .padding(20)
 }
 
 fn lt_common_view(lt_common: &LtCommon) -> Element<'_, Message> {
@@ -106,20 +132,31 @@ fn lt_common_view(lt_common: &LtCommon) -> Element<'_, Message> {
             ],
             row![
                 text("被魔法ダメージ倍率: "),
-                text(lt_common.recv_magic_dmg_mag().round())
+                text(lt_common.recv_magic_dmg_mag().round_digits(2))
             ],
             row![
                 text("被物理ダメージ倍率: "),
-                text(lt_common.recv_physics_dmg_mag().round())
+                text(lt_common.recv_physics_dmg_mag().round_digits(2))
             ],
         ],
-        column![
-            row![text("INT"), text(lt_common.int().round())],
-            row![text("AGI"), text(lt_common.agi().round())],
-            row![text("STR"), text(lt_common.str().round())],
-            row![text("DEX"), text(lt_common.dex().round())],
-            row![text("VIT"), text(lt_common.vit().round())],
+        row![
+            column![
+                row![text("INT"),],
+                row![text("AGI"),],
+                row![text("STR"),],
+                row![text("DEX"),],
+                row![text("VIT"),],
+            ],
+            column![
+                row![text(lt_common.int().round())],
+                row![text(lt_common.agi().round())],
+                row![text(lt_common.str().round())],
+                row![text(lt_common.dex().round())],
+                row![text(lt_common.vit().round())],
+            ]
         ]
+        .spacing(5),
     ]
+    .spacing(10)
     .into()
 }
