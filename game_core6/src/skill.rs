@@ -8,7 +8,9 @@ use std::{
 use smallbox::{SmallBox, smallbox, space};
 
 use crate::{
-    StaticSkillId, WinOrLoseOrNextwave, effector::EffectorTrait, runtime_id::RuntimeCharId,
+    StaticSkillId, WinOrLoseOrNextwave,
+    effector::EffectorTrait,
+    runtime_id::{RuntimeCharId, RuntimeEnemyId},
 };
 
 #[derive(Debug, Clone)]
@@ -50,7 +52,8 @@ pub trait SkillTrait: Debug {
     fn static_id(&self) -> StaticSkillId;
     fn call(
         &self,
-        user: RuntimeCharId,
+        user_id: RuntimeCharId,
+        target_id: Option<RuntimeEnemyId>,
         effector: &mut dyn EffectorTrait,
     ) -> Result<(), WinOrLoseOrNextwave>;
     fn clone(&self) -> SkillInstance;

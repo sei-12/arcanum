@@ -3,7 +3,7 @@ use crate::{
     lt_common::LtCommon,
     passive::PassiveInstance,
     potential::Potential,
-    runtime_id::{RuntimeCharId, RuntimeSkillId},
+    runtime_id::{LtId, RuntimeCharId, RuntimeSkillId},
     skill::{SkillInstance, SkillUpdateMessage},
 };
 
@@ -100,14 +100,26 @@ impl ButtleChar {
     pub fn skills(&self) -> &Vec<ButtleSkill> {
         &self.skills
     }
-}
 
+    pub fn lt_id(&self) -> LtId {
+        self.runtime_id.into()
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct ButtleSkill {
-    pub id: RuntimeSkillId,
+    id: RuntimeSkillId,
     cooldown: CooldownNum,
     instance: SkillInstance,
+}
+impl ButtleSkill {
+    pub fn runtime_id(&self) -> RuntimeSkillId {
+        self.id
+    }
+
+    pub fn cooldown(&self) -> CooldownNum {
+        self.cooldown
+    }
 }
 
 impl ButtleSkill {

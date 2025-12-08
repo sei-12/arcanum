@@ -4,7 +4,7 @@ use crate::{
     OutputBuffer,
     output::GameCoreOutput,
     receiver_side::ReceiverSide,
-    runtime_id::{RuntimeCharId, RuntimeSkillId},
+    runtime_id::{RuntimeCharId, RuntimeEnemyId, RuntimeSkillId},
     sender_side::SenderSide,
     state::{CharData, DungeonData, GameState},
 };
@@ -13,6 +13,7 @@ pub enum GameCoreActorCommand {
     UseSkill {
         user_id: RuntimeCharId,
         skill_id: RuntimeSkillId,
+        target_id: Option<RuntimeEnemyId>,
     },
     TurnEnd,
     GameStart,
@@ -42,10 +43,17 @@ impl GameCoreActor {
             GameCoreActorCommand::TurnEnd => {
                 let _ = self.sender_side.trun_end(&mut self.output_bufffer);
             }
-            GameCoreActorCommand::UseSkill { user_id, skill_id } => {
-                let _ = self
-                    .sender_side
-                    .use_skill(user_id, skill_id, &mut self.output_bufffer);
+            GameCoreActorCommand::UseSkill {
+                user_id,
+                skill_id,
+                target_id,
+            } => {
+                let _ = self.sender_side.use_skill(
+                    user_id,
+                    target_id,
+                    skill_id,
+                    &mut self.output_bufffer,
+                );
             }
         }
 

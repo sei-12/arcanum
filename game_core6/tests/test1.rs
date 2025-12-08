@@ -3,6 +3,7 @@ use std::sync::Arc;
 use game_core6::{
     TURN_START_HEAL_MP_NUM,
     buttle_char::StaticCharData,
+    damage::{Damage, DamageType},
     effect::Effect,
     enemy::{StaticEnemyData, StaticEnemyDataInstance},
     game_core_actor::{GameCoreActor, GameCoreActorCommand},
@@ -19,9 +20,23 @@ struct Skill;
 impl SkillTrait for Skill {
     fn call(
         &self,
-        _user: game_core6::runtime_id::RuntimeCharId,
-        _effector: &mut dyn game_core6::effector::EffectorTrait,
+        user_id: game_core6::runtime_id::RuntimeCharId,
+        target_id: Option<game_core6::runtime_id::RuntimeEnemyId>,
+        effector: &mut dyn game_core6::effector::EffectorTrait,
     ) -> Result<(), game_core6::WinOrLoseOrNextwave> {
+        let target = effector
+            .state()
+            .get_enemys_highest_target_priority(target_id)
+            .next()
+            .unwrap();
+
+        effector.accept_effect(Effect::Damage(Damage::new_magic_damage(
+            effector.state(),
+            user_id.into(),
+            target.lt_id(),
+            1.0,
+        )))?;
+
         Ok(())
     }
     fn clone(&self) -> game_core6::skill::SkillInstance {
@@ -109,3 +124,103 @@ fn test_game_start() {
 
     assert!(matches!(core.forward().unwrap(), GameCoreOutput::WaitInput));
 }
+
+#[test]
+fn test_game() {
+    let mut core = GameCoreActor::new(
+        vec![CharData {
+            level: 1,
+            data: StaticCharData {
+                id: 1,
+                passives,
+                potential: Potential::new(10.0, 10.0, 10.0, 10.0, 10.0),
+            },
+            skills: vec![SkillInstance::new(Skill)],
+        }],
+        Arc::new(vec![vec![EnemyData {
+            level: 1,
+            data: StaticEnemyDataInstance::new(Enemy),
+        }]]),
+    )
+    .unwrap();
+
+    assert!(core.forward().is_none());
+
+    core.send_cmd(GameCoreActorCommand::GameStart);
+
+    let char_id = core.state().get_chars().first().unwrap().runtime_id();
+    let enemy_id = core
+        .state()
+        .get_current_wave_enemys()
+        .first()
+        .unwrap()
+        .runtime_id();
+
+    assert!(matches!(
+        core.forward().unwrap(),
+        GameCoreOutput::Event(Event::PlayerTurnStart)
+    ));
+
+    assert_eq!(core.state().player_mp(), 0);
+
+    assert!(matches!(
+        core.forward().unwrap(),
+        GameCoreOutput::Effect(EffectedBy::GameSystem, Effect::HealMp { num: _ })
+    ));
+
+    assert_eq!(core.state().player_mp(), TURN_START_HEAL_MP_NUM);
+
+    assert!(matches!(
+        core.forward().unwrap(),
+        GameCoreOutput::Effect(
+            EffectedBy::GameSystem,
+            Effect::HealSkillCooldownAll {
+                target_id: _,
+                num: _
+            }
+        )
+    ));
+
+    assert!(matches!(core.forward().unwrap(), GameCoreOutput::WaitInput));
+
+    let char = core.state().get_chars().first().unwrap();
+    let skill = char.skills().first().unwrap();
+
+    core.send_cmd(GameCoreActorCommand::UseSkill {
+        user_id: char.runtime_id(),
+        target_id: None,
+        skill_id: skill.runtime_id(),
+    });
+
+    let output = core.forward().unwrap();
+    assert!(
+        matches!(output, GameCoreOutput::Event(Event::CharUseSkill)),
+        "{:?}",
+        output
+    );
+
+    let output = core.forward().unwrap();
+    let GameCoreOutput::Effect(_, Effect::Damage(dmg)) = output else {
+        panic!();
+    };
+    assert_eq!(dmg.causer().to_lt_id().unwrap(), char_id.into());
+    assert_eq!(dmg.target(), enemy_id.into());
+    assert_eq!(dmg.ty(), DamageType::Magic);
+    assert_eq!(
+        dmg.dmg(),
+        core.state().get_char(char_id).lt().magic_attuck()
+    );
+
+    // 敵の残りHPの確認
+    let enemy = core.state().get_current_wave_enemy(enemy_id).lt();
+    dbg!(enemy.hp());
+    dbg!(dmg.dmg());
+    assert_eq!(
+        enemy.hp().round(),
+        (enemy.max_hp() - dmg.dmg()).round(),
+        "敵の残りHPが一致しない"
+    );
+
+    assert!(matches!(core.forward().unwrap(), GameCoreOutput::WaitInput));
+}
+

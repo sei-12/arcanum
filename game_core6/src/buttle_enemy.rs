@@ -1,8 +1,9 @@
 use crate::{
-    LevelNum, SpNum, enemy::StaticEnemyDataInstance, lt_common::LtCommon,
-    runtime_id::RuntimeEnemyId,
+    LevelNum, SpNum,
+    enemy::StaticEnemyDataInstance,
+    lt_common::LtCommon,
+    runtime_id::{LtId, RuntimeEnemyId},
 };
-
 
 #[derive(Debug, Clone)]
 pub struct ButtleEnemy {
@@ -54,5 +55,9 @@ impl ButtleEnemy {
 
     pub fn runtime_id(&self) -> RuntimeEnemyId {
         self.runtime_id
+    }
+
+    pub fn lt_id(&self) -> LtId {
+        self.runtime_id.into()
     }
 }

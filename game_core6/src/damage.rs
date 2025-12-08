@@ -125,4 +125,19 @@ impl Damage {
             dmg,
         }
     }
+
+    #[cfg(test)]
+    pub fn test_new(causer: Option<LtId>, target: LtId, ty: DamageType, dmg: StatusNum) -> Self {
+        let causer = match causer {
+            Some(id) => id.into(),
+            None => DamageCauser::None,
+        };
+
+        Self {
+            causer,
+            target,
+            ty,
+            dmg,
+        }
+    }
 }

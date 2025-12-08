@@ -2,7 +2,7 @@ use crate::{
     OutputBuffer, TURN_START_HEAL_MP_NUM, TURN_START_HEAL_SP_NUM, WinOrLoseOrNextwave,
     effect::Effect,
     effector::{Effector, EffectorTrait},
-    runtime_id::{RuntimeCharId, RuntimeSkillId},
+    runtime_id::{RuntimeCharId, RuntimeEnemyId, RuntimeSkillId},
     state::{CharData, DungeonData, GameState},
 };
 pub(crate) struct SenderSide {
@@ -31,6 +31,7 @@ impl SenderSide {
     pub(crate) fn use_skill(
         &mut self,
         user_id: RuntimeCharId,
+        target_id: Option<RuntimeEnemyId>,
         skill_id: RuntimeSkillId,
         output_buffer: &mut impl OutputBuffer,
     ) -> Result<(), WinOrLoseOrNextwave> {
@@ -39,7 +40,7 @@ impl SenderSide {
         let char_runtime_id = char.runtime_id();
         let mut effector = Effector::new(&mut self.state, output_buffer);
         effector.begin_char_skill(skill.static_id());
-        skill.call(char_runtime_id, &mut effector)?;
+        skill.call(char_runtime_id, target_id, &mut effector)?;
         Ok(())
     }
 

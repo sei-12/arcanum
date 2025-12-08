@@ -1,4 +1,4 @@
-use std::{borrow::Cow, sync::Arc};
+use std::{borrow::Cow, collections::HashSet, sync::Arc};
 
 use crate::{
     LevelNum, MpNum, NUM_MAX_CHAR_IN_TEAM, NUM_MAX_ENEMYS_IN_WAVE, NUM_MAX_WAVES,
@@ -234,11 +234,19 @@ impl GameState {
 //--------------------------------------------------//
 
 impl GameState {
+    pub fn get_chars(&self) -> &Vec<ButtleChar> {
+        &self.chars
+    }
+
+    pub fn get_current_wave_enemys(&self) -> &Vec<ButtleEnemy> {
+        &self.current_wave_enemys
+    }
+
     pub fn get_char(&self, id: RuntimeCharId) -> &ButtleChar {
         &self.chars[id.idx as usize]
     }
 
-    pub fn get_enemy(&self, id: RuntimeEnemyId) -> &ButtleEnemy {
+    pub fn get_current_wave_enemy(&self, id: RuntimeEnemyId) -> &ButtleEnemy {
         assert_eq!(id.wave_idx, self.current_wave_idx);
         &self.current_wave_enemys[id.idx as usize]
     }
@@ -246,7 +254,7 @@ impl GameState {
     pub fn get_lt(&self, id: LtId) -> &LtCommon {
         match id {
             LtId::Char(c) => self.get_char(c).lt(),
-            LtId::Enemy(e) => self.get_enemy(e).lt(),
+            LtId::Enemy(e) => self.get_current_wave_enemy(e).lt(),
         }
     }
 
@@ -266,6 +274,49 @@ impl GameState {
         self.current_wave_enemys.iter().all(|e| e.lt().is_dead())
     }
 
+    /// 現在のウェーブに存在する敵のうち、ターゲット優先度の高い順で
+    /// 敵を走査するイテレータを返します。
+    ///
+    /// ### 戻り値に関する保証
+    ///
+    /// この関数が返すイテレータは、次の 3 点を満たすことが保証されます。
+    ///
+    /// 1. イテレータは空ではありません
+    /// 2. 全ての要素は生存状態の敵です
+    /// 3. 同じ `RuntimeEnemyId` を持つ敵が複数含まれることはありません
+    pub fn get_enemys_highest_target_priority(
+        &self,
+        target: Option<RuntimeEnemyId>,
+    ) -> impl Iterator<Item = &ButtleEnemy> {
+        assert!(!self.current_wave_enemys_all_dead());
+
+        let iter = target
+            .map(|target_id| self.get_current_wave_enemy(target_id))
+            .into_iter()
+            .chain(
+                self.current_wave_enemys
+                    .iter()
+                    .filter(move |e| Some(e.runtime_id()) != target),
+            )
+            .filter(|e| !e.lt().is_dead());
+
+        debug_assert!({ iter.clone().count() > 0 });
+        debug_assert!({ iter.clone().all(|e| !e.lt().is_dead()) });
+        // 同じIDを持つ敵がイテレータ内に2つ以上存在しないことを確認
+        debug_assert!({
+            let iter_count = iter.clone().count();
+            let hash_set_len = iter
+                .clone()
+                .map(|e| e.runtime_id())
+                .collect::<HashSet<_>>()
+                .len();
+
+            iter_count == hash_set_len
+        });
+
+        iter
+    }
+
     pub(crate) fn check_win_or_lose(&self) -> Result<(), WinOrLoseOrNextwave> {
         if self.chars.iter().any(|c| c.lt().is_dead()) {
             return Err(WinOrLoseOrNextwave::Lose);
@@ -281,7 +332,7 @@ impl GameState {
 
         Ok(())
     }
-    
+
     pub fn player_mp(&self) -> MpNum {
         self.player_mp
     }
