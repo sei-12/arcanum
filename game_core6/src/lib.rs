@@ -102,6 +102,7 @@ impl OutputBuffer for VecDeque<GameCoreOutput> {
 mod receiver_side {
     use crate::{OutputBuffer, output::GameCoreOutput, state::GameState};
 
+    #[derive(Debug)]
     pub(crate) struct ReceiverSide {
         state: GameState,
     }

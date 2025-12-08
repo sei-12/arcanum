@@ -9,6 +9,7 @@ use crate::{
     state::{CharData, DungeonData, GameState},
 };
 
+#[derive(Debug, Clone)]
 pub enum GameCoreActorCommand {
     UseSkill {
         user_id: RuntimeCharId,
@@ -19,6 +20,7 @@ pub enum GameCoreActorCommand {
     GameStart,
 }
 
+#[derive(Debug)]
 pub struct GameCoreActor {
     sender_side: SenderSide,
     output_bufffer: VecDeque<GameCoreOutput>,

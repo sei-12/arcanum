@@ -5,6 +5,8 @@ use crate::{
     runtime_id::{RuntimeCharId, RuntimeEnemyId, RuntimeSkillId},
     state::{CharData, DungeonData, GameState},
 };
+
+#[derive(Debug)]
 pub(crate) struct SenderSide {
     state: GameState,
 }
