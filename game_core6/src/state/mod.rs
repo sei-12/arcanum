@@ -210,6 +210,10 @@ impl GameState {
 
     pub(crate) fn go_next_wave(&mut self) {
         debug_assert!(self.current_wave_enemys_all_dead());
+        debug_assert!(!self.current_wave_is_last_wave());
+
+        self.current_wave_idx += 1;
+        self.current_wave_enemys = self.dungeon_data.make_wave(self.current_wave_idx as usize);
     }
 
     fn get_mut_char(&mut self, id: RuntimeCharId) -> &mut ButtleChar {
