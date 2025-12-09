@@ -1,8 +1,10 @@
 use std::sync::Arc;
 
 use game_core6::{
+    effect::Effect,
     enemy::StaticEnemyDataInstance,
     game_core_actor::{GameCoreActor, GameCoreActorCommand},
+    output::{EffectedBy, Event, GameCoreOutput},
     skill::SkillInstance,
     state::{CharData, EnemyData},
 };
@@ -27,5 +29,52 @@ fn test_enemy_turn() {
     while core.forward().is_some() {}
 
     core.send_cmd(GameCoreActorCommand::TurnEnd);
-    while core.forward().is_some() {}
+    assert!(matches!(
+        core.forward().unwrap(),
+        GameCoreOutput::Event(Event::EnemyTurnStart)
+    ));
+    assert!(matches!(
+        core.forward().unwrap(),
+        GameCoreOutput::Effect(
+            EffectedBy::GameSystem,
+            Effect::HealSp {
+                target_id: _,
+                num: _
+            }
+        )
+    ));
+
+    assert!(matches!(
+        core.forward().unwrap(),
+        GameCoreOutput::Event(Event::EnemyUseSkill)
+    ));
+
+    assert!(matches!(
+        core.forward().unwrap(),
+        GameCoreOutput::Effect(EffectedBy::EnemySkill(_), Effect::Damage(_))
+    ));
+
+    assert!(matches!(
+        core.forward().unwrap(),
+        GameCoreOutput::Event(Event::PlayerTurnStart)
+    ));
+
+    assert!(matches!(
+        core.forward().unwrap(),
+        GameCoreOutput::Effect(EffectedBy::GameSystem, Effect::HealMp { num: _ })
+    ));
+
+    assert!(matches!(
+        core.forward().unwrap(),
+        GameCoreOutput::Effect(
+            EffectedBy::GameSystem,
+            Effect::HealSkillCooldownAll {
+                target_id: _,
+                num: _
+            }
+        )
+    ));
+
+    let output = core.forward().unwrap();
+    assert!(matches!(output, GameCoreOutput::WaitInput), "{:?}", output);
 }
