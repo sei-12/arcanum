@@ -44,7 +44,7 @@ impl SenderSide {
         let skill_instance = skill.data().clone();
         let char_runtime_id = char.runtime_id();
         let mut effector = Effector::new(&mut self.state, output_buffer);
-        effector.begin_char_skill(skill_instance.doc().id);
+        effector.begin_char_skill(skill_instance.info().id);
         let result = skill_instance
             .call(char_runtime_id, skill_id, target_id, &mut effector)
             .inspect_err(|_| effector.end())?;
@@ -89,6 +89,7 @@ impl SenderSide {
             enemy_skill
                 .call(enemy_runtime_id, &mut effector)
                 .inspect_err(|_| effector.end())?;
+            effector.end();
         }
 
         start_player_turn(&mut effector)?;

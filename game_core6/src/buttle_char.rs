@@ -107,6 +107,10 @@ impl ButtleChar {
     pub fn lt_id(&self) -> LtId {
         self.runtime_id.into()
     }
+    
+    pub fn hate(&self) -> HateNum {
+        self.hate
+    } 
 }
 
 #[derive(Debug, Clone)]
@@ -130,7 +134,7 @@ impl ButtleSkill {
     }
 
     pub fn useable(&self, state: &GameState) -> bool {
-        let need_mp = self.instance.need_mp(state);
+        let need_mp = self.instance.need_mp(self.runtime_id().char_id, state);
 
         if let Some(custom_useable) = self.instance.custom_useable(self.id.char_id, state) {
             return custom_useable;

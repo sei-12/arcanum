@@ -49,7 +49,7 @@ impl Clone for SkillInstance {
 }
 
 #[derive(Debug, Clone)]
-pub struct SkillDocument {
+pub struct SkillInfomation {
     pub name: &'static str,
     pub description: &'static str,
     pub id: StaticSkillId,
@@ -66,7 +66,7 @@ pub struct SkillCost {
 }
 
 impl SkillCost {
-    pub fn from_defalut(doc: &SkillDocument) -> Self {
+    pub fn from_defalut(doc: &SkillInfomation) -> Self {
         Self {
             mp: doc.default_need_mp,
             hate: doc.defalut_hate,
@@ -84,8 +84,14 @@ pub trait SkillTrait: Debug {
         target_id: Option<RuntimeEnemyId>,
         effector: &mut dyn EffectorTrait,
     ) -> Result<SkillCost, WinOrLoseOrNextwave>;
+    fn info(&self) -> &SkillInfomation;
     fn clone(&self) -> SkillInstance;
-    fn update(&mut self, msg: &SkillUpdateMessage);
+
+    #[allow(unused_variables)]
+    /// 特殊な条件が効果にない場合、self.doc().default_need_mpを返す
+    fn need_mp(&self, owner: RuntimeCharId, state: &GameState) -> MpNum {
+        self.info().default_need_mp
+    }
 
     #[allow(unused_variables)]
     /// mpとcooldown以外の要因で変わる場合は値を返す
@@ -93,6 +99,10 @@ pub trait SkillTrait: Debug {
     fn custom_useable(&self, owner: RuntimeCharId, state: &GameState) -> Option<bool> {
         None
     }
-    fn need_mp(&self, state: &GameState) -> MpNum;
-    fn doc(&self) -> &SkillDocument;
+
+    #[allow(unused_variables)]
+    fn update(&mut self, msg: &SkillUpdateMessage) {
+        unimplemented!()
+        // ほとんどのスキルには必要ないメソッドなのでunimplemented
+    }
 }

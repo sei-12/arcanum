@@ -340,6 +340,14 @@ impl GameState {
     pub fn player_mp(&self) -> MpNum {
         self.player_mp
     }
+
+    pub fn get_highest_hate_char(&self) -> &ButtleChar {
+        assert!(!self.chars.is_empty());
+
+        // キャラクターは一人以上いる
+        // もし戦闘不能になっている場合はゲームが終了している
+        self.chars.iter().rev().max_by_key(|c| c.hate()).unwrap()
+    }
 }
 
 pub struct EnemyIterWithLivingCheck {

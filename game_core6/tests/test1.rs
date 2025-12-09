@@ -45,20 +45,15 @@ impl SkillTrait for Skill {
         })
     }
 
-    fn need_mp(&self, _state: &game_core6::state::GameState) -> game_core6::MpNum {
-        10
-    }
-
     fn clone(&self) -> game_core6::skill::SkillInstance {
         SkillInstance::new(Self)
     }
 
     fn update(&mut self, _msg: &game_core6::skill::SkillUpdateMessage) {}
-
-    fn doc(&self) -> &game_core6::skill::SkillDocument {
-        &game_core6::skill::SkillDocument {
-            name: "a",
-            description: "description",
+    fn info(&self) -> &game_core6::skill::SkillInfomation {
+        &game_core6::skill::SkillInfomation {
+            name: "",
+            description: "",
             id: 1,
             default_need_mp: 10,
             defalut_hate: 10,
