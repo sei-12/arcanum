@@ -95,6 +95,11 @@ impl<'a, T: OutputBuffer> Effector<'a, T> {
         self.current_effected_by.is_some()
     }
 
+    pub(crate) fn begin_skill_cost(&mut self) {
+        assert!(self.current_effected_by.is_none());
+        self.current_effected_by = Some(EffectedBy::SkillCost)
+    }
+
     pub(crate) fn begin_char_skill(&mut self, id: StaticSkillId) {
         assert!(self.current_effected_by.is_none());
         self.current_effected_by = Some(EffectedBy::CharSkill(id));
@@ -153,7 +158,7 @@ impl<'a, T: OutputBuffer> EffectorTrait for Effector<'a, T> {
 
         if let Err(res) = result {
             match res {
-                WinOrLoseOrNextwave::Nextwave => {
+                WinOrLoseOrNextwave::GoNextwave => {
                     self.state.go_next_wave();
                     self.buffer
                         .push(GameCoreOutput::Event(output::Event::GoNextWave));

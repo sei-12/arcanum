@@ -1,10 +1,12 @@
+use std::ops::Deref;
+
 use crate::{
     CooldownNum, HateNum, LevelNum, NUM_MAX_LEARN_SKILLS, SKILL_COOLDOWN_HEAL_BASE, StaticCharId,
     lt_common::LtCommon,
     passive::PassiveInstance,
     potential::Potential,
     runtime_id::{LtId, RuntimeCharId, RuntimeSkillId},
-    skill::{SkillInstance, SkillUpdateMessage},
+    skill::{SkillInstance, SkillTrait, SkillUpdateMessage},
 };
 
 #[derive(Debug, Clone)]
@@ -112,6 +114,7 @@ pub struct ButtleSkill {
     cooldown: CooldownNum,
     instance: SkillInstance,
 }
+
 impl ButtleSkill {
     pub fn runtime_id(&self) -> RuntimeSkillId {
         self.id
@@ -119,6 +122,10 @@ impl ButtleSkill {
 
     pub fn cooldown(&self) -> CooldownNum {
         self.cooldown
+    }
+
+    pub fn data(&self) -> &dyn SkillTrait {
+        self.instance.deref()
     }
 }
 
@@ -131,6 +138,7 @@ impl ButtleSkill {
 #[derive(Debug, Clone)]
 pub struct StaticCharData {
     pub id: StaticCharId,
+    pub name: &'static str,
     pub potential: Potential,
     pub passives: fn() -> Vec<PassiveInstance>,
 }

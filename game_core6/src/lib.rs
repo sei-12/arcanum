@@ -136,7 +136,7 @@ mod receiver_side {
 pub enum WinOrLoseOrNextwave {
     Win,
     Lose,
-    Nextwave,
+    GoNextwave,
 }
 
 #[derive(Debug, thiserror::Error)]

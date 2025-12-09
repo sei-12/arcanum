@@ -28,6 +28,8 @@ pub trait StaticEnemySkillData {
         effector: &mut dyn EffectorTrait,
     ) -> Result<(), WinOrLoseOrNextwave>;
     fn clone(&self) -> EnemySkillInsance;
+    fn name(&self) -> &'static str;
+    fn description(&self) -> &'static str;
 }
 
 impl Deref for EnemySkillInsance {
@@ -80,4 +82,5 @@ pub trait StaticEnemyData: Debug + Send + Sync {
     fn select_skill(&self, user_id: RuntimeEnemyId, state: &GameState) -> EnemySkillInsance;
     fn potential(&self) -> &Potential;
     fn clone(&self) -> StaticEnemyDataInstance;
+    fn name(&self) -> &'static str;
 }

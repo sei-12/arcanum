@@ -3,6 +3,7 @@ use crate::{
     effect::Effect,
     effector::{Effector, EffectorTrait},
     runtime_id::{RuntimeCharId, RuntimeEnemyId, RuntimeSkillId},
+    skill::SkillCost,
     state::{CharData, DungeonData, GameState},
 };
 
@@ -39,10 +40,17 @@ impl SenderSide {
     ) -> Result<(), WinOrLoseOrNextwave> {
         let char = self.state.get_char(user_id);
         let skill = char.get_skill(skill_id).clone();
+        assert!(skill.useable(self.state()));
         let char_runtime_id = char.runtime_id();
         let mut effector = Effector::new(&mut self.state, output_buffer);
         effector.begin_char_skill(skill.static_id());
-        skill.call(char_runtime_id, target_id, &mut effector)?;
+        let result = skill
+            .call(char_runtime_id, skill_id, target_id, &mut effector)
+            .inspect_err(|_| effector.end())?;
+        effector.end();
+
+        accept_skill_cost(result, char_runtime_id, skill_id, &mut effector)?;
+
         Ok(())
     }
 
@@ -114,6 +122,43 @@ fn start_player_turn(
             })
             .inspect_err(|_| effector.end())?
     }
+    effector.end();
+
+    Ok(())
+}
+
+fn accept_skill_cost(
+    result: SkillCost,
+    char_runtime_id: RuntimeCharId,
+    skill_id: RuntimeSkillId,
+    effector: &mut Effector<'_, impl OutputBuffer>,
+) -> Result<(), WinOrLoseOrNextwave> {
+    // スキルコスト適用
+    effector.begin_skill_cost();
+
+    if result.mp > 0 {
+        effector
+            .accept_effect(Effect::ConsumeMp { num: result.mp })
+            .inspect_err(|_| effector.end())?;
+    }
+
+    if result.hate > 0 {
+        effector
+            .accept_effect(Effect::AddHate {
+                target_id: char_runtime_id,
+                num: result.hate,
+            })
+            .inspect_err(|_| effector.end())?;
+    }
+
+    effector
+        .accept_effect(Effect::SetSkillCooldown {
+            target_id: char_runtime_id,
+            skill_id,
+            num: result.cooldown,
+        })
+        .inspect_err(|_| effector.end())?;
+
     effector.end();
 
     Ok(())

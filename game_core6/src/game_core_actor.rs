@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use crate::{
     OutputBuffer,
-    output::GameCoreOutput,
+    output::{Event, GameCoreOutput},
     receiver_side::ReceiverSide,
     runtime_id::{RuntimeCharId, RuntimeEnemyId, RuntimeSkillId},
     sender_side::SenderSide,
@@ -38,24 +38,34 @@ impl GameCoreActor {
     }
 
     pub fn send_cmd(&mut self, cmd: GameCoreActorCommand) {
-        match cmd {
+        let res = match cmd {
             GameCoreActorCommand::GameStart => {
-                let _ = self.sender_side.game_start(&mut self.output_bufffer);
+                self.sender_side.game_start(&mut self.output_bufffer)
             }
-            GameCoreActorCommand::TurnEnd => {
-                let _ = self.sender_side.trun_end(&mut self.output_bufffer);
-            }
+            GameCoreActorCommand::TurnEnd => self.sender_side.trun_end(&mut self.output_bufffer),
             GameCoreActorCommand::UseSkill {
                 user_id,
                 skill_id,
                 target_id,
-            } => {
-                let _ = self.sender_side.use_skill(
-                    user_id,
-                    target_id,
-                    skill_id,
-                    &mut self.output_bufffer,
-                );
+            } => self
+                .sender_side
+                .use_skill(user_id, target_id, skill_id, &mut self.output_bufffer),
+        };
+
+        if let Err(wln) = res {
+            match wln {
+                crate::WinOrLoseOrNextwave::Lose => {
+                    self.output_bufffer.push(GameCoreOutput::Event(Event::Lose));
+                    return;
+                }
+                crate::WinOrLoseOrNextwave::Win => {
+                    self.output_bufffer.push(GameCoreOutput::Event(Event::Win));
+                    return;
+                }
+                crate::WinOrLoseOrNextwave::GoNextwave => {
+                    self.output_bufffer
+                        .push(GameCoreOutput::Event(Event::GoNextWave));
+                }
             }
         }
 

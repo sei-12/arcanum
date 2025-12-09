@@ -57,6 +57,8 @@ pub trait StaticPassiveData: Debug {
         effector: &mut PassiveEffector,
     ) {
     }
+    fn name(&self) -> &'static str; 
+    fn description(&self) -> &'static str;
 }
 
 // SkillUpdateMessageと統一しても良い。本質的に同じな気がする

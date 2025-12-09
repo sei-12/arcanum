@@ -10,7 +10,7 @@ use game_core6::{
     output::{EffectedBy, Event, GameCoreOutput},
     passive::PassiveInstance,
     potential::Potential,
-    skill::{SkillInstance, SkillTrait},
+    skill::{SkillCost, SkillInstance, SkillTrait},
     state::{CharData, EnemyData},
 };
 
@@ -21,9 +21,10 @@ impl SkillTrait for Skill {
     fn call(
         &self,
         user_id: game_core6::runtime_id::RuntimeCharId,
+        _skill_id: game_core6::runtime_id::RuntimeSkillId,
         target_id: Option<game_core6::runtime_id::RuntimeEnemyId>,
         effector: &mut dyn game_core6::effector::EffectorTrait,
-    ) -> Result<(), game_core6::WinOrLoseOrNextwave> {
+    ) -> Result<SkillCost, game_core6::WinOrLoseOrNextwave> {
         let target = effector
             .state()
             .get_enemys_highest_target_priority(target_id)
@@ -37,8 +38,17 @@ impl SkillTrait for Skill {
             1.0,
         )))?;
 
-        Ok(())
+        Ok(SkillCost {
+            mp: 10,
+            hate: 10,
+            cooldown: 10,
+        })
     }
+
+    fn need_mp(&self, _state: &game_core6::state::GameState) -> game_core6::MpNum {
+        10
+    }
+
     fn clone(&self) -> game_core6::skill::SkillInstance {
         SkillInstance::new(Self)
     }
@@ -46,6 +56,15 @@ impl SkillTrait for Skill {
         1
     }
     fn update(&mut self, _msg: &game_core6::skill::SkillUpdateMessage) {}
+    fn name(&self) -> &'static str {
+        ""
+    }
+    fn description(&self) -> &'static str {
+        "test skill"
+    }
+    fn useable(&self, state: &game_core6::state::GameState) -> bool {
+        state.player_mp() >= 1
+    }
 }
 
 fn passives() -> Vec<PassiveInstance> {
@@ -72,6 +91,10 @@ impl StaticEnemyData for Enemy {
     fn static_id(&self) -> game_core6::StaticEnemyId {
         1
     }
+
+    fn name(&self) -> &'static str {
+        "enemy1"
+    }
 }
 
 #[test]
@@ -81,6 +104,7 @@ fn test_game_start() {
             level: 1,
             data: StaticCharData {
                 id: 1,
+                name: "char1",
                 passives,
                 potential: Potential::new(10.0, 10.0, 10.0, 10.0, 10.0),
             },
@@ -132,6 +156,7 @@ fn test_game() {
             level: 1,
             data: StaticCharData {
                 id: 1,
+                name: "char1",
                 passives,
                 potential: Potential::new(10.0, 10.0, 10.0, 10.0, 10.0),
             },
@@ -213,13 +238,55 @@ fn test_game() {
 
     // 敵の残りHPの確認
     let enemy = core.state().get_current_wave_enemy(enemy_id).lt();
-    dbg!(enemy.hp());
-    dbg!(dmg.dmg());
     assert_eq!(
         enemy.hp().round(),
         (enemy.max_hp() - dmg.dmg()).round(),
         "敵の残りHPが一致しない"
     );
 
-    assert!(matches!(core.forward().unwrap(), GameCoreOutput::WaitInput));
+    let output = core.forward().unwrap();
+    assert!(
+        matches!(
+            output,
+            GameCoreOutput::Effect(EffectedBy::SkillCost, Effect::ConsumeMp { num: _ })
+        ),
+        "{:?}",
+        output
+    );
+
+    let output = core.forward().unwrap();
+    assert!(
+        matches!(
+            output,
+            GameCoreOutput::Effect(
+                EffectedBy::SkillCost,
+                Effect::AddHate {
+                    target_id: _,
+                    num: _
+                }
+            )
+        ),
+        "{:?}",
+        output
+    );
+
+    let output = core.forward().unwrap();
+    assert!(
+        matches!(
+            output,
+            GameCoreOutput::Effect(
+                EffectedBy::SkillCost,
+                Effect::SetSkillCooldown {
+                    target_id: _,
+                    skill_id: _,
+                    num: _
+                }
+            )
+        ),
+        "{:?}",
+        output
+    );
+
+    let output = core.forward().unwrap();
+    assert!(matches!(output, GameCoreOutput::WaitInput), "{:?}", output);
 }

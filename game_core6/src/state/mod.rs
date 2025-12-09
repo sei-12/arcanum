@@ -330,7 +330,7 @@ impl GameState {
             if self.current_wave_is_last_wave() {
                 return Err(WinOrLoseOrNextwave::Win);
             } else {
-                return Err(WinOrLoseOrNextwave::Nextwave);
+                return Err(WinOrLoseOrNextwave::GoNextwave);
             }
         }
 

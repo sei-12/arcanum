@@ -8,9 +8,10 @@ use std::{
 use smallbox::{SmallBox, smallbox, space};
 
 use crate::{
-    StaticSkillId, WinOrLoseOrNextwave,
+    CooldownNum, HateNum, MpNum, StaticSkillId, WinOrLoseOrNextwave,
     effector::EffectorTrait,
-    runtime_id::{RuntimeCharId, RuntimeEnemyId},
+    runtime_id::{RuntimeCharId, RuntimeEnemyId, RuntimeSkillId},
+    state::GameState,
 };
 
 #[derive(Debug, Clone)]
@@ -47,15 +48,37 @@ impl Clone for SkillInstance {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct SkillDocument {
+    pub name: &'static str,
+    pub description: &'static str,
+    pub id: StaticSkillId,
+    pub default_need_mp: MpNum,
+    pub defalut_hate: HateNum,
+    pub defalut_cooldown: CooldownNum,
+}
+
+#[derive(Debug, Clone)]
+pub struct SkillCost {
+    pub mp: MpNum,
+    pub hate: HateNum,
+    pub cooldown: CooldownNum,
+}
+
 // todo rename: Staticではない
 pub trait SkillTrait: Debug {
     fn static_id(&self) -> StaticSkillId;
     fn call(
         &self,
         user_id: RuntimeCharId,
+        skill_id: RuntimeSkillId,
         target_id: Option<RuntimeEnemyId>,
         effector: &mut dyn EffectorTrait,
-    ) -> Result<(), WinOrLoseOrNextwave>;
+    ) -> Result<SkillCost, WinOrLoseOrNextwave>;
     fn clone(&self) -> SkillInstance;
     fn update(&mut self, msg: &SkillUpdateMessage);
+    fn useable(&self, state: &GameState) -> bool;
+    fn need_mp(&self, state: &GameState) -> MpNum;
+    fn name(&self) -> &'static str;
+    fn description(&self) -> &'static str;
 }

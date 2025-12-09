@@ -18,6 +18,7 @@ pub enum EffectedBy {
     EnemySkill(StaticEnemySkillId),
     GameSystem,
     SubEffect(StaticPassiveId),
+    SkillCost,
 }
 
 #[derive(Debug)]
