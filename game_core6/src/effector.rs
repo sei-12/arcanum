@@ -95,6 +95,10 @@ impl<'a, T: OutputBuffer> Effector<'a, T> {
         self.current_effected_by.is_some()
     }
 
+    // もうほぼ書き終わったから今から修正するほどではないけど、もしこれを呼び出す側を書き直す機会があるなら
+    // 現在のbegin/endを呼び出す方式をやめて、caller的な構造体を渡すようにした方が良いと思う。callerの
+    // 作成と同時にbeginをしてdropでendって感じ。
+
     pub(crate) fn begin_skill_cost(&mut self) {
         assert!(self.current_effected_by.is_none());
         self.current_effected_by = Some(EffectedBy::SkillCost)
