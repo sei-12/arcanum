@@ -7,6 +7,7 @@ use crate::{
     potential::Potential,
     runtime_id::{LtId, RuntimeCharId, RuntimeSkillId},
     skill::{SkillInstance, SkillTrait, SkillUpdateMessage},
+    state::GameState,
 };
 
 #[derive(Debug, Clone)]
@@ -68,9 +69,9 @@ impl ButtleChar {
         self.runtime_id
     }
 
-    pub(crate) fn get_skill(&self, id: RuntimeSkillId) -> &SkillInstance {
+    pub(crate) fn get_skill(&self, id: RuntimeSkillId) -> &ButtleSkill {
         assert_eq!(id.char_id, self.runtime_id());
-        &self.skills[id.idx as usize].instance
+        &self.skills[id.idx as usize]
     }
 
     pub fn skill_cooldown_heal(&self) -> CooldownNum {
@@ -126,6 +127,24 @@ impl ButtleSkill {
 
     pub fn data(&self) -> &dyn SkillTrait {
         self.instance.deref()
+    }
+
+    pub fn useable(&self, state: &GameState) -> bool {
+        let need_mp = self.instance.need_mp(state);
+
+        if let Some(custom_useable) = self.instance.custom_useable(self.id.char_id, state) {
+            return custom_useable;
+        };
+
+        if need_mp > state.player_mp() {
+            return false;
+        };
+
+        if self.cooldown > 0 {
+            return false;
+        };
+
+        true
     }
 }
 

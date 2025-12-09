@@ -67,7 +67,6 @@ pub struct SkillCost {
 
 // todo rename: Staticではない
 pub trait SkillTrait: Debug {
-    fn static_id(&self) -> StaticSkillId;
     fn call(
         &self,
         user_id: RuntimeCharId,
@@ -77,8 +76,13 @@ pub trait SkillTrait: Debug {
     ) -> Result<SkillCost, WinOrLoseOrNextwave>;
     fn clone(&self) -> SkillInstance;
     fn update(&mut self, msg: &SkillUpdateMessage);
-    fn useable(&self, state: &GameState) -> bool;
+
+    #[allow(unused_variables)]
+    /// mpとcooldown以外の要因で変わる場合は値を返す
+    /// Someを返す場合、mpとcooldownなどの要因を全て無視して返された値を適用する
+    fn custom_useable(&self, owner: RuntimeCharId, state: &GameState) -> Option<bool> {
+        None
+    }
     fn need_mp(&self, state: &GameState) -> MpNum;
-    fn name(&self) -> &'static str;
-    fn description(&self) -> &'static str;
+    fn doc(&self) -> &SkillDocument;
 }

@@ -52,18 +52,18 @@ impl SkillTrait for Skill {
     fn clone(&self) -> game_core6::skill::SkillInstance {
         SkillInstance::new(Self)
     }
-    fn static_id(&self) -> game_core6::StaticSkillId {
-        1
-    }
+
     fn update(&mut self, _msg: &game_core6::skill::SkillUpdateMessage) {}
-    fn name(&self) -> &'static str {
-        ""
-    }
-    fn description(&self) -> &'static str {
-        "test skill"
-    }
-    fn useable(&self, state: &game_core6::state::GameState) -> bool {
-        state.player_mp() >= 1
+
+    fn doc(&self) -> &game_core6::skill::SkillDocument {
+        &game_core6::skill::SkillDocument {
+            name: "a",
+            description: "description",
+            id: 1,
+            default_need_mp: 10,
+            defalut_hate: 10,
+            defalut_cooldown: 10,
+        }
     }
 }
 

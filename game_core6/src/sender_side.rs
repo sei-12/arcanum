@@ -39,12 +39,13 @@ impl SenderSide {
         output_buffer: &mut impl OutputBuffer,
     ) -> Result<(), WinOrLoseOrNextwave> {
         let char = self.state.get_char(user_id);
-        let skill = char.get_skill(skill_id).clone();
+        let skill = char.get_skill(skill_id);
         assert!(skill.useable(self.state()));
+        let skill_instance = skill.data().clone();
         let char_runtime_id = char.runtime_id();
         let mut effector = Effector::new(&mut self.state, output_buffer);
-        effector.begin_char_skill(skill.static_id());
-        let result = skill
+        effector.begin_char_skill(skill_instance.doc().id);
+        let result = skill_instance
             .call(char_runtime_id, skill_id, target_id, &mut effector)
             .inspect_err(|_| effector.end())?;
         effector.end();
@@ -133,7 +134,6 @@ fn accept_skill_cost(
     skill_id: RuntimeSkillId,
     effector: &mut Effector<'_, impl OutputBuffer>,
 ) -> Result<(), WinOrLoseOrNextwave> {
-    // スキルコスト適用
     effector.begin_skill_cost();
 
     if result.mp > 0 {
