@@ -65,6 +65,16 @@ pub struct SkillCost {
     pub cooldown: CooldownNum,
 }
 
+impl SkillCost {
+    pub fn from_defalut(doc: &SkillDocument) -> Self {
+        Self {
+            mp: doc.default_need_mp,
+            hate: doc.defalut_hate,
+            cooldown: doc.defalut_cooldown,
+        }
+    }
+}
+
 // todo rename: Staticではない
 pub trait SkillTrait: Debug {
     fn call(
