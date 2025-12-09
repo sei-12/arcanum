@@ -1,24 +1,15 @@
 use game_core6::{
-    buttle_char::ButtleChar,
-    buttle_enemy::ButtleEnemy,
     game_core_actor::{GameCoreActor, GameCoreActorCommand},
-    lt_common::LtCommon,
     state::GameState,
 };
-use iced::{
-    Border, Color, Element,
-    Length::{self},
-    alignment::{Horizontal, Vertical},
-    border::{self, Radius},
-    widget::{Column, Container, Row, column, container, row, text},
-};
 
-use crate::{
-    common::round_digits::RoundDigits,
-    game_assets::{get_char_name, get_enemy_name, new_game_core},
-};
+use iced::widget::Container;
+
+use crate::{game_assets::new_game_core, ui_state::UIState, view::game_view};
 mod common;
 mod game_assets;
+mod ui_state;
+mod view;
 
 pub fn main() -> iced::Result {
     iced::application(App::default, App::update, App::view)
@@ -30,23 +21,31 @@ pub fn main() -> iced::Result {
             style: iced::font::Style::Normal,
         })
         .run()
-    // iced::run(App::update, App::view)
 }
 
 #[derive(Debug, Clone)]
 enum Message {
     GameCoreMessage(GameCoreActorCommand),
+    UiStateUpdateMessage(ui_state::UiStateUpdateMessage),
+}
+
+#[derive(Debug, Clone, Copy)]
+struct Ctx<'a> {
+    game_state: &'a GameState,
+    ui_state: &'a UIState,
 }
 
 #[derive(Debug)]
 struct App {
     game_core: GameCoreActor,
+    ui_state: UIState,
 }
 
 impl Default for App {
     fn default() -> Self {
         Self {
             game_core: new_game_core(),
+            ui_state: UIState::new(),
         }
     }
 }
@@ -58,105 +57,18 @@ impl App {
                 self.game_core.send_cmd(cmd);
                 while self.game_core.forward().is_some() {}
             }
+            Message::UiStateUpdateMessage(msg) => {
+                self.ui_state.update(msg);
+            }
         }
     }
 
     fn view(&'_ self) -> Container<'_, Message> {
-        game_view(self.game_core.state())
+        let ctx = Ctx {
+            game_state: self.game_core.state(),
+            ui_state: &self.ui_state,
+        };
+
+        game_view(ctx)
     }
-}
-
-fn game_view(state: &GameState) -> Container<'_, Message> {
-    container(column![enemy_side_view(state), player_side_view(state),])
-}
-
-fn enemy_side_view(state: &GameState) -> Element<'_, Message> {
-    column![
-        Row::with_children(
-            state
-                .get_current_wave_enemys()
-                .iter()
-                .map(|e| enemy_item_view(e)),
-        )
-        .height(Length::FillPortion(1))
-    ]
-    .width(Length::Fill)
-    .align_x(Horizontal::Center)
-    .into()
-}
-
-fn enemy_item_view(enemy: &ButtleEnemy) -> Element<'_, Message> {
-    let enemy_name = get_enemy_name(enemy.static_data().static_id());
-    column![text(enemy_name).size(23), lt_common_view(enemy.lt())]
-        .padding(20)
-        .into()
-}
-
-fn player_side_view(state: &GameState) -> Column<'_, Message> {
-    column![
-        Row::with_children(state.get_chars().iter().map(|c| char_item_view(c).into()))
-            .height(Length::FillPortion(1))
-    ]
-    .align_x(Horizontal::Center)
-    .width(Length::Fill)
-}
-
-fn char_item_view(char: &ButtleChar) -> Container<'_, Message> {
-    let char_name = get_char_name(char.static_data().id);
-
-    container(column![text(char_name).size(23), lt_common_view(char.lt())])
-        .height(Length::Fill)
-        .style(|_t| container::Style {
-            border: Border {
-                color: Color::BLACK,
-                width: 4.0,
-                radius: Radius::new(10),
-            },
-            ..Default::default()
-        })
-        .padding(20)
-}
-
-fn lt_common_view(lt_common: &LtCommon) -> Element<'_, Message> {
-    row![
-        column![
-            row![text!(
-                "HP: {}/{}",
-                lt_common.hp().round(),
-                lt_common.max_hp().round()
-            )],
-            row![text("魔法攻撃力: "), text(lt_common.magic_attuck().round())],
-            row![
-                text("物理攻撃力: "),
-                text(lt_common.physics_attuck().round())
-            ],
-            row![
-                text("被魔法ダメージ倍率: "),
-                text(lt_common.recv_magic_dmg_mag().round_digits(2))
-            ],
-            row![
-                text("被物理ダメージ倍率: "),
-                text(lt_common.recv_physics_dmg_mag().round_digits(2))
-            ],
-        ],
-        row![
-            column![
-                row![text("INT"),],
-                row![text("AGI"),],
-                row![text("STR"),],
-                row![text("DEX"),],
-                row![text("VIT"),],
-            ],
-            column![
-                row![text(lt_common.int().round())],
-                row![text(lt_common.agi().round())],
-                row![text(lt_common.str().round())],
-                row![text(lt_common.dex().round())],
-                row![text(lt_common.vit().round())],
-            ]
-        ]
-        .spacing(5),
-    ]
-    .spacing(10)
-    .into()
 }
