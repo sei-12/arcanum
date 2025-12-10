@@ -26,12 +26,14 @@ impl LtCommon {
 impl LtCommon {
     /// 0.0以上であることが保証されている
     pub fn int(&self) -> StatusNum {
-        self.potential.int()
+        let tmp = self.potential.int() + self.passive.status().add_int;
+        if tmp < 0.0 { 0.0 } else { tmp }
     }
 
     /// 0.0以上であることが保証されている
     pub fn dex(&self) -> StatusNum {
-        self.potential.dex()
+        let tmp = self.potential.dex() + self.passive.status().add_dex;
+        if tmp < 0.0 { 0.0 } else { tmp }
     }
 
     /// 0.0以上であることが保証されている
@@ -42,7 +44,8 @@ impl LtCommon {
 
     /// 0.0以上であることが保証されている
     pub fn vit(&self) -> StatusNum {
-        self.potential.vit()
+        let tmp = self.potential.vit() + self.passive.status().add_vit;
+        if tmp < 0.0 { 0.0 } else { tmp }
     }
 
     /// 0.0以上であることが保証されている

@@ -55,7 +55,9 @@ impl App {
         match message {
             Message::GameCoreMessage(cmd) => {
                 self.game_core.send_cmd(cmd);
-                while self.game_core.forward().is_some() {}
+                while let Some(output) = self.game_core.forward() {
+                    println!("{:?}", output);
+                }
             }
             Message::UiStateUpdateMessage(msg) => {
                 self.ui_state.update(msg);

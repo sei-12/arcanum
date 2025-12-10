@@ -1,9 +1,4 @@
-use crate::{
-    Ctx, Message,
-    common::round_digits::RoundDigits,
-    game_assets::{get_char_name, get_enemy_name},
-    ui_state,
-};
+use crate::{Ctx, Message, common::round_digits::RoundDigits, ui_state};
 use game_core6::{
     buttle_char::{ButtleChar, ButtleSkill},
     buttle_enemy::ButtleEnemy,
@@ -45,7 +40,7 @@ fn enemy_side_view<'a>(ctx: Ctx<'a>) -> impl Into<Element<'a, Message>> {
 }
 
 fn enemy_item_view<'a>(enemy: &'a ButtleEnemy, ctx: Ctx<'a>) -> impl Into<Element<'a, Message>> {
-    let enemy_name = get_enemy_name(enemy.static_data().static_id());
+    let enemy_name = enemy.static_data().name();
     column![
         text(enemy_name).size(23),
         lt_common_view(enemy.lt(), ctx).into()
@@ -74,7 +69,7 @@ fn player_side_view<'a>(ctx: Ctx<'a>) -> impl Into<Element<'a, Message>> {
 }
 
 fn char_item_view<'a>(char: &'a ButtleChar, ctx: Ctx<'a>) -> Container<'a, Message> {
-    let char_name = get_char_name(char.static_data().id);
+    let char_name = char.static_data().name;
     container(row![
         column![
             text(char_name).size(23),
@@ -114,7 +109,7 @@ fn char_skill_view<'a>(
 ) -> impl Into<Element<'a, Message>> {
     let state = ctx.game_state;
     let mut column = column![
-        text(skill.data().doc().name).size(20),
+        text(skill.data().info().name).size(20),
         text!("CD: {}", skill.cooldown()).size(15)
     ];
     let useable = skill.useable(state);
@@ -154,10 +149,10 @@ fn char_skill_view<'a>(
     if opened {
         column = column.push(
             column![
-                text!("必要MP: {}", skill.data().doc().default_need_mp),
-                text!("クールダウン: {}", skill.data().doc().defalut_cooldown),
-                text!("ヘイト値: {}", skill.data().doc().defalut_hate),
-                text!("効果: {}", skill.data().doc().description)
+                text!("必要MP: {}", skill.data().info().default_need_mp),
+                text!("クールダウン: {}", skill.data().info().defalut_cooldown),
+                text!("ヘイト値: {}", skill.data().info().defalut_hate),
+                text!("効果: {}", skill.data().info().description)
             ]
             .padding(5),
         );

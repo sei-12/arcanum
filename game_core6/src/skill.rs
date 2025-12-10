@@ -66,11 +66,11 @@ pub struct SkillCost {
 }
 
 impl SkillCost {
-    pub fn from_defalut(doc: &SkillInfomation) -> Self {
+    pub fn from_defalut(info: &SkillInfomation) -> Self {
         Self {
-            mp: doc.default_need_mp,
-            hate: doc.defalut_hate,
-            cooldown: doc.defalut_cooldown,
+            mp: info.default_need_mp,
+            hate: info.defalut_hate,
+            cooldown: info.defalut_cooldown,
         }
     }
 }

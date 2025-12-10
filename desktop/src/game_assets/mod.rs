@@ -13,9 +13,10 @@ use game_core6::{
     state::{CharData, EnemyData},
 };
 
-use crate::game_assets::skills::Fireball;
+use crate::game_assets::skills::{Fireball, Kousituka};
 
 mod enemy_skills;
+mod passive;
 mod skills;
 
 pub fn new_game_core() -> GameCoreActor {
@@ -28,7 +29,7 @@ pub fn new_game_core() -> GameCoreActor {
                 passives,
                 potential: Potential::new(10.0, 10.0, 10.0, 10.0, 10.0),
             },
-            skills: vec![SkillInstance::new(Fireball)],
+            skills: vec![SkillInstance::new(Fireball), SkillInstance::new(Kousituka)],
         }],
         Arc::new(vec![vec![EnemyData {
             level: 1,
@@ -46,14 +47,6 @@ pub fn new_game_core() -> GameCoreActor {
     }
 
     core
-}
-
-pub fn get_char_name(_static_char_id: StaticCharId) -> &'static str {
-    "todo"
-}
-
-pub fn get_enemy_name(_static_enemy_id: StaticEnemyId) -> &'static str {
-    "todo"
 }
 
 fn passives() -> Vec<PassiveInstance> {

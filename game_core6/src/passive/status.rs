@@ -33,6 +33,9 @@ pub struct PassiveStatus {
 
     pub add_agi: StatusNum,
     pub add_str: StatusNum,
+    pub add_vit: StatusNum,
+    pub add_dex: StatusNum,
+    pub add_int: StatusNum,
 }
 
 impl Default for PassiveStatus {
@@ -44,6 +47,9 @@ impl Default for PassiveStatus {
             recv_physics_dmg_mag: RecvDamageMagnificationNum::default(),
             add_agi: 0.0,
             add_str: 0.0,
+            add_dex: 0.0,
+            add_int: 0.0,
+            add_vit: 0.0,
             magic_attuck_mag_buff: BuffMagnificationNum::default(),
             magic_attuck_mag_debuff: DebuffMagnificationNum::default(),
             physics_attuck_mag_buff: BuffMagnificationNum::default(),
