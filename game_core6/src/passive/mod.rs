@@ -35,14 +35,14 @@ impl DerefMut for PassiveInstance {
 }
 impl Clone for PassiveInstance {
     fn clone(&self) -> Self {
-        self.0.clone()
+        self.0.clone_instance()
     }
 }
 
 #[allow(unused_variables)]
 pub trait StaticPassiveData: Debug {
     fn static_id(&self) -> StaticPassiveId;
-    fn clone(&self) -> PassiveInstance;
+    fn clone_instance(&self) -> PassiveInstance;
     fn write_merge(&self, buffer: &mut dyn Any);
     fn should_trash(&self) -> bool;
     fn merge(&mut self, passive: &PassiveInstance);
@@ -57,7 +57,7 @@ pub trait StaticPassiveData: Debug {
         effector: &mut PassiveEffector,
     ) {
     }
-    fn name(&self) -> &'static str; 
+    fn name(&self) -> &'static str;
     fn description(&self) -> &'static str;
 }
 
@@ -67,6 +67,14 @@ pub enum PassiveUpdateMessage {
     Msg(&'static str),
     Buffer([u8; 16]),
     Box(Arc<dyn Any>),
+}
+impl PassiveUpdateMessage {
+    pub fn is_msg_and(&self, msg: &str) -> bool {
+        match self {
+            Self::Msg(m) => *m == msg,
+            _ => false,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
