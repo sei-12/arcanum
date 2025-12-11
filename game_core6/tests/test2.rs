@@ -192,10 +192,29 @@ fn test_go_next_wave() {
         core.forward().unwrap(),
         GameCoreOutput::Event(Event::GoNextWave)
     ));
+
+    assert!(matches!(
+        core.forward().unwrap(),
+        GameCoreOutput::Event(Event::PlayerTurnStart)
+    ));
+
+    assert!(matches!(
+        core.forward().unwrap(),
+        GameCoreOutput::Effect(EffectedBy::GameSystem, Effect::HealMp { num: _ })
+    ));
+
+    assert!(matches!(
+        core.forward().unwrap(),
+        GameCoreOutput::Effect(
+            EffectedBy::GameSystem,
+            Effect::HealSkillCooldownAll {
+                target_id: _,
+                num: _
+            }
+        )
+    ));
+
+    assert!(matches!(core.forward().unwrap(), GameCoreOutput::WaitInput));
     
-
-    while let Some(output) = core.forward() {
-        dbg!(output);
-    }
-
+    assert!(core.forward().is_none());
 }

@@ -101,6 +101,28 @@ impl SenderSide {
 
         Ok(())
     }
+
+    // MEMO: リファクタリング対象
+    // ターンスタート時のパッシブ効果で敵が全滅したらもう一回次のウェーブに行く必要がある。
+    // その処理の流れが綺麗に表現できていない
+    // あとstateに対するgo_next_waveの呼び出しの場所もあまり良いとは思えない。
+    //
+    /// 勝ちもしくは負けならtrueを返す
+    pub fn go_next_wave(&mut self, output_buffer: &mut impl OutputBuffer) -> bool {
+        let mut effector = Effector::new(&mut self.state, output_buffer);
+
+        loop {
+            let result = start_player_turn(&mut effector);
+
+            if result.is_err_and(|e| e.is_win_or_lose()) {
+                break true;
+            };
+
+            if result.is_ok() {
+                break false;
+            }
+        }
+    }
 }
 
 fn start_player_turn(

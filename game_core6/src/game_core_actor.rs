@@ -52,6 +52,16 @@ impl GameCoreActor {
                 .use_skill(user_id, target_id, skill_id, &mut self.output_bufffer),
         };
 
+        if let Err(result) = result {
+            if result.is_win_or_lose() {
+                return;
+            };
+
+            if self.sender_side.go_next_wave(&mut self.output_bufffer) {
+                return;
+            }
+        }
+
         if !result.is_err_and(|e| e.is_win_or_lose()) {
             self.output_bufffer.push(GameCoreOutput::WaitInput);
         }
