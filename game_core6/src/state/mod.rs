@@ -359,7 +359,7 @@ impl EnemyIterWithLivingCheck {
         Self { idx: 0 }
     }
 
-    pub fn next_livint_enemy<'a>(&mut self, state: &'a GameState) -> Option<&'a ButtleEnemy> {
+    pub fn next_living_enemy<'a>(&mut self, state: &'a GameState) -> Option<&'a ButtleEnemy> {
         loop {
             let enemy = state.current_wave_enemys.get(self.idx)?;
             self.idx += 1;
@@ -378,7 +378,7 @@ impl CharIterWithLivingCheck {
         Self { idx: 0 }
     }
 
-    pub fn next_livint_char<'a>(&mut self, state: &'a GameState) -> Option<&'a ButtleChar> {
+    pub fn next_living_char<'a>(&mut self, state: &'a GameState) -> Option<&'a ButtleChar> {
         loop {
             let char = state.chars.get(self.idx)?;
             self.idx += 1;

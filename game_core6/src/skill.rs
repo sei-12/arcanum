@@ -44,7 +44,7 @@ impl DerefMut for SkillInstance {
 
 impl Clone for SkillInstance {
     fn clone(&self) -> Self {
-        self.0.clone()
+        self.0.clone_instance()
     }
 }
 
@@ -85,7 +85,7 @@ pub trait SkillTrait: Debug {
         effector: &mut dyn EffectorTrait,
     ) -> Result<SkillCost, WinOrLoseOrNextwave>;
     fn info(&self) -> &SkillInfomation;
-    fn clone(&self) -> SkillInstance;
+    fn clone_instance(&self) -> SkillInstance;
 
     #[allow(unused_variables)]
     /// 特殊な条件が効果にない場合、self.doc().default_need_mpを返す

@@ -4,7 +4,7 @@ use game_core6::{
     StatusNum,
     damage::DamageType,
     effect::Effect,
-    passive::{PassiveInstance, PassiveUpdateMessage, StaticPassiveData},
+    passive::{PassiveInstance, PassiveTrait, PassiveUpdateMessage},
 };
 
 #[derive(Debug, Clone)]
@@ -21,7 +21,7 @@ impl KousitukaPassive {
         Self { turn_count, tokka }
     }
 }
-impl StaticPassiveData for KousitukaPassive {
+impl PassiveTrait for KousitukaPassive {
     fn clone_instance(&self) -> game_core6::passive::PassiveInstance {
         PassiveInstance::new(self.clone())
     }
@@ -130,5 +130,82 @@ impl StaticPassiveData for KousitukaPassive {
         let target = buffer.downcast_mut::<Self>().unwrap();
         target.turn_count = target.turn_count.saturating_add(self.turn_count);
         target.tokka = target.tokka.saturating_add(self.tokka);
+    }
+
+    fn display(&self) -> String {
+        format!(
+            "{}: ({}) 特化=({})",
+            self.name(),
+            self.turn_count,
+            self.tokka
+        )
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Burn {
+    turns: u8,
+}
+impl Burn {
+    pub fn new(turns: u8) -> Self {
+        Self { turns }
+    }
+}
+impl PassiveTrait for Burn {
+    fn clone_instance(&self) -> PassiveInstance {
+        PassiveInstance::new(self.clone())
+    }
+
+    fn description(&self) -> &'static str {
+        "変数: { 残りターン数 } \n\
+        ・被魔法ダメージ1.1倍
+        "
+    }
+
+    fn merge(&mut self, passive: &PassiveInstance) {
+        passive.write_merge(self);
+    }
+
+    fn name(&self) -> &'static str {
+        "火傷"
+    }
+
+    fn display(&self) -> String {
+        format!("{}: ({})", self.name(), self.turns)
+    }
+
+    fn should_trash(&self) -> bool {
+        self.turns == 0
+    }
+
+    fn static_id(&self) -> game_core6::StaticPassiveId {
+        self.type_id()
+    }
+
+    fn status(&self, status: &mut game_core6::passive::status::PassiveStatus) {
+        status.recv_magic_dmg_mag.mul(1.1);
+    }
+
+    fn trigger_turn_start(
+        &self,
+        owner: game_core6::runtime_id::LtId,
+        _state: &game_core6::state::GameState,
+        effector: &mut game_core6::effector::PassiveEffector,
+    ) {
+        effector.accept_effect(Effect::UpdatePassiveState {
+            target_id: owner,
+            passive_id: self.static_id(),
+            message: PassiveUpdateMessage::Msg("turn start"),
+        });
+    }
+
+    fn update(&mut self, msg: &PassiveUpdateMessage) {
+        if msg.is_msg_and("turn start") {
+            self.turns = self.turns.saturating_sub(1);
+        }
+    }
+
+    fn write_merge(&self, buffer: &mut dyn Any) {
+        buffer.downcast_mut::<Self>().unwrap().turns += self.turns
     }
 }

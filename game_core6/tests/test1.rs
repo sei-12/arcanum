@@ -45,11 +45,12 @@ impl SkillTrait for Skill {
         })
     }
 
-    fn clone(&self) -> game_core6::skill::SkillInstance {
+    fn update(&mut self, _msg: &game_core6::skill::SkillUpdateMessage) {}
+
+    fn clone_instance(&self) -> SkillInstance {
         SkillInstance::new(Self)
     }
 
-    fn update(&mut self, _msg: &game_core6::skill::SkillUpdateMessage) {}
     fn info(&self) -> &game_core6::skill::SkillInfomation {
         &game_core6::skill::SkillInfomation {
             name: "",

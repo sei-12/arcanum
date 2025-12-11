@@ -15,15 +15,15 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub struct PassiveInstance(SmallBox<dyn StaticPassiveData, space::S1>);
+pub struct PassiveInstance(SmallBox<dyn PassiveTrait, space::S1>);
 impl PassiveInstance {
-    pub fn new(passive: impl StaticPassiveData + 'static) -> Self {
+    pub fn new(passive: impl PassiveTrait + 'static) -> Self {
         Self(smallbox!(passive))
     }
 }
 
 impl Deref for PassiveInstance {
-    type Target = dyn StaticPassiveData;
+    type Target = dyn PassiveTrait;
     fn deref(&self) -> &Self::Target {
         self.0.deref()
     }
@@ -40,7 +40,8 @@ impl Clone for PassiveInstance {
 }
 
 #[allow(unused_variables)]
-pub trait StaticPassiveData: Debug {
+pub trait PassiveTrait: Debug {
+    fn display(&self) -> String;
     fn static_id(&self) -> StaticPassiveId;
     fn clone_instance(&self) -> PassiveInstance;
     fn write_merge(&self, buffer: &mut dyn Any);
@@ -91,6 +92,12 @@ impl PassiveList {
             added_order: AddedOrder::new(),
             cached_status: cached_status::CachedPassiveStatus::new(),
         }
+    }
+
+    pub fn display(&self) -> impl Iterator<Item = String> {
+        self.added_order
+            .iter()
+            .map(|id| self.map.get(&id).unwrap().display())
     }
 
     pub fn add(&mut self, passive: PassiveInstance) {

@@ -13,24 +13,19 @@ use game_core6::{
     state::{CharData, EnemyData},
 };
 
-use crate::game_assets::skills::{Fireball, Kousituka};
+use crate::game_assets::{
+    char::{asya, elena, yuko, yura},
+    skills::{Fireball, Kousituka},
+};
 
+mod char;
 mod enemy_skills;
 mod passive;
 mod skills;
 
 pub fn new_game_core() -> GameCoreActor {
     let mut core = GameCoreActor::new(
-        vec![CharData {
-            level: 1,
-            data: StaticCharData {
-                id: 1,
-                name: "char1",
-                passives,
-                potential: Potential::new(10.0, 10.0, 10.0, 10.0, 10.0),
-            },
-            skills: vec![SkillInstance::new(Fireball), SkillInstance::new(Kousituka)],
-        }],
+        vec![elena(), yuko(), yura(), asya()],
         Arc::new(vec![vec![EnemyData {
             level: 1,
             data: StaticEnemyDataInstance::new(Enemy),

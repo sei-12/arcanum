@@ -43,8 +43,8 @@ pub mod skills {
 
             Ok(SkillCost::from_defalut(self.info()))
         }
-
-        fn clone(&self) -> game_core6::skill::SkillInstance {
+        
+        fn clone_instance(&self) -> SkillInstance {
             SkillInstance::new(Self)
         }
     }
@@ -74,10 +74,6 @@ pub mod skills {
             Ok(SkillCost::from_defalut(self.info()))
         }
 
-        fn clone(&self) -> SkillInstance {
-            SkillInstance::new(Self)
-        }
-
         fn info(&self) -> &game_core6::skill::SkillInfomation {
             &game_core6::skill::SkillInfomation {
                 name: "skill2",
@@ -87,6 +83,10 @@ pub mod skills {
                 defalut_hate: 100,
                 defalut_cooldown: 100,
             }
+        }
+
+        fn clone_instance(&self) -> SkillInstance {
+            SkillInstance::new(Self)
         }
     }
 }

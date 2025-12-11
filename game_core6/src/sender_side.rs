@@ -41,7 +41,7 @@ impl SenderSide {
         let char = self.state.get_char(user_id);
         let skill = char.get_skill(skill_id);
         assert!(skill.useable(self.state()));
-        let skill_instance = skill.data().clone();
+        let skill_instance = skill.data().clone_instance();
         let char_runtime_id = char.runtime_id();
         let mut effector = Effector::new(&mut self.state, output_buffer);
         effector.begin_char_skill(skill_instance.info().id);
@@ -66,7 +66,7 @@ impl SenderSide {
 
         effector.begin_game_system();
         let mut enemys = effector.state().enemys_with_living_check();
-        while let Some(enemy) = enemys.next_livint_enemy(effector.state()) {
+        while let Some(enemy) = enemys.next_living_enemy(effector.state()) {
             effector
                 .accept_effect(Effect::HealSp {
                     target_id: enemy.runtime_id(),
@@ -80,7 +80,7 @@ impl SenderSide {
 
         // 敵がスキルを使用
         let mut enemys = effector.state().enemys_with_living_check();
-        while let Some(enemy) = enemys.next_livint_enemy(effector.state()) {
+        while let Some(enemy) = enemys.next_living_enemy(effector.state()) {
             let enemy_skill = enemy
                 .static_data()
                 .select_skill(enemy.runtime_id(), effector.state());
@@ -113,7 +113,7 @@ fn start_player_turn(
         .inspect_err(|_| effector.end())?;
 
     let mut chars = effector.state().chars_with_living_check();
-    while let Some(char) = chars.next_livint_char(effector.state()) {
+    while let Some(char) = chars.next_living_char(effector.state()) {
         let runtime_char_id = char.runtime_id();
         let cooldown_heal = char.skill_cooldown_heal();
 

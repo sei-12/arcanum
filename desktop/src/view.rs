@@ -60,6 +60,7 @@ fn player_side_view<'a>(ctx: Ctx<'a>) -> impl Into<Element<'a, Message>> {
                     .map(|c| char_item_view(c, ctx).into())
             )
             .height(Length::FillPortion(1))
+            .spacing(5)
         ]
         .align_x(Horizontal::Center)
         .width(Length::Fill)
@@ -81,7 +82,7 @@ fn char_item_view<'a>(char: &'a ButtleChar, ctx: Ctx<'a>) -> Container<'a, Messa
     .style(|_t| container::Style {
         border: Border {
             color: Color::BLACK,
-            width: 4.0,
+            width: 1.0,
             radius: Radius::new(10),
         },
         ..Default::default()
@@ -162,46 +163,51 @@ fn char_skill_view<'a>(
 }
 
 fn lt_common_view<'a>(lt_common: &LtCommon, _ctx: Ctx<'a>) -> impl Into<Element<'a, Message>> {
-    row![
-        column![
-            row![text!(
-                "HP: {}/{}",
-                lt_common.hp().round(),
-                lt_common.max_hp().round()
-            )],
-            row![text("魔法攻撃力: "), text(lt_common.magic_attuck().round())],
-            row![
-                text("物理攻撃力: "),
-                text(lt_common.physics_attuck().round())
-            ],
-            row![
-                text("被魔法ダメージ倍率: "),
-                text(lt_common.recv_magic_dmg_mag().round_digits(2))
-            ],
-            row![
-                text("被物理ダメージ倍率: "),
-                text(lt_common.recv_physics_dmg_mag().round_digits(2))
-            ],
-        ],
+    column![
         row![
             column![
-                row![text("INT")],
-                row![text("AGI")],
-                row![text("STR")],
-                row![text("DEX")],
-                row![text("VIT")],
+                row![text!(
+                    "HP: {}/{}",
+                    lt_common.hp().round(),
+                    lt_common.max_hp().round()
+                )],
+                row![text("魔法攻撃力: "), text(lt_common.magic_attuck().round())],
+                row![
+                    text("物理攻撃力: "),
+                    text(lt_common.physics_attuck().round())
+                ],
+                row![
+                    text("被魔法ダメージ倍率: "),
+                    text(lt_common.recv_magic_dmg_mag().round_digits(2))
+                ],
+                row![
+                    text("被物理ダメージ倍率: "),
+                    text(lt_common.recv_physics_dmg_mag().round_digits(2))
+                ],
             ],
-            column![
-                row![text(lt_common.int().round())],
-                row![text(lt_common.agi().round())],
-                row![text(lt_common.str().round())],
-                row![text(lt_common.dex().round())],
-                row![text(lt_common.vit().round())],
+            row![
+                column![
+                    row![text("INT")],
+                    row![text("AGI")],
+                    row![text("STR")],
+                    row![text("DEX")],
+                    row![text("VIT")],
+                ],
+                column![
+                    row![text(lt_common.int().round())],
+                    row![text(lt_common.agi().round())],
+                    row![text(lt_common.str().round())],
+                    row![text(lt_common.dex().round())],
+                    row![text(lt_common.vit().round())],
+                ]
             ]
+            .spacing(5),
         ]
-        .spacing(5),
+        .spacing(10),
+        Row::with_children(lt_common.passive.display().map(|d| text(d).into()))
+            .spacing(5)
+            .padding(5)
     ]
-    .spacing(10)
 }
 
 fn player_panel_view<'a>(ctx: Ctx<'a>) -> impl Into<Element<'a, Message>> {
