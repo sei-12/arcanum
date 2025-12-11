@@ -75,7 +75,6 @@ impl SkillCost {
     }
 }
 
-// todo rename: Staticではない
 pub trait SkillTrait: Debug {
     fn call(
         &self,
