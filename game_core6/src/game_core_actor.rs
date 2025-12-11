@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use crate::{
     OutputBuffer,
-    output::{Event, GameCoreOutput},
+    output::GameCoreOutput,
     receiver_side::ReceiverSide,
     runtime_id::{RuntimeCharId, RuntimeEnemyId, RuntimeSkillId},
     sender_side::SenderSide,
@@ -38,7 +38,7 @@ impl GameCoreActor {
     }
 
     pub fn send_cmd(&mut self, cmd: GameCoreActorCommand) {
-        let res = match cmd {
+        let result = match cmd {
             GameCoreActorCommand::GameStart => {
                 self.sender_side.game_start(&mut self.output_bufffer)
             }
@@ -52,24 +52,9 @@ impl GameCoreActor {
                 .use_skill(user_id, target_id, skill_id, &mut self.output_bufffer),
         };
 
-        if let Err(wln) = res {
-            match wln {
-                crate::WinOrLoseOrNextwave::Lose => {
-                    self.output_bufffer.push(GameCoreOutput::Event(Event::Lose));
-                    return;
-                }
-                crate::WinOrLoseOrNextwave::Win => {
-                    self.output_bufffer.push(GameCoreOutput::Event(Event::Win));
-                    return;
-                }
-                crate::WinOrLoseOrNextwave::GoNextwave => {
-                    self.output_bufffer
-                        .push(GameCoreOutput::Event(Event::GoNextWave));
-                }
-            }
+        if !result.is_err_and(|e| e.is_win_or_lose()) {
+            self.output_bufffer.push(GameCoreOutput::WaitInput);
         }
-
-        self.output_bufffer.push(GameCoreOutput::WaitInput);
     }
 
     pub fn forward(&mut self) -> Option<GameCoreOutput> {

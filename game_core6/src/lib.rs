@@ -138,6 +138,11 @@ pub enum WinOrLoseOrNextwave {
     Lose,
     GoNextwave,
 }
+impl WinOrLoseOrNextwave {
+    pub fn is_win_or_lose(&self) -> bool {
+        !matches!(self, Self::GoNextwave)
+    }
+}
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {

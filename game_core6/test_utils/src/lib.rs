@@ -4,8 +4,9 @@ pub const SIMPLE_POTENTIAL: Potential = Potential::new(10.0, 10.0, 10.0, 10.0, 1
 
 pub mod skills {
     use game_core6::{
-        damage::Damage,
-        skill::{SkillCost, SkillInstance, SkillTrait},
+        CooldownNum, HateNum, MpNum, StatusNum,
+        damage::{Damage, DamageType},
+        skill::{SkillCost, SkillInfomation, SkillInstance, SkillTrait},
     };
 
     #[derive(Debug)]
@@ -43,7 +44,7 @@ pub mod skills {
 
             Ok(SkillCost::from_defalut(self.info()))
         }
-        
+
         fn clone_instance(&self) -> SkillInstance {
             SkillInstance::new(Self)
         }
@@ -87,6 +88,123 @@ pub mod skills {
 
         fn clone_instance(&self) -> SkillInstance {
             SkillInstance::new(Self)
+        }
+    }
+
+    /// 単体攻撃スキル
+    pub struct CustomSkillBuilder {
+        mag: StatusNum,
+        ty: Option<DamageType>,
+        need_mp: MpNum,
+        hate: HateNum,
+        cooldown: CooldownNum,
+    }
+
+    impl CustomSkillBuilder {
+        pub fn new() -> Self {
+            Self {
+                mag: 1.0,
+                ty: None,
+                need_mp: 0,
+                hate: 0,
+                cooldown: 0,
+            }
+        }
+
+        pub fn mag(mut self, value: StatusNum) -> Self {
+            self.mag = value;
+            self
+        }
+
+        pub fn ty(mut self, value: DamageType) -> Self {
+            self.ty = Some(value);
+            self
+        }
+
+        pub fn need_mp(mut self, value: MpNum) -> Self {
+            self.need_mp = value;
+            self
+        }
+
+        pub fn hate(mut self, value: HateNum) -> Self {
+            self.hate = value;
+            self
+        }
+
+        pub fn cooldown(mut self, value: CooldownNum) -> Self {
+            self.cooldown = value;
+            self
+        }
+
+        pub fn build(self) -> SkillInstance {
+            SkillInstance::new(CustomAttuck {
+                mag: self.mag,
+                ty: self.ty.unwrap_or_else(|| panic!()),
+                info: SkillInfomation {
+                    name: "()",
+                    description: "()",
+                    id: 10003,
+                    default_need_mp: self.need_mp,
+                    defalut_hate: self.hate,
+                    defalut_cooldown: self.cooldown,
+                },
+            })
+        }
+    }
+
+    impl Default for CustomSkillBuilder {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+
+    #[derive(Debug, Clone)]
+    struct CustomAttuck {
+        mag: StatusNum,
+        ty: DamageType,
+        info: SkillInfomation,
+    }
+    impl SkillTrait for CustomAttuck {
+        fn call(
+            &self,
+            user_id: game_core6::runtime_id::RuntimeCharId,
+            _skill_id: game_core6::runtime_id::RuntimeSkillId,
+            target_id: Option<game_core6::runtime_id::RuntimeEnemyId>,
+            effector: &mut dyn game_core6::effector::EffectorTrait,
+        ) -> Result<SkillCost, game_core6::WinOrLoseOrNextwave> {
+            let target = effector
+                .state()
+                .get_enemys_highest_target_priority(target_id)
+                .next()
+                .unwrap();
+
+            let dmg = match self.ty {
+                DamageType::Magic => Damage::new_magic_damage(
+                    effector.state(),
+                    user_id.into(),
+                    target.lt_id(),
+                    self.mag,
+                ),
+                DamageType::Physics => Damage::new_physics_damage(
+                    effector.state(),
+                    user_id.into(),
+                    target.lt_id(),
+                    self.mag,
+                ),
+                DamageType::Fixed => unimplemented!(),
+            };
+
+            effector.accept_effect(game_core6::effect::Effect::Damage(dmg))?;
+
+            Ok(SkillCost::from_defalut(self.info()))
+        }
+
+        fn info(&self) -> &game_core6::skill::SkillInfomation {
+            &self.info
+        }
+
+        fn clone_instance(&self) -> SkillInstance {
+            SkillInstance::new(self.clone())
         }
     }
 }
