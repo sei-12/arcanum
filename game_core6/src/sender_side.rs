@@ -64,6 +64,11 @@ impl SenderSide {
         // 敵のターンを開始
         effector.start_enemy_turn();
 
+        let mut enemys = effector.state().enemys_with_living_check();
+        while let Some(enemy) = enemys.next_living_enemy(effector.state()) {
+            effector.trigger_turn_start(enemy.lt_id())?;
+        }
+
         effector.begin_game_system();
         let mut enemys = effector.state().enemys_with_living_check();
         while let Some(enemy) = enemys.next_living_enemy(effector.state()) {
@@ -103,6 +108,11 @@ fn start_player_turn(
 ) -> Result<(), WinOrLoseOrNextwave> {
     // プレイヤーのターンを開始
     effector.start_player_turn();
+
+    let mut chars = effector.state().chars_with_living_check();
+    while let Some(char) = chars.next_living_char(effector.state()) {
+        effector.trigger_turn_start(char.lt_id())?;
+    }
 
     effector.begin_game_system();
 

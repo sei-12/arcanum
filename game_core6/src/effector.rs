@@ -4,6 +4,7 @@ use crate::{
     OutputBuffer, StaticEnemySkillId, StaticPassiveId, StaticSkillId, WinOrLoseOrNextwave,
     effect::Effect,
     output::{self, EffectedBy, GameCoreOutput},
+    runtime_id::LtId,
     state::GameState,
 };
 
@@ -138,16 +139,24 @@ impl<'a, T: OutputBuffer> Effector<'a, T> {
     }
 }
 
-impl<'a, T: OutputBuffer> EffectorTrait for Effector<'a, T> {
-    fn state(&self) -> &GameState {
-        self.state
+impl<'a, T: OutputBuffer> Effector<'a, T> {
+    pub(crate) fn trigger_turn_start(&mut self, lt_id: LtId) -> Result<(), WinOrLoseOrNextwave> {
+        let mut effects_buffer = VecDeque::from([]);
+        let mut passive_effector = PassiveEffector::new(&mut effects_buffer);
+
+        self.state.get_lt(lt_id).passive.trigger_turn_start(
+            lt_id,
+            self.state,
+            &mut passive_effector,
+        );
+
+        self.accept_effects(effects_buffer)
     }
 
-    fn accept_effect(&mut self, effect: Effect) -> Result<(), WinOrLoseOrNextwave> {
-        assert!(self.begined());
-
-        let mut effects_buffer = VecDeque::from([(self.current_effected_by.unwrap(), effect)]);
-
+    fn accept_effects(
+        &mut self,
+        mut effects_buffer: VecDeque<(EffectedBy, Effect)>,
+    ) -> Result<(), WinOrLoseOrNextwave> {
         while let Some((effected_by, effect)) = effects_buffer.pop_front() {
             let result = self.state.accept(&effect);
             if !result.accepted {
@@ -177,6 +186,18 @@ impl<'a, T: OutputBuffer> EffectorTrait for Effector<'a, T> {
         }
 
         result
+    }
+}
+
+impl<'a, T: OutputBuffer> EffectorTrait for Effector<'a, T> {
+    fn state(&self) -> &GameState {
+        self.state
+    }
+
+    fn accept_effect(&mut self, effect: Effect) -> Result<(), WinOrLoseOrNextwave> {
+        assert!(self.begined());
+        let effects_buffer = VecDeque::from([(self.current_effected_by.unwrap(), effect)]);
+        self.accept_effects(effects_buffer)
     }
 }
 
