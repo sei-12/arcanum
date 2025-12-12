@@ -1,6 +1,5 @@
 use std::{
-    collections::VecDeque,
-    ops::{Deref, DerefMut},
+    collections::VecDeque, fmt::Debug, ops::{Deref, DerefMut}
 };
 
 use crate::{
@@ -22,7 +21,7 @@ pub struct SkillInfomation {
     pub defalut_cooldown: CooldownNum,
 }
 
-pub trait SkillTrait {
+pub trait SkillTrait: Debug {
     fn info(&self) -> &SkillInfomation;
     fn clone_instance(&self) -> SkillBox;
 
@@ -80,6 +79,7 @@ impl Default for UsingSkillState {
     }
 }
 
+#[derive(Debug)]
 pub struct SkillBox(Box<dyn SkillTrait>);
 
 impl SkillBox {

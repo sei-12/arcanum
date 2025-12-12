@@ -24,6 +24,7 @@ pub struct Action {
     state: UsingSkillState,
 }
 
+#[derive(Debug)]
 pub struct ButtleChar {
     id: RuntimeCharId,
     current_action: Option<Action>,
@@ -33,7 +34,7 @@ pub struct ButtleChar {
 }
 
 impl ButtleChar {
-    pub fn frame(&mut self, state: &GameState, effects_buffer: &mut VecDeque<Effect>) {
+    pub fn frame(&self, state: &GameState, effects_buffer: &mut VecDeque<Effect>) {
         if let Some(action) = &self.current_action {
             self.get_skill(action.skill_id).static_data.frame(
                 self.runtime_id(),
@@ -96,7 +97,7 @@ impl ButtleChar {
     }
 
     pub(crate) fn lt_mut(&mut self) -> &mut LtCommon {
-        todo!()
+        &mut self.lt_common
     }
 
     pub fn cooldown_heal(&self) -> CooldownNum {
@@ -104,9 +105,18 @@ impl ButtleChar {
     }
 }
 
+#[derive(Debug)]
 pub struct ButtleSkill {
     cooldown: CooldownNum,
     static_data: SkillBox,
 }
 
-impl ButtleSkill {}
+impl ButtleSkill {
+    pub fn cooldown(&self) -> CooldownNum {
+        self.cooldown
+    }
+
+    pub fn static_data(&self) -> &SkillBox {
+        &self.static_data
+    }
+}

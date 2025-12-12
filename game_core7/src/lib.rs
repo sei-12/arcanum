@@ -17,6 +17,7 @@ pub mod buff_status;
 pub mod lt_common;
 pub mod potential;
 pub mod weapon;
+pub mod buttle_enemy;
 
 pub type MpNum = f32;
 // pub type SpNum = u32;
