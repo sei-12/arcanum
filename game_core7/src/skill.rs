@@ -1,13 +1,16 @@
-use std::collections::VecDeque;
-
-use crate::{
-    CooldownNum, HateNum, MpNum, StaticSkillId, TimeNum, any_message::AnyMessage,
-    buttle_char::ButtleChar, effect::Effect, runtime_id::RuntimeCharId, state::GameState,
+use std::{
+    collections::VecDeque,
+    ops::{Deref, DerefMut},
 };
 
-type FrameFn = fn(&ButtleChar, &GameState, &mut VecDeque<Effect>);
-type NeedMpFn = fn(&ButtleChar, &GameState) -> MpNum;
-type CustomUseableFn = fn(&ButtleChar, &GameState) -> bool;
+use crate::{
+    CooldownNum, HateNum, MpNum, StaticSkillId, TimeNum,
+    any_message::AnyMessage,
+    buttle_char::{ButtleChar, ButtleCharCondition},
+    effect::Effect,
+    runtime_id::RuntimeCharId,
+    state::GameState,
+};
 
 #[derive(Debug, Clone)]
 pub struct SkillInfomation {
@@ -19,10 +22,19 @@ pub struct SkillInfomation {
     pub defalut_cooldown: CooldownNum,
 }
 
-pub trait StaticSkillData {
+pub trait SkillTrait {
     fn info(&self) -> &SkillInfomation;
+    fn clone_instance(&self) -> SkillBox;
 
-    fn frame(&self, owner: RuntimeCharId, state: &GameState, effects_buffer: &mut VecDeque<Effect>);
+    fn frame(
+        &self,
+        owner: RuntimeCharId,
+        state: &GameState,
+        current_skill_state: &UsingSkillState,
+        effects_buffer: &mut VecDeque<Effect>,
+    );
+
+    fn current_condition(&self, current_skill_state: &UsingSkillState) -> ButtleCharCondition;
 
     #[allow(unused_variables)]
     /// 特殊な条件が効果にない場合、self.doc().default_need_mpを返す
@@ -44,6 +56,7 @@ pub trait StaticSkillData {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct UsingSkillState {
     /// スキル使用時フレームが0
     frame: u32,
@@ -52,38 +65,45 @@ pub struct UsingSkillState {
     time: TimeNum,
 }
 
-// pub struct StaticSkillDataBuilder {
-//     name: Option<&'static str>,
-//     desctiption: Option<&'static str>,
-//     frame_fn: Option<FrameFn>,
-//     default_need_mp:
-// }
+impl UsingSkillState {
+    pub fn new() -> Self {
+        Self {
+            frame: 0,
+            time: 0.0,
+        }
+    }
+}
 
-// impl StaticSkillDataBuilder {
-//     pub const fn new() -> Self {
-//         Self {
-//             desctiption: None,
-//             frame_fn: None,
-//             name: None,
-//         }
-//     }
+impl Default for UsingSkillState {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
-//     pub const fn name(mut self, name: &'static str) -> Self {
-//         self.name = Some(name);
-//         self
-//     }
+pub struct SkillBox(Box<dyn SkillTrait>);
 
-//     pub const fn build(self) -> StaticSkillData {
-//         StaticSkillData {
-//             desctiption: self.desctiption.unwrap(),
-//             name: self.name.unwrap(),
-//             frame_fn: self.frame_fn.unwrap(),
-//         }
-//     }
-// }
+impl SkillBox {
+    pub fn new(skill: impl SkillTrait + 'static) -> Self {
+        Self(Box::new(skill))
+    }
+}
 
-// impl Default for StaticSkillDataBuilder {
-//     fn default() -> Self {
-//         Self::new()
-//     }
-// }
+impl Deref for SkillBox {
+    type Target = dyn SkillTrait;
+
+    fn deref(&self) -> &Self::Target {
+        &*self.0
+    }
+}
+
+impl DerefMut for SkillBox {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut *self.0
+    }
+}
+
+impl Clone for SkillBox {
+    fn clone(&self) -> Self {
+        self.0.clone_instance()
+    }
+}

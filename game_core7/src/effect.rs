@@ -1,5 +1,10 @@
 use crate::{
-    CooldownNum, HateNum, MpNum, StaticCharId, StaticPassiveId, StaticSkillId, StatusNum, any_message::AnyMessage, damage, runtime_id::LtId
+    CooldownNum, HateNum, MpNum, StaticCharId, StaticPassiveId, StaticSkillId, StatusNum,
+    any_message::AnyMessage,
+    damage,
+    passive::passive_box::PassiveBox,
+    runtime_id::{LtId, RuntimeCharId, RuntimeSkillId},
+    skill::UsingSkillState,
 };
 
 #[derive(Debug, Clone)]
@@ -15,25 +20,25 @@ pub enum Effect {
         num: MpNum,
     },
     AddSkillCooldown {
-        target_id: StaticCharId,
+        target_id: RuntimeCharId,
         skill_id: StaticSkillId,
         num: CooldownNum,
     },
     HealSkillCooldown {
-        target_id: StaticCharId,
+        target_id: RuntimeCharId,
         skill_id: StaticSkillId,
         num: CooldownNum,
     },
     HealSkillCooldownAll {
-        target_id: StaticCharId,
+        target_id: RuntimeCharId,
         num: CooldownNum,
     },
     HealHate {
-        target_id: StaticCharId,
+        target_id: RuntimeCharId,
         num: HateNum,
     },
     AddHate {
-        target_id: StaticCharId,
+        target_id: RuntimeCharId,
         num: HateNum,
     },
     UpdatePassiveState {
@@ -43,22 +48,20 @@ pub enum Effect {
     },
     Damage(damage::Damage),
     UseSkill {
-        
+        user_id: RuntimeCharId,
+        skill_id: RuntimeSkillId,
+        state: UsingSkillState,
     },
-    // UpdatePassiveState {
-    //     target_id: LtId,
-    //     passive_id: StaticPassiveId,
-    //     message: PassiveUpdateMessage ,
-    // },
-    // AddPassive {
-    //     target_id: LtId,
-    //     passive: PassiveInstance,
-    // },
-    // UpdateSkillState {
-    //     target_id: StaticCharId,
-    //     skill_id: StaticSkillId,
-    //     msg: SkillUpdateMessage,
-    // },
+    AddPassive {
+        target_id: LtId,
+        passive: PassiveBox,
+    },
+
+    UpdateSkillState {
+        target_id: RuntimeCharId,
+        skill_id: StaticSkillId,
+        msg: AnyMessage,
+    },
 }
 
 // impl Effect {

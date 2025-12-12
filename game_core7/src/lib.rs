@@ -14,6 +14,9 @@ pub mod passive;
 pub mod state;
 pub mod skill;
 pub mod buff_status;
+pub mod lt_common;
+pub mod potential;
+pub mod weapon;
 
 pub type MpNum = f32;
 // pub type SpNum = u32;
