@@ -1,4 +1,4 @@
-use std::{borrow::Cow, collections::HashSet, sync::Arc};
+use std::{borrow::Cow, cmp::Reverse, collections::HashSet, sync::Arc};
 
 use crate::{
     LevelNum, MpNum, NUM_MAX_CHAR_IN_TEAM, NUM_MAX_ENEMYS_IN_WAVE, NUM_MAX_WAVES,
@@ -347,6 +347,12 @@ impl GameState {
         // キャラクターは一人以上いる
         // もし戦闘不能になっている場合はゲームが終了している
         self.chars.iter().rev().max_by_key(|c| c.hate()).unwrap()
+    }
+
+    pub fn get_chars_sorted_by_hate(&self) -> Vec<&ButtleChar> {
+        let mut chars = self.chars.iter().collect::<Vec<_>>();
+        chars.sort_by_key(|c| Reverse(c.hate()));
+        chars
     }
 }
 

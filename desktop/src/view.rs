@@ -60,10 +60,11 @@ fn player_side_view<'a>(ctx: Ctx<'a>) -> impl Into<Element<'a, Message>> {
                     .map(|c| char_item_view(c, ctx).into())
             )
             .height(Length::FillPortion(1))
+            .width(Length::Fill)
             .spacing(5)
         ]
         .align_x(Horizontal::Center)
-        .width(Length::Fill)
+        .width(Length::FillPortion(6))
     ]
     .width(Length::Fill)
     .padding(10)
@@ -71,13 +72,16 @@ fn player_side_view<'a>(ctx: Ctx<'a>) -> impl Into<Element<'a, Message>> {
 
 fn char_item_view<'a>(char: &'a ButtleChar, ctx: Ctx<'a>) -> Container<'a, Message> {
     let char_name = char.static_data().name;
-    container(row![
-        column![
-            text(char_name).size(23),
-            lt_common_view(char.lt(), ctx).into()
-        ],
-        column![char_skills_view(char, ctx).into()]
-    ])
+    container(
+        row![
+            column![
+                text(char_name).size(30),
+                lt_common_view(char.lt(), ctx).into()
+            ],
+            column![char_skills_view(char, ctx).into()]
+        ]
+        .spacing(10),
+    )
     .height(Length::Fill)
     .style(|_t| container::Style {
         border: Border {
@@ -88,6 +92,7 @@ fn char_item_view<'a>(char: &'a ButtleChar, ctx: Ctx<'a>) -> Container<'a, Messa
         ..Default::default()
     })
     .padding(20)
+    .width(Length::FillPortion(1))
 }
 
 fn char_skills_view<'a>(char: &'a ButtleChar, ctx: Ctx<'a>) -> impl Into<Element<'a, Message>> {
@@ -97,7 +102,6 @@ fn char_skills_view<'a>(char: &'a ButtleChar, ctx: Ctx<'a>) -> impl Into<Element
                 .iter()
                 .map(|s| char_skill_view(s, char.runtime_id(), ctx).into()),
         )
-        .padding(10)
         .spacing(5),
     )
     .height(Length::Fill)
@@ -109,14 +113,14 @@ fn char_skill_view<'a>(
     ctx: Ctx<'a>,
 ) -> impl Into<Element<'a, Message>> {
     let state = ctx.game_state;
-    let mut column = column![
-        text(skill.data().info().name).size(20),
-        text!("CD: {}", skill.cooldown()).size(15)
-    ];
+    let mut column = column![text(skill.data().info().name).size(20),];
+
+    let mut row = row!(text!("CD: {}", skill.cooldown()).size(15)).spacing(8);
+
     let useable = skill.useable(state);
 
     if useable {
-        column = column.push(button("使用").on_press(Message::GameCoreMessage(
+        row = row.push(button("使用").on_press(Message::GameCoreMessage(
             GameCoreActorCommand::UseSkill {
                 user_id,
                 skill_id: skill.runtime_id(),
@@ -124,7 +128,7 @@ fn char_skill_view<'a>(
             },
         )));
     } else {
-        column = column.push(text("使用不可").color(Color::from_rgb(0.5, 0.0, 0.0)));
+        row = row.push(text("使用不可").color(Color::from_rgb(0.5, 0.0, 0.0)));
     }
 
     let opened = ctx
@@ -132,20 +136,22 @@ fn char_skill_view<'a>(
         .is_skill_detail_opened(user_id, skill.runtime_id());
 
     if opened {
-        column = column.push(button("閉じる").on_press(Message::UiStateUpdateMessage(
+        row = row.push(button("閉じる").on_press(Message::UiStateUpdateMessage(
             ui_state::UiStateUpdateMessage::CloseSkillDetail {
                 char_id: user_id,
                 skill_id: skill.runtime_id(),
             },
         )))
     } else {
-        column = column.push(button("詳細").on_press(Message::UiStateUpdateMessage(
+        row = row.push(button("▽").on_press(Message::UiStateUpdateMessage(
             ui_state::UiStateUpdateMessage::OpenSkillDetail {
                 char_id: user_id,
                 skill_id: skill.runtime_id(),
             },
         )))
     }
+
+    column = column.push(column![row].align_x(Horizontal::Right).width(Length::Fill));
 
     if opened {
         column = column.push(
@@ -159,7 +165,17 @@ fn char_skill_view<'a>(
         );
     }
 
-    column
+    container(column)
+        .style(|_t| container::Style {
+            border: Border {
+                color: Color::BLACK,
+                width: 1.0,
+                radius: Radius::new(10),
+            },
+            ..Default::default()
+        })
+        .width(Length::Fill)
+        .padding(10)
 }
 
 fn lt_common_view<'a>(lt_common: &LtCommon, _ctx: Ctx<'a>) -> impl Into<Element<'a, Message>> {
@@ -211,8 +227,13 @@ fn lt_common_view<'a>(lt_common: &LtCommon, _ctx: Ctx<'a>) -> impl Into<Element<
 }
 
 fn player_panel_view<'a>(ctx: Ctx<'a>) -> impl Into<Element<'a, Message>> {
-    column![
-        text!("MP: {}", ctx.game_state.player_mp().round()),
-        button("ターンエンド").on_press(Message::GameCoreMessage(GameCoreActorCommand::TurnEnd)),
-    ]
+    container(
+        column![
+            text!("MP: {}", ctx.game_state.player_mp().round()),
+            button("ターンエンド")
+                .on_press(Message::GameCoreMessage(GameCoreActorCommand::TurnEnd)),
+        ]
+        .width(Length::FillPortion(1))
+        .padding(7),
+    )
 }
