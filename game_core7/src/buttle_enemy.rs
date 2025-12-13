@@ -1,7 +1,7 @@
 use std::{collections::VecDeque, fmt::Debug};
 
 use crate::{
-    buttle_enemy::enemy_box::EnemyBox, core_actor::CtxContainer, effect::Effect,
+    LevelNum, buttle_enemy::enemy_box::EnemyBox, core_actor::CtxContainer, effect::Effect,
     lt_common::LtCommon, potential::Potential, runtime_id::RuntimeEnemyId, state::GameState,
 };
 
@@ -24,8 +24,12 @@ pub struct ButtleEnemy {
     enemy_box: EnemyBox,
 }
 impl ButtleEnemy {
-    pub(crate) fn new() -> Result<Self, crate::Error> {
-        todo!()
+    pub(crate) fn new(id: RuntimeEnemyId, level: LevelNum, enemy_box: EnemyBox) -> Self {
+        ButtleEnemy {
+            id,
+            lt_common: LtCommon::new(enemy_box.potential().clone(), level),
+            enemy_box,
+        }
     }
 
     pub fn frame(&self, state: &GameState, ctx: &mut CtxContainer) {

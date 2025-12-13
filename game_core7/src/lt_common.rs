@@ -125,7 +125,39 @@ impl LtCommon {
     }
 
     pub fn mp_heal(&self) -> MpNum {
-        todo!()
+        // 調整用の値
+        // potentialがMの時に1sあたりMPがN回復する
+        // potentialが0の時に1sあたりMPがBASE回復する
+        const M: f32 = 10.0;
+        const N: f32 = 300.0;
+        const FPS: f32 = 100.0;
+        const MP_HEAL_BASE_PER_SEC: f32 = 100.0;
+
+        let potential = (self.vit() * 2.0 + self.dex()) / 3.0;
+
+        const fn mp_heal_f(pot: f32) -> f32 {
+            let base_frame = MP_HEAL_BASE_PER_SEC / FPS;
+            let pot_frame = pot / M * (N - MP_HEAL_BASE_PER_SEC) / FPS;
+            base_frame + pot_frame
+        }
+
+        debug_assert!({
+            let tmp = mp_heal_f(M) * FPS;
+            let diff = (N - tmp).abs();
+            diff < 0.00001
+        });
+
+        debug_assert!({
+            let tmp = mp_heal_f(0.0) * FPS;
+            let diff = (MP_HEAL_BASE_PER_SEC - tmp).abs();
+            diff < 0.00001
+        });
+
+        let mp_heal = mp_heal_f(potential);
+
+        debug_assert!(mp_heal > 0.0);
+
+        mp_heal
     }
 
     pub fn is_dead(&self) -> bool {

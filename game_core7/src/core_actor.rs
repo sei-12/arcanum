@@ -45,9 +45,7 @@ impl<R: RandGen> CoreActor<R> {
         while let Some(effect) = ctx.effects_buffer.pop_front() {
             self.state.accept(&effect);
             sub_effects(&effect, &self.state, &mut ctx);
-            if let Ok(output) = CoreOutput::try_from(effect) {
-                output_buffer.push_output(output);
-            }
+            output_buffer.push_output(CoreOutput::Effect(effect));
         }
 
         Ok(())
@@ -94,9 +92,7 @@ fn sub_effects(main_effect: &Effect, state: &GameState, ctx: &mut CtxContainer) 
 
         if let Some(causer_id) = dmg.causer().to_lt_id() {
             let causer = state.get_lt(causer_id);
-            causer
-                .passive
-                .trigger_deal_dmg(causer_id, state, dmg, ctx);
+            causer.passive.trigger_deal_dmg(causer_id, state, dmg, ctx);
         }
     }
 }
