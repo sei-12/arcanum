@@ -1,4 +1,6 @@
-use crate::{LevelNum, MpNum, StatusNum, passive::PassiveList, potential::Potential, weapon::Weapon};
+use crate::{
+    LevelNum, MpNum, StatusNum, passive::PassiveList, potential::Potential, weapon::Weapon,
+};
 
 #[derive(Debug, Clone)]
 pub struct LtCommon {
@@ -121,10 +123,10 @@ impl LtCommon {
     pub fn recv_physics_dmg_mag(&self) -> StatusNum {
         self.passive.status().recv_physics_dmg_mag.get()
     }
-    
+
     pub fn mp_heal(&self) -> MpNum {
         todo!()
-    } 
+    }
 
     pub fn is_dead(&self) -> bool {
         self.hp <= 0.0

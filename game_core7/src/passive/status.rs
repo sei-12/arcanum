@@ -9,7 +9,7 @@ use crate::StatusNum;
 // その代わりLtCommon側で0以下の処理などを加える必要はある
 
 #[derive(Debug, Clone)]
-pub struct BuffStatus {
+pub struct PassiveStatus {
     /// 魔法攻撃力に乗算させる値 default = 1.0
     pub magic_attuck_mag_buff: BuffMagnificationNum,
     /// 魔法攻撃力に乗算させる値 default = 1.0
@@ -38,7 +38,7 @@ pub struct BuffStatus {
     pub add_int: StatusNum,
 }
 
-impl Default for BuffStatus {
+impl Default for PassiveStatus {
     fn default() -> Self {
         Self {
             max_hp_mag_buff: BuffMagnificationNum::default(),
@@ -58,7 +58,7 @@ impl Default for BuffStatus {
     }
 }
 
-impl BuffStatus {
+impl PassiveStatus {
     pub(crate) fn reset(&mut self) {
         *self = Self::default();
     }

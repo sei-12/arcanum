@@ -1,8 +1,8 @@
 use std::{collections::VecDeque, fmt::Debug};
 
 use crate::{
-    buttle_enemy::enemy_box::EnemyBox, effect::Effect, lt_common::LtCommon, potential::Potential,
-    runtime_id::RuntimeEnemyId, state::GameState,
+    buttle_enemy::enemy_box::EnemyBox, core_actor::CtxContainer, effect::Effect,
+    lt_common::LtCommon, potential::Potential, runtime_id::RuntimeEnemyId, state::GameState,
 };
 
 pub struct EnemyInfomation {
@@ -12,12 +12,7 @@ pub struct EnemyInfomation {
 
 pub trait EnemyTrait: Debug {
     fn info(&self) -> &EnemyInfomation;
-    fn frame(
-        &self,
-        owner: RuntimeEnemyId,
-        state: &GameState,
-        effects_buffer: &mut VecDeque<Effect>,
-    );
+    fn frame(&self, owner: RuntimeEnemyId, state: &GameState, ctx: &mut CtxContainer);
     fn potential(&self) -> &Potential;
     fn clone_box(&self) -> EnemyBox;
 }
@@ -29,11 +24,14 @@ pub struct ButtleEnemy {
     enemy_box: EnemyBox,
 }
 impl ButtleEnemy {
-    pub fn frame(&self, state: &GameState, effects_buffer: &mut VecDeque<Effect>) {
-        self.enemy_box
-            .frame(self.runtime_id(), state, effects_buffer);
+    pub(crate) fn new() -> Result<Self, crate::Error> {
+        todo!()
+    }
 
-        self.lt_common.passive.frame(state, effects_buffer);
+    pub fn frame(&self, state: &GameState, ctx: &mut CtxContainer) {
+        self.enemy_box.frame(self.runtime_id(), state, ctx);
+
+        self.lt_common.passive.frame(state, ctx);
     }
 
     pub fn runtime_id(&self) -> RuntimeEnemyId {

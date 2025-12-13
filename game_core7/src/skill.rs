@@ -1,14 +1,11 @@
 use std::{
-    collections::VecDeque, fmt::Debug, ops::{Deref, DerefMut}
+    collections::VecDeque,
+    fmt::Debug,
+    ops::{Deref, DerefMut},
 };
 
 use crate::{
-    CooldownNum, HateNum, MpNum, StaticSkillId, TimeNum,
-    any_message::AnyMessage,
-    buttle_char::{ButtleChar, ButtleCharCondition},
-    effect::Effect,
-    runtime_id::RuntimeCharId,
-    state::GameState,
+    CooldownNum, HateNum, MpNum, StaticSkillId, TimeNum, any_message::AnyMessage, buttle_char::{ButtleChar, ButtleCharCondition}, core_actor::CtxContainer, effect::Effect, runtime_id::RuntimeCharId, state::GameState
 };
 
 #[derive(Debug, Clone)]
@@ -30,7 +27,7 @@ pub trait SkillTrait: Debug {
         owner: RuntimeCharId,
         state: &GameState,
         current_skill_state: &UsingSkillState,
-        effects_buffer: &mut VecDeque<Effect>,
+        effects_buffer: &mut CtxContainer,
     );
 
     fn current_condition(&self, current_skill_state: &UsingSkillState) -> ButtleCharCondition;

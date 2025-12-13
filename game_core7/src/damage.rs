@@ -72,7 +72,7 @@ impl Damage {
 }
 
 impl Damage {
-/*     pub fn new_hp_per_dmg(state: &GameState, target_id: LtId, per: StatusNum) -> Self {
+    /*     pub fn new_hp_per_dmg(state: &GameState, target_id: LtId, per: StatusNum) -> Self {
         assert!(per >= 0.0);
         let target = state.get_lt(target_id);
         let dmg = target.hp() * per;

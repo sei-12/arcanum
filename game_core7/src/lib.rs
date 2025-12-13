@@ -6,28 +6,27 @@ use crate::runtime_id::{RuntimeCharId, RuntimeSkillId};
 
 pub mod any_message;
 pub mod buttle_char;
+pub mod buttle_enemy;
 pub mod core_actor;
 pub mod damage;
 pub mod effect;
+pub mod error;
+pub mod lt_common;
 pub mod output;
 pub mod passive;
-pub mod state;
-pub mod skill;
-pub mod buff_status;
-pub mod lt_common;
 pub mod potential;
+pub mod skill;
+pub mod state;
 pub mod weapon;
-pub mod buttle_enemy;
+
+pub use crate::error::Error;
 
 pub type MpNum = f32;
-// pub type SpNum = u32;
 pub type LevelNum = u32;
 pub type StatusNum = f32;
-// pub type TurnNum = u8;
 pub type CooldownNum = f32;
 pub type TimeNum = f32;
 pub type HateNum = f32;
-// pub type WaveNum = u8;
 pub type StaticEnemySkillId = u32;
 pub type StaticSkillId = u32;
 pub type StaticPassiveId = u32;

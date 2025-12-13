@@ -2,6 +2,7 @@ use std::collections::VecDeque;
 
 use crate::{
     CooldownNum,
+    core_actor::CtxContainer,
     effect::Effect,
     lt_common::LtCommon,
     runtime_id::{RuntimeCharId, RuntimeSkillId},
@@ -34,23 +35,27 @@ pub struct ButtleChar {
 }
 
 impl ButtleChar {
-    pub fn frame(&self, state: &GameState, effects_buffer: &mut VecDeque<Effect>) {
+    pub(crate) fn new() -> Result<Self, crate::Error> {
+        todo!()
+    }
+
+    pub fn frame(&self, state: &GameState, ctx: &mut CtxContainer) {
         if let Some(action) = &self.current_action {
             self.get_skill(action.skill_id).static_data.frame(
                 self.runtime_id(),
                 state,
                 &action.state,
-                effects_buffer,
+                ctx,
             );
         }
 
-        self.lt_common.passive.frame(state, effects_buffer);
+        self.lt_common.passive.frame(state, ctx);
 
-        effects_buffer.push_back(Effect::HealSkillCooldownAll {
+        ctx.effects_buffer.push_back(Effect::HealSkillCooldownAll {
             target_id: self.runtime_id(),
             num: self.cooldown_heal(),
         });
-        effects_buffer.push_back(Effect::HealMp {
+        ctx.effects_buffer.push_back(Effect::HealMp {
             num: self.lt().mp_heal(),
         });
     }
@@ -74,6 +79,14 @@ impl ButtleChar {
     pub(crate) fn can_start_skill(&self, skill_id: RuntimeSkillId) -> bool {
         self.get_skill(skill_id).cooldown <= 0.0
             && self.current_condition() == ButtleCharCondition::Waiting
+    }
+
+    pub(crate) fn try_get_skill(&self, id: RuntimeSkillId) -> Result<&ButtleSkill, crate::Error> {
+        /*         self.skills
+        .iter()
+        .find(|s| s.static_data.info().runtime_id == id) */
+
+        todo!()
     }
 
     pub(crate) fn get_skill(&self, id: RuntimeSkillId) -> &ButtleSkill {
