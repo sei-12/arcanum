@@ -1,43 +1,38 @@
 use crate::{
-    LevelNum, MpNum, StatusNum, passive::PassiveList, potential::Potential, weapon::Weapon,
+    LevelNum, MpNum, StatusNum, TimeNum, lt_common::any_point::AnyPointPercent,
+    passive::PassiveList, potential::Potential, weapon::Weapon,
 };
+
+mod any_point;
 
 #[derive(Debug, Clone)]
 pub struct LtCommon {
     pub passive: PassiveList,
     potential: Potential,
     level: LevelNum,
-    hp: StatusNum,
+    hp_per: AnyPointPercent,
+    mp_per: AnyPointPercent,
     weapon: Option<Weapon>,
 }
 
 impl LtCommon {
-    pub(super) fn new(potential: Potential, level: LevelNum) -> Self {
-        let mut tmp = Self {
+    pub(crate) fn new_inner(potential: Potential, level: LevelNum, weapon: Option<Weapon>) -> Self {
+        Self {
             potential,
             level,
-            hp: 0.0,
+            hp_per: AnyPointPercent::new_max(),
+            mp_per: AnyPointPercent::new_max(),
             passive: PassiveList::default(),
-            weapon: None,
-        };
+            weapon,
+        }
+    }
 
-        tmp.hp = tmp.max_hp();
-
-        tmp
+    pub(super) fn new(potential: Potential, level: LevelNum) -> Self {
+        Self::new_inner(potential, level, None)
     }
 
     pub(crate) fn new_with_weapon(potential: Potential, level: LevelNum, weapon: Weapon) -> Self {
-        let mut tmp = Self {
-            potential,
-            level,
-            hp: 0.0,
-            passive: PassiveList::default(),
-            weapon: Some(weapon),
-        };
-
-        tmp.hp = tmp.max_hp();
-
-        tmp
+        Self::new_inner(potential, level, Some(weapon))
     }
 }
 
@@ -99,7 +94,7 @@ impl LtCommon {
     }
 
     pub fn max_hp(&self) -> StatusNum {
-        let base = (self.vit() * 6.0 + self.dex()) / 7.0;
+        let base = (self.vit() * 6.0 + self.str() + self.dex()) / 8.0;
         let hp_scale = 3.0;
 
         base * hp_scale
@@ -109,11 +104,7 @@ impl LtCommon {
     }
 
     pub fn hp(&self) -> StatusNum {
-        if self.hp > self.max_hp() {
-            self.max_hp()
-        } else {
-            self.hp
-        }
+        self.hp_per.get(self.max_hp())
     }
 
     pub fn recv_magic_dmg_mag(&self) -> StatusNum {
@@ -122,6 +113,16 @@ impl LtCommon {
 
     pub fn recv_physics_dmg_mag(&self) -> StatusNum {
         self.passive.status().recv_physics_dmg_mag.get()
+    }
+
+    pub fn mp(&self) -> MpNum {
+        self.mp_per.get(self.max_mp())
+    }
+
+    pub fn max_mp(&self) -> MpNum {
+        let base = (self.vit() * 2.0 + self.dex() + self.int()) / 4.0;
+        let mp_scale = 10.0;
+        base * mp_scale
     }
 
     pub fn mp_heal(&self) -> MpNum {
@@ -160,21 +161,30 @@ impl LtCommon {
         mp_heal
     }
 
+    pub fn speed(&self) -> TimeNum {
+        self.agi() / 10.0
+    }
+
     pub fn is_dead(&self) -> bool {
-        self.hp <= 0.0
+        self.hp() <= 0.0
     }
 }
 
 impl LtCommon {
     pub(crate) fn accept_damage(&mut self, dmg: StatusNum) {
         // HPは0を下回ることがある
-        self.hp -= dmg;
+        self.hp_per.add(self.max_hp(), -dmg);
     }
 
     pub(crate) fn accept_heal(&mut self, heal: StatusNum) {
-        self.hp += heal;
-        if self.hp > self.max_hp() {
-            self.hp = self.max_hp()
-        }
+        self.hp_per.add(self.max_hp(), heal);
+    }
+
+    pub(crate) fn accept_consume_mp(&mut self, num: MpNum) {
+        self.mp_per.add(self.max_mp(), -num);
+    }
+
+    pub(crate) fn accept_heal_mp(&mut self, num: MpNum) {
+        self.mp_per.add(self.max_mp(), num);
     }
 }

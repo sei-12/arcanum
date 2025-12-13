@@ -1,3 +1,5 @@
+use crate::runtime_id::{RuntimeCharId, RuntimeSkillId};
+
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("すでにゲームが開始されています")]
@@ -22,6 +24,18 @@ pub enum Error {
 
     #[error("習得スキル数が不正です")]
     InvalidNumLearnSkills(usize),
+
+    #[error("スキルが見当たりませんでした: id={0:?}")]
+    NotFoundSkill(RuntimeSkillId),
+
+    #[error("キャラクターが見当たりませんでした: id={0:?}")]
+    NotFoundChar(RuntimeCharId),
+
+    #[error("敵キャラクターが見当たりませんでした: id={0:?}")]
+    NotFoundEnemy(RuntimeCharId),
+
+    #[error("敵キャラクター数が不正です: num_enemys={0}")]
+    InvalidNumEnemys(usize),
     // #[error("チーム内に同じキャラクターがいます: id={0}")]
     // ConfrictChar(StaticCharId),
 }

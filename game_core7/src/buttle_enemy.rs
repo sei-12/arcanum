@@ -1,8 +1,13 @@
-use std::{collections::VecDeque, fmt::Debug};
+use std::fmt::Debug;
 
 use crate::{
-    LevelNum, buttle_enemy::enemy_box::EnemyBox, core_actor::CtxContainer, effect::Effect,
-    lt_common::LtCommon, potential::Potential, runtime_id::RuntimeEnemyId, state::GameState,
+    LevelNum,
+    buttle_enemy::enemy_box::EnemyBox,
+    core_actor::CtxContainer,
+    lt_common::LtCommon,
+    potential::Potential,
+    runtime_id::{LtId, RuntimeEnemyId},
+    state::GameState,
 };
 
 pub struct EnemyInfomation {
@@ -17,6 +22,11 @@ pub trait EnemyTrait: Debug {
     fn clone_box(&self) -> EnemyBox;
 }
 
+pub struct ButtleEnemyArgs {
+    level: LevelNum,
+    enemy_box: EnemyBox,
+}
+
 #[derive(Debug)]
 pub struct ButtleEnemy {
     id: RuntimeEnemyId,
@@ -24,22 +34,26 @@ pub struct ButtleEnemy {
     enemy_box: EnemyBox,
 }
 impl ButtleEnemy {
-    pub(crate) fn new(id: RuntimeEnemyId, level: LevelNum, enemy_box: EnemyBox) -> Self {
+    pub(crate) fn new(id: RuntimeEnemyId, args: ButtleEnemyArgs) -> Self {
         ButtleEnemy {
             id,
-            lt_common: LtCommon::new(enemy_box.potential().clone(), level),
-            enemy_box,
+            lt_common: LtCommon::new(args.enemy_box.potential().clone(), args.level),
+            enemy_box: args.enemy_box,
         }
     }
 
     pub fn frame(&self, state: &GameState, ctx: &mut CtxContainer) {
         self.enemy_box.frame(self.runtime_id(), state, ctx);
 
-        self.lt_common.passive.frame(state, ctx);
+        self.lt_common.passive.frame(self.lt_id(), state, ctx);
     }
 
     pub fn runtime_id(&self) -> RuntimeEnemyId {
         self.id
+    }
+
+    pub fn lt_id(&self) -> LtId {
+        self.runtime_id().into()
     }
 
     pub fn lt(&self) -> &LtCommon {

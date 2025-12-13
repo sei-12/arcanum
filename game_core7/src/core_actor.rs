@@ -1,7 +1,11 @@
 use std::collections::VecDeque;
 
 use crate::{
-    UserInput, effect::Effect, output::CoreOutput, skill::UsingSkillState, state::GameState,
+    UserInput,
+    effect::Effect,
+    output::CoreOutput,
+    skill::UsingSkillState,
+    state::{GameState, GameStateArgs},
 };
 
 pub trait OutputBuffer {
@@ -20,11 +24,11 @@ pub struct CoreActor<R: RandGen> {
 }
 
 impl<R: RandGen> CoreActor<R> {
-    pub fn new(rnd: R) -> Result<Self, crate::Error> {
+    pub fn new(rnd: R, buttle_args: GameStateArgs) -> Result<Self, crate::Error> {
         Ok(Self {
             effects_buffer: VecDeque::new(),
             rnd,
-            state: GameState::new()?,
+            state: GameState::new(buttle_args)?,
         })
     }
 
@@ -67,10 +71,12 @@ fn user_input_effect(
     match input {
         UserInput::UseSkill { char_id, skill_id } => {
             let char = state.try_get_char(char_id)?;
-            let skill = char.try_get_skill(skill_id)?;
+            let _ = char.try_get_skill(skill_id)?;
+
             if !char.can_start_skill(skill_id) {
                 return Err(crate::Error::UnUseableSkill);
             }
+
             ctx.effects_buffer.push_back(Effect::UseSkill {
                 user_id: char_id,
                 skill_id,

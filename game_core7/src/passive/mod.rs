@@ -1,9 +1,8 @@
 use std::{
     any::Any,
     cell::Ref,
-    collections::{HashMap, VecDeque, hash_map},
+    collections::{HashMap, hash_map},
     fmt::Debug,
-    ops::Add,
 };
 
 mod added_order;
@@ -16,7 +15,6 @@ use crate::{
     any_message::AnyMessage,
     core_actor::CtxContainer,
     damage::Damage,
-    effect::Effect,
     passive::{
         added_order::AddedOrder, cached_status::CachedPassiveStatus, passive_box::PassiveBox,
         status::PassiveStatus,
@@ -43,9 +41,10 @@ pub trait PassiveTrait: Debug {
     fn should_trash(&self) -> bool;
     fn update(&mut self, msg: &AnyMessage) -> PassiveUpdateInfo;
     fn info(&self) -> &PassiveInfo;
-    fn frame(&self, owner: LtId, state: &GameState, effects_buffer: &mut VecDeque<Effect>);
+    fn frame(&self, owner: LtId, state: &GameState, ctx: &mut CtxContainer);
     fn status(&self, s: &mut PassiveStatus);
 
+    #[allow(unused_variables)]
     fn trigger_recv_dmg(
         &self,
         owner: LtId,
@@ -55,6 +54,8 @@ pub trait PassiveTrait: Debug {
     ) {
         assert_eq!(owner, dmg.target());
     }
+
+    #[allow(unused_variables)]
     fn trigger_deal_dmg(
         &self,
         owner: LtId,
@@ -119,7 +120,11 @@ impl PassiveList {
         };
     }
 
-    pub(crate) fn frame(&self, state: &GameState, ctx: &mut CtxContainer) {}
+    pub(crate) fn frame(&self, owner: LtId, state: &GameState, ctx: &mut CtxContainer) {
+        self.added_order_items().for_each(|passive_box| {
+            passive_box.frame(owner, state, ctx);
+        });
+    }
 
     pub(crate) fn status(&self) -> Ref<'_, PassiveStatus> {
         self.cached_status.get(self.map.values())

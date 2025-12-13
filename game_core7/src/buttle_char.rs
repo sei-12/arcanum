@@ -1,11 +1,12 @@
-use std::collections::VecDeque;
-
 use crate::{
-    CooldownNum,
+    CooldownNum, HateNum, LevelNum, StaticCharId,
+    any_message::AnyMessage,
     core_actor::CtxContainer,
     effect::Effect,
     lt_common::LtCommon,
-    runtime_id::{RuntimeCharId, RuntimeSkillId},
+    passive::passive_box::PassiveBox,
+    potential::Potential,
+    runtime_id::{LtId, RuntimeCharId, RuntimeSkillId},
     skill::{SkillBox, UsingSkillState},
     state::GameState,
     weapon::{Weapon, WeaponType},
@@ -27,16 +28,60 @@ pub struct Action {
 
 #[derive(Debug)]
 pub struct ButtleChar {
-    id: RuntimeCharId,
+    static_id: StaticCharId,
+    runtime_id: RuntimeCharId,
     current_action: Option<Action>,
     skills: Vec<ButtleSkill>,
     lt_common: LtCommon,
     weapon: Weapon,
+    hate: HateNum,
+}
+
+#[derive(Debug, Clone)]
+pub struct ButtleCharArgs {
+    pub static_id: StaticCharId,
+    pub name: &'static str,
+    pub level: LevelNum,
+    pub potential: Potential,
+    pub passives: Vec<PassiveBox>,
+    pub skills: Vec<SkillBox>,
+    pub weapon: Weapon,
 }
 
 impl ButtleChar {
-    pub(crate) fn new() -> Result<Self, crate::Error> {
-        todo!()
+    pub(crate) fn new(
+        runtime_id: RuntimeCharId,
+        data: ButtleCharArgs,
+    ) -> Result<Self, crate::Error> {
+        if data.skills.is_empty() {
+            return Err(crate::Error::InvalidNumLearnSkills(data.skills.len()));
+        }
+
+        let mut lt_common =
+            LtCommon::new_with_weapon(data.potential.clone(), data.level, data.weapon.clone());
+
+        data.passives.into_iter().for_each(|p| {
+            lt_common.passive.add(p);
+        });
+
+        let skills = data
+            .skills
+            .into_iter()
+            .map(|s| ButtleSkill {
+                cooldown: 0.0,
+                static_data: s,
+            })
+            .collect::<Vec<_>>();
+
+        Ok(Self {
+            static_id: data.static_id,
+            runtime_id,
+            current_action: None,
+            skills,
+            lt_common,
+            weapon: data.weapon,
+            hate: 0.0,
+        })
     }
 
     pub fn frame(&self, state: &GameState, ctx: &mut CtxContainer) {
@@ -49,15 +94,21 @@ impl ButtleChar {
             );
         }
 
-        self.lt_common.passive.frame(state, ctx);
+        self.lt_common.passive.frame(self.lt_id(), state, ctx);
 
         ctx.effects_buffer.push_back(Effect::HealSkillCooldownAll {
             target_id: self.runtime_id(),
-            num: self.cooldown_heal(),
+            num: 1.0,
         });
+
         ctx.effects_buffer.push_back(Effect::HealMp {
+            target_id: self.lt_id(),
             num: self.lt().mp_heal(),
         });
+    }
+
+    pub fn lt_id(&self) -> LtId {
+        LtId::Char(self.runtime_id())
     }
 
     pub fn current_condition(&self) -> ButtleCharCondition {
@@ -82,19 +133,21 @@ impl ButtleChar {
     }
 
     pub(crate) fn try_get_skill(&self, id: RuntimeSkillId) -> Result<&ButtleSkill, crate::Error> {
-        /*         self.skills
-        .iter()
-        .find(|s| s.static_data.info().runtime_id == id) */
-
-        todo!()
+        self.skills
+            .get(id.idx as usize)
+            .ok_or(crate::Error::NotFoundSkill(id))
     }
 
     pub(crate) fn get_skill(&self, id: RuntimeSkillId) -> &ButtleSkill {
-        todo!()
+        self.try_get_skill(id).unwrap()
+    }
+
+    pub fn static_id(&self) -> StaticCharId {
+        self.static_id
     }
 
     pub fn runtime_id(&self) -> RuntimeCharId {
-        self.id
+        self.runtime_id
     }
 
     pub fn get_skills(&self) -> &Vec<ButtleSkill> {
@@ -113,8 +166,38 @@ impl ButtleChar {
         &mut self.lt_common
     }
 
-    pub fn cooldown_heal(&self) -> CooldownNum {
-        todo!()
+    fn get_skill_mut(&mut self, id: RuntimeSkillId) -> &mut ButtleSkill {
+        self.skills.get_mut(id.idx as usize).unwrap()
+    }
+
+    pub(crate) fn add_skill_cooldown(&mut self, skill_id: RuntimeSkillId, num: CooldownNum) {
+        let skill = self.get_skill_mut(skill_id);
+        skill.cooldown += num;
+    }
+
+    pub(crate) fn heal_skill_cooldown(&mut self, skill_id: RuntimeSkillId, num: CooldownNum) {
+        let skill = self.get_skill_mut(skill_id);
+        skill.cooldown -= num;
+    }
+
+    pub(crate) fn heal_skill_cooldown_all(&mut self, num: CooldownNum) {
+        self.skills.iter_mut().for_each(|s| s.cooldown -= num);
+    }
+
+    pub(crate) fn add_hate(&mut self, num: HateNum) {
+        self.hate += num;
+    }
+
+    pub(crate) fn heal_hate(&mut self, num: HateNum) {
+        self.hate -= num;
+    }
+
+    pub fn hate(&self) -> HateNum {
+        self.hate
+    }
+
+    pub(crate) fn update_skill_state(&mut self, skill_id: RuntimeSkillId, msg: &AnyMessage) {
+        self.skills[skill_id.idx as usize].static_data.update(msg);
     }
 }
 
@@ -126,7 +209,11 @@ pub struct ButtleSkill {
 
 impl ButtleSkill {
     pub fn cooldown(&self) -> CooldownNum {
-        self.cooldown
+        if self.cooldown < 0.0 {
+            0.0
+        } else {
+            self.cooldown
+        }
     }
 
     pub fn static_data(&self) -> &SkillBox {

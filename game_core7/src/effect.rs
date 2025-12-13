@@ -1,5 +1,5 @@
 use crate::{
-    CooldownNum, HateNum, MpNum, StaticCharId, StaticPassiveId, StaticSkillId, StatusNum,
+    CooldownNum, HateNum, MpNum, StaticPassiveId, StatusNum,
     any_message::AnyMessage,
     damage,
     passive::passive_box::PassiveBox,
@@ -14,19 +14,21 @@ pub enum Effect {
         num: StatusNum,
     },
     ConsumeMp {
+        target_id: LtId,
         num: MpNum,
     },
     HealMp {
+        target_id: LtId,
         num: MpNum,
     },
     AddSkillCooldown {
         target_id: RuntimeCharId,
-        skill_id: StaticSkillId,
+        skill_id: RuntimeSkillId,
         num: CooldownNum,
     },
     HealSkillCooldown {
         target_id: RuntimeCharId,
-        skill_id: StaticSkillId,
+        skill_id: RuntimeSkillId,
         num: CooldownNum,
     },
     HealSkillCooldownAll {
@@ -42,7 +44,7 @@ pub enum Effect {
         num: HateNum,
     },
     UpdatePassiveState {
-        target: LtId,
+        target_id: LtId,
         passive_id: StaticPassiveId,
         message: AnyMessage,
     },
@@ -59,7 +61,7 @@ pub enum Effect {
 
     UpdateSkillState {
         target_id: RuntimeCharId,
-        skill_id: StaticSkillId,
+        skill_id: RuntimeSkillId,
         msg: AnyMessage,
     },
 }

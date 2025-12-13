@@ -1,11 +1,12 @@
 use std::{
-    collections::VecDeque,
     fmt::Debug,
     ops::{Deref, DerefMut},
 };
 
 use crate::{
-    CooldownNum, HateNum, MpNum, StaticSkillId, TimeNum, any_message::AnyMessage, buttle_char::{ButtleChar, ButtleCharCondition}, core_actor::CtxContainer, effect::Effect, runtime_id::RuntimeCharId, state::GameState
+    CooldownNum, HateNum, MpNum, StaticSkillId, TimeNum, any_message::AnyMessage,
+    buttle_char::ButtleCharCondition, core_actor::CtxContainer, runtime_id::RuntimeCharId,
+    state::GameState,
 };
 
 #[derive(Debug, Clone)]
@@ -55,10 +56,10 @@ pub trait SkillTrait: Debug {
 #[derive(Debug, Clone)]
 pub struct UsingSkillState {
     /// スキル使用時フレームが0
-    frame: u32,
+    pub frame: u32,
     /// スキル開始時に0
     /// 毎フレームキャラクターのAGIに応じて加算される値
-    time: TimeNum,
+    pub time: TimeNum,
 }
 
 impl UsingSkillState {

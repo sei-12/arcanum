@@ -1,7 +1,3 @@
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(dead_code)]
-
 use crate::runtime_id::{RuntimeCharId, RuntimeSkillId};
 
 pub mod any_message;
@@ -32,6 +28,13 @@ pub type StaticSkillId = u32;
 pub type StaticPassiveId = u32;
 pub type StaticCharId = u32;
 pub type StaticEnemyId = u32;
+
+pub const NUM_MAX_CHAR_IN_TEAM: u8 = 4;
+pub const NUM_MAX_LEARN_SKILLS: usize = 256;
+pub const NUM_MAX_ENEMYS_IN_WAVE: usize = 5;
+pub const NUM_MAX_WAVES: usize = 256;
+pub const TURN_START_HEAL_MP_NUM: MpNum = 100.0;
+pub const SKILL_COOLDOWN_HEAL_BASE: CooldownNum = 50.0;
 
 pub enum UserInput {
     UseSkill {

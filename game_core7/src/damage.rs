@@ -1,7 +1,6 @@
 use crate::{
     StatusNum,
     runtime_id::{LtId, RuntimeCharId, RuntimeEnemyId},
-    state::GameState,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
