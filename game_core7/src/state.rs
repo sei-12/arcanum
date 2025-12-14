@@ -15,8 +15,8 @@ pub struct GameState {
 }
 
 pub struct GameStateArgs {
-    chars: Vec<ButtleCharArgs>,
-    enemys: Vec<ButtleEnemyArgs>,
+    pub chars: Vec<ButtleCharArgs>,
+    pub enemys: Vec<ButtleEnemyArgs>,
 }
 
 impl GameState {
