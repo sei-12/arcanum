@@ -36,6 +36,8 @@ impl CoreActor {
         input: UserInput,
         output_buffer: &mut impl OutputBuffer,
     ) -> Result<(), crate::Error> {
+        self.state.tick();
+
         assert!(self.effects_buffer.is_empty());
         let mut ctx = CtxContainer {
             effects_buffer: &mut self.effects_buffer,

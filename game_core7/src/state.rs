@@ -48,6 +48,11 @@ impl GameState {
         Ok(Self { chars, enemys })
     }
 
+    pub(crate) fn tick(&mut self) {
+        self.chars.iter_mut().for_each(|c| c.tick());
+        self.enemys.iter_mut().for_each(|e| e.tick());
+    }
+
     pub(crate) fn frame(&self, ctx: &mut CtxContainer) {
         self.get_chars().iter().for_each(|c| c.frame(self, ctx));
 
@@ -120,9 +125,6 @@ impl GameState {
             }
             Effect::HealMp { target_id, num } => {
                 self.get_lt_mut(*target_id).accept_heal_mp(*num);
-            }
-            Effect::EnemyNextAction => {
-                todo!()
             }
         }
     }

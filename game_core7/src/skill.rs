@@ -5,8 +5,8 @@ use std::{
 
 use crate::{
     CooldownNum, HateNum, MpNum, StaticSkillId, TimeNum, any_message::AnyMessage,
-    buttle_char::ButtleCharCondition, core_actor::CtxContainer, runtime_id::RuntimeCharId,
-    state::GameState,
+    buttle_char::ButtleCharCondition, core_actor::CtxContainer, lt_common::LtCommon,
+    runtime_id::RuntimeCharId, state::GameState,
 };
 
 #[derive(Debug, Clone)]
@@ -60,6 +60,12 @@ pub struct UsingSkillState {
     /// スキル開始時に0
     /// 毎フレームキャラクターのAGIに応じて加算される値
     pub time: TimeNum,
+}
+impl UsingSkillState {
+    pub(crate) fn tick(&mut self, char: &LtCommon) {
+        self.frame += 1;
+        self.time += char.speed();
+    }
 }
 
 impl UsingSkillState {

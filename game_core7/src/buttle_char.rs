@@ -199,6 +199,12 @@ impl ButtleChar {
     pub(crate) fn update_skill_state(&mut self, skill_id: RuntimeSkillId, msg: &AnyMessage) {
         self.skills[skill_id.idx as usize].static_data.update(msg);
     }
+
+    pub(crate) fn tick(&mut self) {
+        if let Some(action) = &mut self.current_action {
+            action.state.tick(&self.lt_common);
+        }
+    }
 }
 
 #[derive(Debug)]
