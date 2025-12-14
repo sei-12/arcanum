@@ -12,22 +12,21 @@ pub trait OutputBuffer {
     fn push_output(&mut self, output: CoreOutput);
 }
 
-pub trait RandGen {
-    /// 0以上1未満の数字を出力する
-    fn rnd(&mut self) -> f32;
-}
+// pub trait RandGen {
+//     /// 0以上1未満の数字を出力する
+//     fn rnd(&mut self) -> f32;
+// }
 
-pub struct CoreActor<R: RandGen> {
-    rnd: R,
+pub struct CoreActor {
+    // rnd: R,
     state: GameState,
     effects_buffer: VecDeque<Effect>,
 }
 
-impl<R: RandGen> CoreActor<R> {
-    pub fn new(rnd: R, buttle_args: GameStateArgs) -> Result<Self, crate::Error> {
+impl CoreActor {
+    pub fn new(buttle_args: GameStateArgs) -> Result<Self, crate::Error> {
         Ok(Self {
             effects_buffer: VecDeque::new(),
-            rnd,
             state: GameState::new(buttle_args)?,
         })
     }
@@ -40,7 +39,6 @@ impl<R: RandGen> CoreActor<R> {
         assert!(self.effects_buffer.is_empty());
         let mut ctx = CtxContainer {
             effects_buffer: &mut self.effects_buffer,
-            rnd: &mut self.rnd,
         };
 
         user_input_effect(input, &self.state, &mut ctx)?;
@@ -56,10 +54,8 @@ impl<R: RandGen> CoreActor<R> {
     }
 }
 
-// TODO rename
-// Ctx? Binder ArgContainer Props
+// MEMO: 必要無くなった
 pub struct CtxContainer<'a> {
-    pub rnd: &'a mut dyn RandGen,
     pub effects_buffer: &'a mut VecDeque<Effect>,
 }
 

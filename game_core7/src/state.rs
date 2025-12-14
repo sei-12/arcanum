@@ -42,7 +42,7 @@ impl GameState {
 
         for (i, enemy_data) in enemy_datas.into_iter().enumerate() {
             let runtime_id = RuntimeEnemyId { idx: i as u8 };
-            enemys.push(ButtleEnemy::new(runtime_id, enemy_data));
+            enemys.push(ButtleEnemy::new(runtime_id, enemy_data)?);
         }
 
         Ok(Self { chars, enemys })
@@ -120,6 +120,9 @@ impl GameState {
             }
             Effect::HealMp { target_id, num } => {
                 self.get_lt_mut(*target_id).accept_heal_mp(*num);
+            }
+            Effect::EnemyNextAction => {
+                todo!()
             }
         }
     }

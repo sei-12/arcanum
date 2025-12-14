@@ -64,4 +64,6 @@ pub enum Effect {
         skill_id: RuntimeSkillId,
         msg: AnyMessage,
     },
+    
+    EnemyNextAction,
 }

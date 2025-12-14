@@ -36,6 +36,9 @@ pub enum Error {
 
     #[error("敵キャラクター数が不正です: num_enemys={0}")]
     InvalidNumEnemys(usize),
+    
+    #[error("行動パターンに組み込まれているスキルが見当たりません")]
+    NotFoundSkillInActionPattern,
     // #[error("チーム内に同じキャラクターがいます: id={0}")]
     // ConfrictChar(StaticCharId),
 }
