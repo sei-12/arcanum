@@ -3,20 +3,20 @@ use crate::runtime_id::{RuntimeCharId, RuntimeSkillId};
 pub mod any_message;
 pub mod buttle_char;
 pub mod buttle_enemy;
+mod common;
 pub mod core_actor;
 pub mod damage;
 pub mod effect;
-mod common;
+pub mod enemy_skill;
 pub mod error;
-mod rand;
 pub mod lt_common;
 pub mod output;
 pub mod passive;
 pub mod potential;
+mod rand;
 pub mod skill;
 pub mod state;
 pub mod weapon;
-pub mod enemy_skill;
 
 pub use crate::error::Error;
 
@@ -54,12 +54,6 @@ pub mod runtime_id {
     }
 
     #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
-    pub struct RuntimeEnemyId {
-        // pub(crate) wave_idx: u8,
-        pub(crate) idx: u8,
-    }
-
-    #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
     pub struct RuntimeSkillId {
         pub(crate) char_id: RuntimeCharId,
         pub(crate) idx: u8,
@@ -68,7 +62,8 @@ pub mod runtime_id {
     #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
     pub enum LtId {
         Char(RuntimeCharId),
-        Enemy(RuntimeEnemyId),
+        // Enemy(RuntimeEnemyId),
+        Enemy,
     }
 
     impl From<RuntimeCharId> for LtId {
@@ -82,14 +77,4 @@ pub mod runtime_id {
         }
     }
 
-    impl From<RuntimeEnemyId> for LtId {
-        fn from(value: RuntimeEnemyId) -> Self {
-            LtId::Enemy(value)
-        }
-    }
-    impl From<&RuntimeEnemyId> for LtId {
-        fn from(value: &RuntimeEnemyId) -> Self {
-            LtId::Enemy(*value)
-        }
-    }
 }

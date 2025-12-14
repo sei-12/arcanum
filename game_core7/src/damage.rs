@@ -1,6 +1,6 @@
 use crate::{
     StatusNum,
-    runtime_id::{LtId, RuntimeCharId, RuntimeEnemyId},
+    runtime_id::{LtId, RuntimeCharId},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -21,7 +21,7 @@ impl DamageType {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DamageCauser {
-    Enemy(RuntimeEnemyId),
+    Enemy,
     Char(RuntimeCharId),
     None,
 }
@@ -29,7 +29,7 @@ impl From<LtId> for DamageCauser {
     fn from(value: LtId) -> Self {
         match value {
             LtId::Char(id) => DamageCauser::Char(id),
-            LtId::Enemy(id) => DamageCauser::Enemy(id),
+            LtId::Enemy => DamageCauser::Enemy,
         }
     }
 }
@@ -37,7 +37,7 @@ impl DamageCauser {
     pub fn to_lt_id(self) -> Option<LtId> {
         match self {
             DamageCauser::Char(id) => Some(LtId::Char(id)),
-            DamageCauser::Enemy(id) => Some(LtId::Enemy(id)),
+            DamageCauser::Enemy => Some(LtId::Enemy),
             DamageCauser::None => None,
         }
     }

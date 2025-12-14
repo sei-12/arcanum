@@ -7,7 +7,7 @@ use crate::{
     enemy_skill::EnemySkill,
     lt_common::LtCommon,
     potential::Potential,
-    runtime_id::{LtId, RuntimeEnemyId},
+    runtime_id::{LtId},
     state::GameState,
 };
 
@@ -28,13 +28,12 @@ pub struct ButtleEnemyArgs {
 
 #[derive(Debug)]
 pub struct ButtleEnemy {
-    id: RuntimeEnemyId,
     lt_common: LtCommon,
     skill_runner: EnemySkillRunnner,
 }
 
 impl ButtleEnemy {
-    pub(crate) fn new(id: RuntimeEnemyId, args: ButtleEnemyArgs) -> Result<Self, crate::Error> {
+    pub(crate) fn new(args: ButtleEnemyArgs) -> Result<Self, crate::Error> {
         let mut action_patterns = Vec::with_capacity(args.action_patterns.len());
         for pattern in args.action_patterns {
             action_patterns.push(Vec::with_capacity(pattern.len()));
@@ -48,7 +47,6 @@ impl ButtleEnemy {
         }
 
         Ok(ButtleEnemy {
-            id,
             lt_common: LtCommon::new(args.potential, args.level),
             skill_runner: EnemySkillRunnner::new(args.skills, action_patterns),
         })
@@ -67,12 +65,8 @@ impl ButtleEnemy {
         self.skill_runner.view_skills()
     }
 
-    pub fn runtime_id(&self) -> RuntimeEnemyId {
-        self.id
-    }
-
     pub fn lt_id(&self) -> LtId {
-        self.runtime_id().into()
+        LtId::Enemy
     }
 
     pub fn lt(&self) -> &LtCommon {

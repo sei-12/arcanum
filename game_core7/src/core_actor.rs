@@ -12,13 +12,7 @@ pub trait OutputBuffer {
     fn push_output(&mut self, output: CoreOutput);
 }
 
-// pub trait RandGen {
-//     /// 0以上1未満の数字を出力する
-//     fn rnd(&mut self) -> f32;
-// }
-
 pub struct CoreActor {
-    // rnd: R,
     state: GameState,
     effects_buffer: VecDeque<Effect>,
 }

@@ -1,29 +1,27 @@
 use crate::{
-    NUM_MAX_CHAR_IN_TEAM, NUM_MAX_ENEMYS_IN_WAVE,
+    NUM_MAX_CHAR_IN_TEAM,
     buttle_char::{ButtleChar, ButtleCharArgs},
     buttle_enemy::{ButtleEnemy, ButtleEnemyArgs},
     core_actor::CtxContainer,
     effect::Effect,
     lt_common::LtCommon,
-    runtime_id::{LtId, RuntimeCharId, RuntimeEnemyId},
+    runtime_id::{LtId, RuntimeCharId},
 };
 
 #[derive(Debug)]
 pub struct GameState {
     chars: Vec<ButtleChar>,
-    enemys: Vec<ButtleEnemy>,
+    enemy: ButtleEnemy,
 }
 
 pub struct GameStateArgs {
     pub chars: Vec<ButtleCharArgs>,
-    pub enemys: Vec<ButtleEnemyArgs>,
+    pub enemy: ButtleEnemyArgs,
 }
 
 impl GameState {
     pub(crate) fn new(args: GameStateArgs) -> Result<Self, crate::Error> {
         let char_datas = args.chars;
-        let enemy_datas = args.enemys;
-
         let mut chars = Vec::<ButtleChar>::new();
 
         if char_datas.is_empty() || char_datas.len() > NUM_MAX_CHAR_IN_TEAM as usize {
@@ -35,28 +33,19 @@ impl GameState {
             chars.push(ButtleChar::new(runtime_id, char_data)?);
         }
 
-        let mut enemys = Vec::<ButtleEnemy>::new();
-        if enemy_datas.is_empty() || enemy_datas.len() > NUM_MAX_ENEMYS_IN_WAVE {
-            return Err(crate::Error::InvalidNumEnemys(enemy_datas.len()));
-        }
+        let enemy = ButtleEnemy::new(args.enemy)?;
 
-        for (i, enemy_data) in enemy_datas.into_iter().enumerate() {
-            let runtime_id = RuntimeEnemyId { idx: i as u8 };
-            enemys.push(ButtleEnemy::new(runtime_id, enemy_data)?);
-        }
-
-        Ok(Self { chars, enemys })
+        Ok(Self { chars, enemy })
     }
 
     pub(crate) fn tick(&mut self) {
         self.chars.iter_mut().for_each(|c| c.tick());
-        self.enemys.iter_mut().for_each(|e| e.tick());
+        self.enemy.tick();
     }
 
     pub(crate) fn frame(&self, ctx: &mut CtxContainer) {
         self.get_chars().iter().for_each(|c| c.frame(self, ctx));
-
-        self.get_enemys().iter().for_each(|e| e.frame(self, ctx));
+        self.enemy.frame(self, ctx);
     }
 
     pub(crate) fn accept(&mut self, effect: &Effect) {
@@ -133,14 +122,14 @@ impl GameState {
         &mut self.chars[id.idx as usize]
     }
 
-    fn get_enemy_mut(&mut self, id: RuntimeEnemyId) -> &mut ButtleEnemy {
-        &mut self.enemys[id.idx as usize]
+    fn get_enemy_mut(&mut self) -> &mut ButtleEnemy {
+        &mut self.enemy
     }
 
     fn get_lt_mut(&mut self, id: LtId) -> &mut LtCommon {
         match id {
             LtId::Char(char_id) => self.get_char_mut(char_id).lt_mut(),
-            LtId::Enemy(enemy_id) => self.get_enemy_mut(enemy_id).lt_mut(),
+            LtId::Enemy => self.get_enemy_mut().lt_mut(),
         }
     }
 }
@@ -155,16 +144,12 @@ impl GameState {
         &self.chars
     }
 
-    pub fn get_enemys(&self) -> &Vec<ButtleEnemy> {
-        &self.enemys
-    }
-
     pub fn get_char(&self, id: RuntimeCharId) -> &ButtleChar {
         &self.chars[id.idx as usize]
     }
 
-    pub fn get_enemy(&self, id: RuntimeEnemyId) -> &ButtleEnemy {
-        &self.enemys[id.idx as usize]
+    pub fn get_enemy(&self) -> &ButtleEnemy {
+        &self.enemy
     }
 
     pub fn try_get_char(&self, id: RuntimeCharId) -> Result<&ButtleChar, crate::Error> {
@@ -173,16 +158,10 @@ impl GameState {
             .ok_or(crate::Error::NotFoundChar(id))
     }
 
-    pub fn try_get_enemy(&self, id: RuntimeCharId) -> Result<&ButtleEnemy, crate::Error> {
-        self.enemys
-            .get(id.idx as usize)
-            .ok_or(crate::Error::NotFoundEnemy(id))
-    }
-
     pub fn get_lt(&self, lt_id: LtId) -> &LtCommon {
         match lt_id {
             LtId::Char(id) => self.get_char(id).lt(),
-            LtId::Enemy(id) => self.get_enemy(id).lt(),
+            LtId::Enemy => self.get_enemy().lt(),
         }
     }
 }
