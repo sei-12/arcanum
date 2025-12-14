@@ -1,14 +1,9 @@
 use std::fmt::Debug;
 
 use crate::{
-    LevelNum, StaticEnemySkillId,
-    buttle_enemy::enemy_skill_runner::EnemySkillRunnner,
-    core_actor::CtxContainer,
-    enemy_skill::EnemySkill,
-    lt_common::LtCommon,
-    potential::Potential,
-    runtime_id::{LtId},
-    state::GameState,
+    LevelNum, StaticEnemySkillId, buttle_enemy::enemy_skill_runner::EnemySkillRunnner,
+    core_actor::CtxContainer, enemy_skill::EnemySkill, lt_common::LtCommon,
+    passive::passive_box::PassiveBox, potential::Potential, runtime_id::LtId, state::GameState,
 };
 
 mod enemy_skill_runner;
@@ -24,6 +19,7 @@ pub struct ButtleEnemyArgs {
     pub potential: Potential,
     pub skills: Vec<EnemySkill>,
     pub action_patterns: Vec<Vec<StaticEnemySkillId>>,
+    pub default_passive: Vec<PassiveBox>,
 }
 
 #[derive(Debug)]
@@ -46,8 +42,13 @@ impl ButtleEnemy {
             }
         }
 
+        let mut lt_common = LtCommon::new(args.potential, args.level);
+        args.default_passive.into_iter().for_each(|p| {
+            lt_common.passive.add(p);
+        });
+
         Ok(ButtleEnemy {
-            lt_common: LtCommon::new(args.potential, args.level),
+            lt_common,
             skill_runner: EnemySkillRunnner::new(args.skills, action_patterns),
         })
     }

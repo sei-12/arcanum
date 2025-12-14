@@ -43,7 +43,7 @@ pub struct ButtleCharArgs {
     pub name: &'static str,
     pub level: LevelNum,
     pub potential: Potential,
-    pub passives: Vec<PassiveBox>,
+    pub default_passives: Vec<PassiveBox>,
     pub skills: Vec<SkillBox>,
     pub weapon: Weapon,
 }
@@ -60,7 +60,7 @@ impl ButtleChar {
         let mut lt_common =
             LtCommon::new_with_weapon(data.potential.clone(), data.level, data.weapon.clone());
 
-        data.passives.into_iter().for_each(|p| {
+        data.default_passives.into_iter().for_each(|p| {
             lt_common.passive.add(p);
         });
 
