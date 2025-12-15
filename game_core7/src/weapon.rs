@@ -9,6 +9,7 @@ pub enum WeaponType {
     Hammer,
     SwordAndShield,
     SpearAndShield,
+    Bow,
 }
 
 impl WeaponType {

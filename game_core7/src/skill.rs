@@ -1,12 +1,19 @@
 use std::{
+    any::Any,
     fmt::Debug,
     ops::{Deref, DerefMut},
 };
 
+use dyn_clone::DynClone;
+
 use crate::{
-    CooldownNum, HateNum, MpNum, StaticSkillId, TimeNum, any_message::AnyMessage,
-    buttle_char::ButtleCharCondition, core_actor::CtxContainer, lt_common::LtCommon,
-    runtime_id::RuntimeCharId, state::GameState,
+    CooldownNum, HateNum, MpNum, StaticSkillId, TimeNum,
+    any_message::AnyMessage,
+    buttle_char::ButtleCharCondition,
+    core_actor::CtxContainer,
+    lt_common::LtCommon,
+    runtime_id::{RuntimeCharId, RuntimeSkillId},
+    state::GameState,
 };
 
 #[derive(Debug, Clone)]
@@ -22,6 +29,8 @@ pub struct SkillInfomation {
 pub trait SkillTrait: Debug {
     fn info(&self) -> &SkillInfomation;
     fn clone_instance(&self) -> SkillBox;
+
+    fn start(&mut self);
 
     fn frame(
         &self,
@@ -55,12 +64,14 @@ pub trait SkillTrait: Debug {
 
 #[derive(Debug, Clone)]
 pub struct UsingSkillState {
+    pub runtime_skill_id: RuntimeSkillId,
     /// スキル使用時フレームが0
     pub frame: u32,
     /// スキル開始時に0
     /// 毎フレームキャラクターのAGIに応じて加算される値
     pub time: TimeNum,
 }
+
 impl UsingSkillState {
     pub(crate) fn tick(&mut self, char: &LtCommon) {
         self.frame += 1;
@@ -69,17 +80,12 @@ impl UsingSkillState {
 }
 
 impl UsingSkillState {
-    pub fn new() -> Self {
+    pub fn new(skill_id: RuntimeSkillId) -> Self {
         Self {
             frame: 0,
             time: 0.0,
+            runtime_skill_id: skill_id, // use_free: SkillStateUseFree::UnInitialized,
         }
-    }
-}
-
-impl Default for UsingSkillState {
-    fn default() -> Self {
-        Self::new()
     }
 }
 

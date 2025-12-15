@@ -30,7 +30,7 @@ pub struct PassiveInfo {
 
 #[derive(Debug, Clone)]
 pub struct PassiveUpdateInfo {
-    need_update_cached_status: bool,
+    pub need_update_cached_status: bool,
 }
 
 pub trait PassiveTrait: Debug {
@@ -39,10 +39,15 @@ pub trait PassiveTrait: Debug {
     fn static_id(&self) -> StaticPassiveId;
     fn merge(&mut self, passive: &dyn Any) -> PassiveUpdateInfo;
     fn should_trash(&self) -> bool;
-    fn update(&mut self, msg: &AnyMessage) -> PassiveUpdateInfo;
     fn info(&self) -> &PassiveInfo;
     fn frame(&self, owner: LtId, state: &GameState, ctx: &mut CtxContainer);
     fn status(&self, s: &mut PassiveStatus);
+    fn tick(&mut self) -> PassiveUpdateInfo;
+
+    #[allow(unused_variables)]
+    fn update(&mut self, msg: &AnyMessage) -> PassiveUpdateInfo {
+        unimplemented!()
+    }
 
     #[allow(unused_variables)]
     fn trigger_recv_dmg(

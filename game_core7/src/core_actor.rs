@@ -72,7 +72,7 @@ fn user_input_effect(
             ctx.effects_buffer.push_back(Effect::UseSkill {
                 user_id: char_id,
                 skill_id,
-                state: UsingSkillState::new(),
+                state: UsingSkillState::new(skill_id),
             });
         }
         UserInput::None => {}
