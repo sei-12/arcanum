@@ -55,6 +55,8 @@ pub struct SkillInfomation {
 }
 
 pub trait SkillTrait: Debug + Downcast + DynClone {
+    fn update_current_condition(&mut self);
+    fn current_condition(&self);
     fn tick(&self) -> fn(RuntimeSkillId, &mut GameState);
     fn info(&self) -> &SkillInfomation;
 

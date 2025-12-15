@@ -1,9 +1,7 @@
 use std::{
-    any::Any,
     collections::{BTreeMap, HashMap, hash_map},
     fmt::Debug,
     ops::{Deref, DerefMut},
-    sync::Arc,
 };
 
 mod added_order;
@@ -69,7 +67,7 @@ pub trait PassiveTrait: Debug + Downcast + DynClone {
     fn display(&self) -> String;
     fn should_trash(&self) -> bool;
     fn merge(&mut self, passive: &PassiveBox);
-    fn tick(&self) -> fn();
+    fn tick(&self) -> fn(LtId, StaticPassiveId, &mut GameState);
     fn status(&self, status: &mut PassiveStatus) {}
     fn trigger_recv_damage(&self, owner: LtId, dmg: &Damage, state: &GameState) {}
 }
@@ -118,7 +116,6 @@ impl PassiveList {
 
         self.cached_status.need_update();
     }
-
 
     pub fn status(&self) -> std::cell::Ref<'_, PassiveStatus> {
         self.cached_status.get(self.map.values())
