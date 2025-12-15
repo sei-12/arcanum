@@ -1,14 +1,23 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+pub mod core_actor;
+pub mod error;
+pub mod runtime_id;
+// pub mod accepter;
+pub mod game_state;
+pub mod buttle_char;
+pub mod effect;
+pub mod buttle_enemy;
+mod any_message;
+pub mod skill;
+pub mod buttle_skill;
+pub mod damage;
+pub mod lt_common;
+pub mod potential;
+pub mod passive;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub use error::Error;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub type StaticSkillId = u32;
+pub type StaticPassiveId = u32;
+pub type StatusNum = f32;
+pub type TimeNum = f32;
+pub type LevelNum = u32;
