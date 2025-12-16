@@ -1,9 +1,0 @@
-[package]
-name = "desktop"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-iced = "0.14.0"
-game_core6 = { path = "../game_core6" } 
-iced_aw = { version = "0.13.0", features = ["full"] }
