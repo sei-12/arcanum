@@ -27,6 +27,10 @@ impl GameCoreActor {
         })
     }
 
+    pub fn state(&self) -> &GameState {
+        &self.state
+    }
+
     pub fn tick(
         &mut self,
         input: UserInput,
@@ -105,7 +109,6 @@ impl From<WinOrLose> for OutputEvent {
     }
 }
 
-// todo
 pub struct OutputEffect {
     pub kind: OutputEffectKind,
 }

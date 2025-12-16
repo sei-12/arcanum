@@ -2,7 +2,7 @@ pub mod core_actor;
 pub mod error;
 pub mod runtime_id;
 // pub mod accepter;
-mod any_message;
+pub mod any_message;
 pub mod buttle_char;
 pub mod buttle_enemy;
 pub mod buttle_skill;

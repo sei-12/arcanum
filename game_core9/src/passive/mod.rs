@@ -147,7 +147,17 @@ impl PassiveList {
     }
 
     pub(crate) fn update(&mut self, id: StaticPassiveId, msg: &AnyMessageBox) {
-        self.map.get_mut(&id).unwrap().update(msg);
+        let hash_map::Entry::Occupied(mut entry) = self.map.entry(id) else {
+            // 見つからない場合もある
+            return;
+        };
+
+        entry.get_mut().update(msg);
+        if entry.get().should_trash() {
+            entry.remove();
+            self.added_order.remove_expect(id);
+        }
+        self.cached_status.need_update();
     }
 
     pub(crate) fn trigger_recv_damage(

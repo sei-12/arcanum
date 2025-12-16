@@ -1,35 +1,3 @@
-// use std::collections::VecDeque;
-
-// use crate::{effect::Effect, game_state::GameState, lt_common::LtCommon, runtime_id::LtId};
-
-// pub struct ButtleEnemyArgs {}
-
-// pub struct ButtleEnemy {
-//     lt_common: LtCommon,
-// }
-
-// impl ButtleEnemy {
-//     pub fn new(args: ButtleEnemyArgs) -> Self {
-//         todo!()
-//     }
-
-//     pub fn tick(&self, state: &GameState, effects_buffer: &mut VecDeque<Effect>) {
-//         self.lt_common.tick(self.lt_id(), state, effects_buffer);
-//     }
-
-//     pub fn lt_id(&self) -> LtId {
-//         LtId::Enemy
-//     }
-
-//     pub fn lt_mut(&mut self) -> &mut LtCommon {
-//         &mut self.lt_common
-//     }
-
-//     pub fn lt(&self) -> &LtCommon {
-//         &self.lt_common
-//     }
-// }
-
 use std::{collections::VecDeque, fmt::Debug};
 
 use crate::{

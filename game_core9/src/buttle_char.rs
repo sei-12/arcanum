@@ -13,11 +13,11 @@ use crate::{
 };
 
 pub struct ButtleCharArgs {
-    static_id: StaticCharId,
-    potential: Potential,
-    skills: Vec<SkillBox>,
-    weapon: Weapon,
-    level: LevelNum,
+    pub static_id: StaticCharId,
+    pub potential: Potential,
+    pub skills: Vec<SkillBox>,
+    pub weapon: Weapon,
+    pub level: LevelNum,
 }
 
 pub struct ButtleChar {
