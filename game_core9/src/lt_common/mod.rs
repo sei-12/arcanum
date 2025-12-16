@@ -1,6 +1,9 @@
+use std::collections::VecDeque;
+
 use crate::{
-    LevelNum, StatusNum, TimeNum, lt_common::any_point::AnyPointPercent, passive::PassiveList,
-    potential::Potential, weapon::Weapon,
+    LevelNum, StatusNum, TimeNum, effect::Effect, game_state::GameState,
+    lt_common::any_point::AnyPointPercent, passive::PassiveList, potential::Potential,
+    runtime_id::LtId, weapon::Weapon,
 };
 
 mod any_point;
@@ -33,6 +36,18 @@ impl LtCommon {
 
     pub(crate) fn new_with_weapon(potential: Potential, level: LevelNum, weapon: Weapon) -> Self {
         Self::new_inner(potential, level, Some(weapon))
+    }
+    pub(crate) fn tick(
+        &self,
+        owner_id: LtId,
+        state: &GameState,
+        effects_buffer: &mut VecDeque<Effect>,
+    ) {
+        self.passive.tick(owner_id, state, effects_buffer);
+        effects_buffer.push_back(Effect::HealMp {
+            target_id: owner_id,
+            num: self.mp_heal(),
+        });
     }
 }
 

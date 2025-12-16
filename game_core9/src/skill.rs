@@ -1,4 +1,5 @@
 use std::{
+    collections::VecDeque,
     fmt::Debug,
     ops::{Deref, DerefMut},
 };
@@ -8,6 +9,9 @@ use dyn_clone::DynClone;
 
 use crate::{
     StaticSkillId, StatusNum, TimeNum,
+    any_message::AnyMessageBox,
+    buttle_char::SkillCondition,
+    effect::Effect,
     game_state::GameState,
     runtime_id::{RuntimeCharId, RuntimeSkillId},
 };
@@ -55,9 +59,17 @@ pub struct SkillInfomation {
 }
 
 pub trait SkillTrait: Debug + Downcast + DynClone {
-    fn update_current_condition(&mut self);
-    fn current_condition(&self);
-    fn tick(&self) -> fn(RuntimeSkillId, &mut GameState);
+    fn current_condition(&self) -> SkillCondition;
+    fn tick(
+        &self,
+        owner_id: RuntimeCharId,
+        state: &GameState,
+        effects_buffer: &mut VecDeque<Effect>,
+    );
+
+    fn start(&mut self);
+    fn update(&mut self, msg: &AnyMessageBox);
+
     fn info(&self) -> &SkillInfomation;
 
     #[allow(unused_variables)]

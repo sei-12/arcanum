@@ -1,7 +1,8 @@
 use std::{
-    collections::{BTreeMap, HashMap, hash_map},
+    collections::{BTreeMap, HashMap, VecDeque, hash_map},
     fmt::Debug,
     ops::{Deref, DerefMut},
+    path::Iter,
 };
 
 mod added_order;
@@ -13,10 +14,12 @@ use dyn_clone::DynClone;
 
 use crate::{
     StaticPassiveId,
+    any_message::AnyMessageBox,
     damage::Damage,
+    effect::Effect,
     game_state::GameState,
     passive::{added_order::AddedOrder, status::PassiveStatus},
-    runtime_id::LtId,
+    runtime_id::{LtId, RuntimeCharId},
 };
 
 //--------------------------------------------------//
@@ -67,9 +70,17 @@ pub trait PassiveTrait: Debug + Downcast + DynClone {
     fn display(&self) -> String;
     fn should_trash(&self) -> bool;
     fn merge(&mut self, passive: &PassiveBox);
-    fn tick(&self) -> fn(LtId, StaticPassiveId, &mut GameState);
+    fn tick(&self, owner: LtId, state: &GameState, effects_buffer: &mut VecDeque<Effect>);
+    fn update(&mut self, msg: &AnyMessageBox);
     fn status(&self, status: &mut PassiveStatus) {}
-    fn trigger_recv_damage(&self, owner: LtId, dmg: &Damage, state: &GameState) {}
+    fn trigger_recv_damage(
+        &self,
+        owner: LtId,
+        dmg: &Damage,
+        state: &GameState,
+        effects_buffer: &mut VecDeque<Effect>,
+    ) {
+    }
 }
 dyn_clone::clone_trait_object!(PassiveTrait);
 impl_downcast!(PassiveTrait);
@@ -119,6 +130,37 @@ impl PassiveList {
 
     pub fn status(&self) -> std::cell::Ref<'_, PassiveStatus> {
         self.cached_status.get(self.map.values())
+    }
+
+    fn added_order_iter(&self) -> impl Iterator<Item = &PassiveBox> {
+        self.added_order.iter().map(|id| self.map.get(&id).unwrap())
+    }
+
+    pub(crate) fn tick(
+        &self,
+        owner_id: LtId,
+        state: &GameState,
+        effects_buffer: &mut VecDeque<Effect>,
+    ) {
+        self.added_order_iter().for_each(|p| {
+            p.tick(owner_id, state, effects_buffer);
+        });
+    }
+
+    pub(crate) fn update(&mut self, id: StaticPassiveId, msg: &AnyMessageBox) {
+        self.map.get_mut(&id).unwrap().update(msg);
+    }
+
+    pub(crate) fn trigger_recv_damage(
+        &self,
+        owner: LtId,
+        dmg: &Damage,
+        state: &GameState,
+        effects_buffer: &mut VecDeque<Effect>,
+    ) {
+        self.added_order_iter().for_each(|p| {
+            p.trigger_recv_damage(owner, dmg, state, effects_buffer);
+        });
     }
 }
 

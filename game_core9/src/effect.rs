@@ -1,6 +1,6 @@
 use crate::{
     StaticPassiveId, StatusNum, TimeNum,
-    any_message::MessageBox,
+    any_message::AnyMessageBox,
     damage,
     passive::PassiveBox,
     runtime_id::{LtId, RuntimeCharId, RuntimeSkillId},
@@ -8,6 +8,7 @@ use crate::{
 
 #[derive(Debug, Clone)]
 pub enum Effect {
+    EnemySkillRunnerIncrementFrame,
     Damage(damage::Damage),
     HealHp {
         target_id: LtId,
@@ -24,14 +25,14 @@ pub enum Effect {
     UpdatePassiveState {
         target_id: LtId,
         passive_id: StaticPassiveId,
-        message: MessageBox,
+        message: AnyMessageBox,
     },
     AddPassive {
         target_id: LtId,
         passive: PassiveBox,
     },
     AddSkillCooldown {
-        target_id: RuntimeSkillId,
+        skill_id: RuntimeSkillId,
         num: TimeNum,
     },
     HealSkillCooldownAll {
@@ -44,6 +45,9 @@ pub enum Effect {
     },
     UpdateSkillState {
         skill_id: RuntimeSkillId,
-        msg: MessageBox,
+        msg: AnyMessageBox,
+    },
+    UseSkill {
+        skill_id: RuntimeSkillId,
     },
 }
