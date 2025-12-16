@@ -157,6 +157,29 @@ impl GameState {
 
         None
     }
+
+    pub fn get_chars(&self) -> &Vec<ButtleChar> {
+        &self.chars
+    }
+
+    pub fn get_highest_hate_char(&self) -> &ButtleChar {
+        assert!(!self.chars.is_empty());
+
+        self.chars
+            .iter()
+            .rev()
+            .max_by(|a, b| a.hate().total_cmp(&b.hate()))
+            .unwrap()
+    }
+
+    pub fn get_chars_sorted_by_hate(&self) -> Vec<&ButtleChar> {
+        let mut tmp = self.chars.iter().collect::<Vec<_>>();
+        tmp.sort_by(|a, b| b.hate().total_cmp(&a.hate()));
+
+        debug_assert!({ tmp.first().unwrap().hate() >= tmp.last().unwrap().hate() });
+
+        tmp
+    }
 }
 
 pub(crate) enum WinOrLose {

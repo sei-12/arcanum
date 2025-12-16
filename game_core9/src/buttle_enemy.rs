@@ -93,14 +93,6 @@ impl ButtleEnemy {
     pub(crate) fn skill_runner_increment_frame(&mut self) {
         self.skill_runner.increment_frame();
     }
-    // pub fn tick(&mut self) {
-    //     self.skill_runner.tick();
-    // }
-
-    // pub fn frame(&self, state: &GameState, ctx: &mut CtxContainer) {
-    //     self.skill_runner.frame(state, ctx);
-    //     self.lt_common.passive.frame(self.lt_id(), state, ctx);
-    // }
 
     pub fn view_skills(&self) -> impl Iterator<Item = &EnemySkill> {
         self.skill_runner.view_skills()
