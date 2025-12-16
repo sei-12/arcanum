@@ -8,6 +8,7 @@ use crate::{
 
 mod enemy_skill_runner;
 
+#[derive(Debug)]
 pub struct EnemyInfomation {
     pub name: &'static str,
     pub desctiption: &'static str,
@@ -26,6 +27,7 @@ pub struct ButtleEnemyArgs {
 pub struct ButtleEnemy {
     lt_common: LtCommon,
     skill_runner: EnemySkillRunnner,
+    info: EnemyInfomation,
 }
 
 impl ButtleEnemy {
@@ -50,6 +52,7 @@ impl ButtleEnemy {
         Ok(ButtleEnemy {
             lt_common,
             skill_runner: EnemySkillRunnner::new(args.skills, action_patterns),
+            info: args.info,
         })
     }
 
@@ -76,5 +79,8 @@ impl ButtleEnemy {
 
     pub(crate) fn lt_mut(&mut self) -> &mut LtCommon {
         &mut self.lt_common
+    }
+    pub fn info(&self) -> &EnemyInfomation {
+        &self.info
     }
 }

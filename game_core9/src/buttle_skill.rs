@@ -1,5 +1,6 @@
 use crate::{TimeNum, game_state::GameState, runtime_id::RuntimeSkillId, skill::SkillBox};
 
+#[derive(Debug)]
 pub struct ButtleSkill {
     runtime_id: RuntimeSkillId,
     skill_box: SkillBox,

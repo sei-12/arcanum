@@ -18,6 +18,12 @@ impl AnyPointPercent {
         }
     }
 
+    pub fn new_empty() -> Self {
+        Self {
+            inner_val: Num::Plus(0.0),
+        }
+    }
+
     pub fn get(&self, max_point: f32) -> f32 {
         match self.inner_val {
             Num::Plus(v) => v * max_point,
@@ -56,6 +62,12 @@ mod tests {
     fn new_max_is_full_point() {
         let p = AnyPointPercent::new_max();
         assert_f32_eq(p.get(MAX), MAX);
+    }
+
+    #[test]
+    fn new_empty() {
+        let p = AnyPointPercent::new_empty();
+        assert_f32_eq(p.get(MAX), 0.0);
     }
 
     #[test]
@@ -190,4 +202,3 @@ mod tests {
         assert_f32_eq(p.get(1_000.0), -30.0);
     }
 }
-

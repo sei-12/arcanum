@@ -18,8 +18,10 @@ pub struct ButtleCharArgs {
     pub skills: Vec<SkillBox>,
     pub weapon: Weapon,
     pub level: LevelNum,
+    pub name: &'static str,
 }
 
+#[derive(Debug)]
 pub struct ButtleChar {
     lt_common: LtCommon,
     current_using_skill: Option<RuntimeSkillId>,
@@ -28,6 +30,7 @@ pub struct ButtleChar {
     runtime_id: RuntimeCharId,
     hate: StatusNum,
     static_id: StaticCharId,
+    name: &'static str,
 }
 
 impl ButtleChar {
@@ -51,6 +54,7 @@ impl ButtleChar {
             hate: 0.0,
             runtime_id,
             static_id: args.static_id,
+            name: args.name,
         })
     }
 
@@ -95,6 +99,10 @@ impl ButtleChar {
         self.skills.get(id.idx as usize).unwrap()
     }
 
+    pub fn get_skills(&self) -> &Vec<ButtleSkill> {
+        &self.skills
+    }
+
     pub(crate) fn get_skill_mut(&mut self, id: RuntimeSkillId) -> &mut ButtleSkill {
         self.skills.get_mut(id.idx as usize).unwrap()
     }
@@ -118,6 +126,10 @@ impl ButtleChar {
     }
     pub fn static_id(&self) -> StaticCharId {
         self.static_id
+    }
+
+    pub fn name(&self) -> &'static str {
+        self.name
     }
 }
 

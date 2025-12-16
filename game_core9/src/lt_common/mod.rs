@@ -24,7 +24,7 @@ impl LtCommon {
             potential,
             level,
             hp_per: AnyPointPercent::new_max(),
-            mp_per: AnyPointPercent::new_max(),
+            mp_per: AnyPointPercent::new_empty(),
             passive: PassiveList::default(),
             weapon,
         }
@@ -145,7 +145,7 @@ impl LtCommon {
         // potentialがMの時に1sあたりMPがN回復する
         // potentialが0の時に1sあたりMPがBASE回復する
         const M: f32 = 10.0;
-        const N: f32 = 300.0;
+        const N: f32 = 5.0;
         const FPS: f32 = 100.0;
         const MP_HEAL_BASE_PER_SEC: f32 = 100.0;
 

@@ -77,6 +77,7 @@ mod a {
     fn char1() -> ButtleCharArgs {
         ButtleCharArgs {
             level: 1,
+            name: "",
             potential: Potential::new(10.0, 10.0, 10.0, 10.0, 10.0),
             skills: vec![SkillBox::new(Skill {})],
             static_id: 1,

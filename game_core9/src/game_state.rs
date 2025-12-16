@@ -15,6 +15,7 @@ pub struct GameStateArgs {
     pub enemy: ButtleEnemyArgs,
 }
 
+#[derive(Debug)]
 pub struct GameState {
     chars: Vec<ButtleChar>,
     enemy: ButtleEnemy,

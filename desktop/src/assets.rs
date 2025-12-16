@@ -3,7 +3,8 @@ use game_core9::{
     buttle_char::ButtleCharArgs,
     buttle_enemy::{ButtleEnemyArgs, EnemyInfomation},
     core_actor::{GameCoreActor, UserInput},
-    enemy_skill::EnemySkill,
+    damage::DamageType,
+    enemy_skill::{EnemySkill, EnemySkillAction, EnemySkillTarget},
     game_state::GameStateArgs,
     potential::Potential,
     skill::{SkillBox, SkillTrait},
@@ -15,9 +16,16 @@ fn enemy_skill1() -> EnemySkill {
         id: 1,
         name: "()",
         need_mp: 10.0,
-        start_up_frames: 10,
-        recovery_frame: 10,
-        actions: vec![],
+        start_up_frames: 400,
+        recovery_frame: 100,
+        actions: vec![(
+            EnemySkillTarget::Single,
+            EnemySkillAction::Damage {
+                ty: DamageType::Physics,
+                dmg_mag: 1.0,
+                count: 1,
+            },
+        )],
     }
 }
 
@@ -64,7 +72,7 @@ impl SkillTrait for Skill {
     ) {
     }
     fn start(&mut self) {}
-    fn update(&mut self, msg: &AnyMessageBox) {}
+    fn update(&mut self, _msg: &AnyMessageBox) {}
     fn current_condition(&self) -> game_core9::buttle_char::SkillCondition {
         todo!()
     }
@@ -73,10 +81,10 @@ impl SkillTrait for Skill {
 fn char1() -> ButtleCharArgs {
     ButtleCharArgs {
         level: 1,
-        name: "",
         potential: Potential::new(10.0, 10.0, 10.0, 10.0, 10.0),
         skills: vec![SkillBox::new(Skill {})],
         static_id: 1,
+        name: "hello",
         weapon: Weapon {
             m_atk: 1.0,
             p_atk: 1.0,
@@ -101,16 +109,6 @@ fn args() -> GameStateArgs {
     }
 }
 
-#[test]
-fn test1() {
-    let core = GameCoreActor::new(args()).unwrap();
-    assert_eq!(core.state().get_chars().len(), 1);
-}
-
-#[test]
-fn test2() {
-    let mut output_buffer = Vec::new();
-    let mut core = GameCoreActor::new(args()).unwrap();
-    let res = core.tick(UserInput::None, &mut output_buffer);
-    assert!(res.is_ok());
+pub fn game_core() -> GameCoreActor {
+    GameCoreActor::new(args()).unwrap()
 }
