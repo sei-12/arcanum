@@ -2,21 +2,23 @@ use std::time::Duration;
 
 use game_core9::core_actor::{GameCoreActor, GameCoreOutput, UserInput};
 use game_core9::game_state::GameState;
-use iced::Element;
+use iced::widget::{button, column, text};
+use iced::{Element, Subscription};
 
 use crate::assets::game_core;
+use crate::game_view::{GamePage, GameViewMessage};
 use crate::ui_state::UIState;
-use crate::view::game_view;
+// use crate::view::game_view;
 
 mod assets;
 mod common;
+mod game_view;
 mod ui_state;
-mod view;
+// mod view;
 
 pub fn main() -> iced::Result {
-    iced::application("Pixels", Example::update, Example::view)
-        // This subscription is just to make the animation work
-        .subscription(|_| iced::time::every(Duration::from_millis(10)).map(|_| Message::Step))
+    iced::application("Pixels", MainApp::update, MainApp::view)
+        .subscription(MainApp::subscription)
         .font(include_bytes!("../assets/fonts/KaiseiOpti-Regular.ttf"))
         .default_font(iced::Font {
             family: iced::font::Family::Name("Kaisei Opti"),
@@ -27,51 +29,76 @@ pub fn main() -> iced::Result {
         .run()
 }
 
-struct Example {
-    game_core: GameCoreActor,
-    output_buffer: Vec<GameCoreOutput>,
-    ui_state: UIState,
+trait PageTrait {
+    fn view(&self) -> Element<'_, MainAppMessage>;
+    fn update(&mut self, msg: MainAppMessage) -> Option<Box<dyn PageTrait>>;
+
+    #[allow(unused_variables)]
+    fn subscription(&self, subscriptions: &mut Vec<Subscription<MainAppMessage>>) {}
 }
 
-impl Default for Example {
+#[derive(Debug, Clone)]
+enum MainAppMessage {
+    GameViewMessage(GameViewMessage),
+    HomePageMessage(HomePageMessage),
+}
+
+struct MainApp {
+    page: Box<dyn PageTrait>,
+}
+impl Default for MainApp {
     fn default() -> Self {
         Self {
-            game_core: game_core(),
-            output_buffer: Vec::new(),
-            ui_state: UIState::new(),
+            page: Box::new(HomePage),
         }
     }
 }
 
-#[derive(Debug, Clone, Copy)]
-enum Message {
-    Step,
-}
-
-impl Example {
-    fn update(&mut self, message: Message) {
-        match message {
-            Message::Step => {
-                println!("step");
-                // self.game_core
-                //     .tick(UserInput::None, &mut self.output_buffer)
-                //     .unwrap()
-            }
+impl MainApp {
+    fn update(&mut self, msg: MainAppMessage) {
+        if let Some(next_page) = self.page.update(msg) {
+            self.page = next_page;
         }
     }
 
-    fn view(&self) -> Element<'_, Message> {
-        let ctx = Ctx {
-            game_state: self.game_core.state(),
-            ui_state: &self.ui_state,
+    fn view(&self) -> Element<'_, MainAppMessage> {
+        self.page.view()
+    }
+
+    fn subscription(&self) -> Subscription<MainAppMessage> {
+        let mut subscriptions = Vec::new();
+        self.page.subscription(&mut subscriptions);
+        Subscription::batch(subscriptions)
+    }
+}
+
+//--------------------------------------------------//
+//                                                  //
+//                    HOME PAGE                     //
+//                                                  //
+//--------------------------------------------------//
+#[derive(Debug, Clone)]
+enum HomePageMessage {
+    StartNewGame,
+}
+struct HomePage;
+impl PageTrait for HomePage {
+    fn update(&mut self, msg: MainAppMessage) -> Option<Box<dyn PageTrait>> {
+        let MainAppMessage::HomePageMessage(msg) = msg else {
+            return None;
         };
 
-        game_view(ctx).into()
+        match msg {
+            HomePageMessage::StartNewGame => Some(Box::new(GamePage::new())),
+        }
     }
-}
 
-#[derive(Debug, Clone, Copy)]
-struct Ctx<'a> {
-    game_state: &'a GameState,
-    ui_state: &'a UIState,
+    fn view(&self) -> Element<'_, MainAppMessage> {
+        column![
+            button("start game").on_press(MainAppMessage::HomePageMessage(
+                HomePageMessage::StartNewGame
+            ))
+        ]
+        .into()
+    }
 }

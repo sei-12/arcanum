@@ -7,6 +7,7 @@ use crate::{
     game_state::GameState,
     lt_common::LtCommon,
     potential::Potential,
+    progress_state::ProgressState,
     runtime_id::{LtId, RuntimeCharId, RuntimeSkillId},
     skill::SkillBox,
     weapon::{Weapon, WeaponType},
@@ -131,6 +132,13 @@ impl ButtleChar {
     pub fn name(&self) -> &'static str {
         self.name
     }
+
+    pub fn current_condition(&self) -> CharCondition {
+        CharCondition {
+            ty: CharConditionType::Acting,
+            progress: ProgressState::new(1u8, 1u8).unwrap(),
+        }
+    }
 }
 
 pub enum SkillCondition {
@@ -144,4 +152,20 @@ pub enum SkillCondition {
     Acting,
     /// 硬直中
     Stiffness,
+}
+
+pub enum CharConditionType {
+    /// 詠唱中
+    ///
+    /// 攻撃されると中断する
+    Chanting,
+    /// 準備中
+    StartUp,
+    /// 行動中
+    Acting,
+}
+
+pub struct CharCondition {
+    pub ty: CharConditionType,
+    pub progress: ProgressState,
 }

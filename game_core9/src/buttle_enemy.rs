@@ -1,15 +1,14 @@
 use std::{collections::VecDeque, fmt::Debug};
 
 use crate::{
-    LevelNum, StaticEnemySkillId, buttle_enemy::enemy_skill_runner::EnemySkillRunnner,
-    effect::Effect, enemy_skill::EnemySkill, game_state::GameState, lt_common::LtCommon,
-    passive::PassiveBox, potential::Potential, runtime_id::LtId,
+    LevelNum, StaticEnemyId, StaticEnemySkillId, buttle_enemy::enemy_skill_runner::EnemySkillRunnner, effect::Effect, enemy_skill::EnemySkill, game_state::GameState, lt_common::LtCommon, passive::PassiveBox, potential::Potential, progress_state::ProgressState, runtime_id::LtId
 };
 
 mod enemy_skill_runner;
 
 #[derive(Debug)]
 pub struct EnemyInfomation {
+    pub id: StaticEnemyId,
     pub name: &'static str,
     pub desctiption: &'static str,
 }
@@ -21,6 +20,16 @@ pub struct ButtleEnemyArgs {
     pub skills: Vec<EnemySkill>,
     pub action_patterns: Vec<Vec<StaticEnemySkillId>>,
     pub default_passive: Vec<PassiveBox>,
+}
+
+pub enum EnemyConditionType {
+    StartUp,
+    Recovery,
+}
+
+pub struct EnemyCondition {
+    pub ty: EnemyConditionType,
+    pub progress: ProgressState,
 }
 
 #[derive(Debug)]
@@ -63,6 +72,10 @@ impl ButtleEnemy {
 
     pub(crate) fn skill_runner_increment_frame(&mut self) {
         self.skill_runner.increment_frame();
+    }
+
+    pub fn current_condition(&self) -> EnemyCondition {
+        self.skill_runner.current_condition()
     }
 
     pub fn view_skills(&self) -> impl Iterator<Item = &EnemySkill> {

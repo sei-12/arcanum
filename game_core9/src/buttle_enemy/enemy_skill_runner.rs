@@ -2,7 +2,13 @@ use std::collections::VecDeque;
 
 use rand::{Rng, rng};
 
-use crate::{effect::Effect, enemy_skill::EnemySkill, game_state::GameState};
+use crate::{
+    buttle_enemy::{EnemyCondition, EnemyConditionType},
+    effect::Effect,
+    enemy_skill::EnemySkill,
+    game_state::GameState,
+    progress_state::ProgressState,
+};
 
 #[derive(Debug)]
 pub struct EnemySkillRunnner {
@@ -29,6 +35,13 @@ impl EnemySkillRunnner {
         };
         s.push_schedule();
         s
+    }
+
+    pub fn current_condition(&self) -> EnemyCondition {
+        EnemyCondition {
+            ty: EnemyConditionType::StartUp,
+            progress: ProgressState::new(1u16, 1u16).unwrap(),
+        }
     }
 
     fn push_schedule(&mut self) {

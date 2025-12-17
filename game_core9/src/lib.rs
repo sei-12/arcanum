@@ -15,9 +15,11 @@ pub mod passive;
 pub mod potential;
 pub mod skill;
 pub mod weapon;
+pub mod progress_state;
 
 pub use error::Error;
 
+pub type StaticEnemyId = u32;
 pub type StaticEnemySkillId = u32;
 pub type StaticCharId = u32;
 pub type StaticSkillId = u32;

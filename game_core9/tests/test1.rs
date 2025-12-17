@@ -93,6 +93,7 @@ fn args() -> GameStateArgs {
             info: EnemyInfomation {
                 desctiption: "",
                 name: "",
+                id: 1,
             },
             level: 1,
             potential: Potential::new(10.0, 10.0, 10.0, 10.0, 10.0),

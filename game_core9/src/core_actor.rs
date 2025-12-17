@@ -12,6 +12,8 @@ pub enum UserInput {
     None,
 }
 
+
+#[derive(Debug)]
 pub struct GameCoreActor {
     state: GameState,
     effects_buffer: VecDeque<Effect>,

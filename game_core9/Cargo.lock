@@ -217,6 +217,7 @@ dependencies = [
  "dyn-clone",
  "rand",
  "smallbox",
+ "static_assertions",
  "thiserror",
 ]
 
@@ -525,6 +526,12 @@ name = "smallbox"
 version = "0.8.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "aca054fd9f8c2ebe8557a2433f307e038c0716124efd045daa0388afa5172189"
+
+[[package]]
+name = "static_assertions"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 
 [[package]]
 name = "syn"

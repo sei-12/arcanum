@@ -94,18 +94,16 @@ impl LtCommon {
 
     pub fn magic_attuck(&self) -> StatusNum {
         let base = (self.int() * 3.0 + self.dex()) / 4.0;
-        base * self.level_scale()
+        (base * self.level_scale() + self.weapon.as_ref().map(|w| w.m_atk).unwrap_or(0.0))
             * self.passive.status().magic_attuck_mag_buff.get()
             * self.passive.status().magic_attuck_mag_debuff.get()
-            + self.weapon.as_ref().map(|w| w.m_atk).unwrap_or(0.0)
     }
 
     pub fn physics_attuck(&self) -> StatusNum {
         let base = (self.str() * 3.0 + self.dex()) / 4.0;
-        base * self.level_scale()
+        (base * self.level_scale() + self.weapon.as_ref().map(|w| w.p_atk).unwrap_or(0.0))
             * self.passive.status().physics_attuck_mag_buff.get()
             * self.passive.status().physics_attuck_mag_debuff.get()
-            + self.weapon.as_ref().map(|w| w.p_atk).unwrap_or(0.0)
     }
 
     pub fn max_hp(&self) -> StatusNum {
@@ -136,7 +134,7 @@ impl LtCommon {
 
     pub fn max_mp(&self) -> StatusNum {
         let base = (self.vit() * 2.0 + self.dex() + self.int()) / 4.0;
-        let mp_scale = 10.0;
+        let mp_scale = 50.0;
         base * mp_scale
     }
 
@@ -145,15 +143,25 @@ impl LtCommon {
         // potentialがMの時に1sあたりMPがN回復する
         // potentialが0の時に1sあたりMPがBASE回復する
         const M: f32 = 10.0;
-        const N: f32 = 5.0;
+        const N: f32 = 7.0;
         const FPS: f32 = 100.0;
-        const MP_HEAL_BASE_PER_SEC: f32 = 100.0;
+        const MP_HEAL_BASE_PER_SEC: f32 = 1.0;
 
-        let potential = (self.vit() * 2.0 + self.dex()) / 3.0;
+        // 調整した時のために残しておきたい
+        static_assertions::const_assert!(N > MP_HEAL_BASE_PER_SEC);
 
-        const fn mp_heal_f(pot: f32) -> f32 {
+        let potential = (self.vit() * 2.0 + self.dex() + self.agi()) / 4.0;
+
+        fn mp_heal_f(pot: f32) -> f32 {
             let base_frame = MP_HEAL_BASE_PER_SEC / FPS;
             let pot_frame = pot / M * (N - MP_HEAL_BASE_PER_SEC) / FPS;
+
+            debug_assert!(
+                pot_frame >= 0.0,
+                "pot_frame should be non-negative: {}",
+                pot_frame
+            );
+
             base_frame + pot_frame
         }
 
@@ -171,7 +179,7 @@ impl LtCommon {
 
         let mp_heal = mp_heal_f(potential);
 
-        debug_assert!(mp_heal > 0.0);
+        debug_assert!(mp_heal > 0.0, "mp_heal should be positive: {}", mp_heal);
 
         mp_heal
     }

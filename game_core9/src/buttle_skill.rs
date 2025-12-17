@@ -41,7 +41,7 @@ impl ButtleSkill {
         &self.skill_box
     }
 
-    pub fn skill_box_mut(&mut self) -> &mut SkillBox {
+    pub(crate) fn skill_box_mut(&mut self) -> &mut SkillBox {
         &mut self.skill_box
     }
 }

@@ -56,7 +56,7 @@ struct Skill {}
 impl SkillTrait for Skill {
     fn info(&self) -> &game_core9::skill::SkillInfomation {
         &game_core9::skill::SkillInfomation {
-            name: "",
+            name: "ファイヤーボール",
             description: "",
             id: 1,
             default_need_mp: 10.0,
@@ -78,13 +78,13 @@ impl SkillTrait for Skill {
     }
 }
 
-fn char1() -> ButtleCharArgs {
+fn elena() -> ButtleCharArgs {
     ButtleCharArgs {
         level: 1,
-        potential: Potential::new(10.0, 10.0, 10.0, 10.0, 10.0),
+        potential: Potential::new(13.0, 8.0, 15.0, 6.0, 8.0),
         skills: vec![SkillBox::new(Skill {})],
         static_id: 1,
-        name: "hello",
+        name: "エレナ",
         weapon: Weapon {
             m_atk: 1.0,
             p_atk: 1.0,
@@ -92,15 +92,62 @@ fn char1() -> ButtleCharArgs {
         },
     }
 }
+
+fn yuuko() -> ButtleCharArgs {
+    ButtleCharArgs {
+        level: 1,
+        potential: Potential::new(12.0, 10.0, 8.0, 10.0, 10.0),
+        skills: vec![SkillBox::new(Skill {})],
+        static_id: 3,
+        name: "幽狐",
+        weapon: Weapon {
+            m_atk: 1.0,
+            p_atk: 1.0,
+            ty: game_core9::weapon::WeaponType::Cane,
+        },
+    }
+}
+
+fn asya() -> ButtleCharArgs {
+    ButtleCharArgs {
+        level: 1,
+        potential: Potential::new(10.0, 10.0, 10.0, 10.0, 10.0),
+        skills: vec![SkillBox::new(Skill {})],
+        static_id: 2,
+        name: "アーシャ",
+        weapon: Weapon {
+            m_atk: 1.0,
+            p_atk: 1.0,
+            ty: game_core9::weapon::WeaponType::Cane,
+        },
+    }
+}
+
+fn nowaru() -> ButtleCharArgs {
+    ButtleCharArgs {
+        level: 1,
+        potential: Potential::new(8.0, 13.0, 12.0, 6.0, 11.0),
+        skills: vec![SkillBox::new(Skill {})],
+        static_id: 4,
+        name: "ノワール",
+        weapon: Weapon {
+            m_atk: 1.0,
+            p_atk: 1.0,
+            ty: game_core9::weapon::WeaponType::Cane,
+        },
+    }
+}
+
 fn args() -> GameStateArgs {
     GameStateArgs {
-        chars: vec![char1()],
+        chars: vec![elena(), yuuko(), asya(), nowaru()],
         enemy: ButtleEnemyArgs {
             action_patterns: vec![vec![1, 2, 3]],
             default_passive: vec![],
             info: EnemyInfomation {
+                id: 1,
                 desctiption: "",
-                name: "",
+                name: "Enemy1",
             },
             level: 1,
             potential: Potential::new(10.0, 10.0, 10.0, 10.0, 10.0),
