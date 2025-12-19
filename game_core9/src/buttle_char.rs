@@ -1,4 +1,3 @@
-use std::collections::VecDeque;
 
 use crate::{
     LevelNum, StaticCharId, StatusNum, TimeNum,
@@ -8,7 +7,6 @@ use crate::{
     game_state::GameState,
     lt_common::LtCommon,
     potential::Potential,
-    progress_state::ProgressState,
     runtime_id::{LtId, RuntimeCharId, RuntimeSkillId},
     skill::{CharSkillProgress, SkillBox},
     weapon::{Weapon, WeaponType},

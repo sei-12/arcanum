@@ -1,5 +1,4 @@
 use std::{
-    collections::VecDeque,
     fmt::Debug,
     ops::{Deref, DerefMut},
 };
@@ -11,10 +10,9 @@ use crate::{
     StaticSkillId, StatusNum, TimeNum,
     any_message::AnyMessageBox,
     core_actor::EffectsBuffer,
-    effect::Effect,
     game_state::GameState,
     progress_state::ProgressState,
-    runtime_id::{RuntimeCharId, RuntimeSkillId},
+    runtime_id::RuntimeSkillId,
 };
 
 //--------------------------------------------------//

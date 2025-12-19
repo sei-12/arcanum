@@ -1,4 +1,3 @@
-use std::collections::VecDeque;
 
 use crate::{
     MAX_CHARACTERS,

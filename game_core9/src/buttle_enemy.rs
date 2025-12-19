@@ -1,8 +1,8 @@
-use std::{collections::VecDeque, fmt::Debug};
+use std::fmt::Debug;
 
 use crate::{
     LevelNum, StaticEnemyId, StaticEnemySkillId,
-    buttle_enemy::enemy_skill_runner::EnemySkillRunnner, core_actor::EffectsBuffer, effect::Effect,
+    buttle_enemy::enemy_skill_runner::EnemySkillRunnner, core_actor::EffectsBuffer,
     enemy_skill::EnemySkill, game_state::GameState, lt_common::LtCommon, passive::PassiveBox,
     potential::Potential, progress_state::ProgressState, runtime_id::LtId,
 };

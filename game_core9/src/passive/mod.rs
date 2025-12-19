@@ -1,5 +1,5 @@
 use std::{
-    collections::{HashMap, VecDeque, hash_map},
+    collections::{HashMap, hash_map},
     fmt::Debug,
     ops::{Deref, DerefMut},
 };
@@ -16,7 +16,6 @@ use crate::{
     any_message::AnyMessageBox,
     core_actor::EffectsBuffer,
     damage::Damage,
-    effect::Effect,
     game_state::GameState,
     passive::{added_order::AddedOrder, status::PassiveStatus},
     runtime_id::LtId,
