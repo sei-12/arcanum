@@ -17,8 +17,8 @@ impl ButtleSkill {
 
     pub fn useable(&self, state: &GameState) -> bool {
         let custom_useable = self.skill_box.custom_useable(self.runtime_id, state);
-        let mp_ok = state.get_char(self.runtime_id.char_id).lt().mp()
-            >= self.skill_box.need_mp(self.runtime_id, state);
+        let need_mp = self.skill_box.cost(self.runtime_id, state).need_mp();
+        let mp_ok = state.get_char(self.runtime_id.char_id).lt().mp() >= need_mp;
         let cooldown_ok = self.cooldown <= 0.0;
 
         match custom_useable {

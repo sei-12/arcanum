@@ -64,6 +64,7 @@ mod a {
         fn current_progress(&self) -> Option<game_core9::skill::CharSkillProgress> {
             None
         }
+        fn end(&mut self) {}
         fn tick(
             &self,
             _owner_id: game_core9::runtime_id::RuntimeSkillId,

@@ -50,4 +50,7 @@ pub enum Effect {
     UseSkill {
         skill_id: RuntimeSkillId,
     },
+    EndSkill {
+        skill_id: RuntimeSkillId,
+    },
 }

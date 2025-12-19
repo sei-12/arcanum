@@ -1,4 +1,3 @@
-
 use crate::{
     MAX_CHARACTERS,
     buttle_char::{ButtleChar, ButtleCharArgs},
@@ -93,12 +92,17 @@ impl GameState {
             Effect::UpdateSkillState { skill_id, msg } => {
                 self.get_skill_mut(*skill_id).skill_box_mut().update(msg);
             }
-            Effect::UseSkill { skill_id } => {
+            Effect::UseSkill {
+                skill_id,
+            } => {
                 assert!(
                     self.get_skill(*skill_id).useable(self),
                     "チェック済みである必要がある"
                 );
                 self.get_char_mut(skill_id.char_id).use_skill(*skill_id);
+            }
+            Effect::EndSkill { skill_id } => {
+                self.get_char_mut(skill_id.char_id).end_skill(*skill_id);
             }
             Effect::EnemySkillRunnerIncrementFrame => {
                 self.enemy.skill_runner_increment_frame();

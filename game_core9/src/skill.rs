@@ -7,12 +7,8 @@ use downcast_rs::{Downcast, impl_downcast};
 use dyn_clone::DynClone;
 
 use crate::{
-    StaticSkillId, StatusNum, TimeNum,
-    any_message::AnyMessageBox,
-    core_actor::EffectsBuffer,
-    game_state::GameState,
-    progress_state::ProgressState,
-    runtime_id::RuntimeSkillId,
+    StaticSkillId, StatusNum, TimeNum, any_message::AnyMessageBox, core_actor::EffectsBuffer,
+    game_state::GameState, progress_state::ProgressState, runtime_id::RuntimeSkillId,
 };
 
 //--------------------------------------------------//
@@ -64,13 +60,22 @@ pub trait SkillTrait: Debug + Downcast + DynClone {
     fn tick(&self, owner_id: RuntimeSkillId, state: &GameState, effects_buffer: &mut EffectsBuffer);
 
     fn start(&mut self);
+
+    fn end(&mut self);
+
     fn update(&mut self, msg: &AnyMessageBox);
 
     fn info(&self) -> &SkillInfomation;
 
     #[allow(unused_variables)]
-    fn need_mp(&self, self_id: RuntimeSkillId, state: &GameState) -> StatusNum {
-        self.info().default_need_mp
+    fn cost(&self, self_id: RuntimeSkillId, state: &GameState) -> SkillCost {
+        let info = self.info();
+        SkillCost::new(
+            info.default_need_mp,
+            info.defalut_cooldown,
+            info.defalut_hate,
+        )
+        .unwrap()
     }
 
     #[allow(unused_variables)]
@@ -80,6 +85,62 @@ pub trait SkillTrait: Debug + Downcast + DynClone {
 }
 impl_downcast!(SkillTrait);
 dyn_clone::clone_trait_object!(SkillTrait);
+
+#[derive(Debug, Clone)]
+pub struct SkillCost {
+    need_mp: StatusNum,
+    cooldown: TimeNum,
+    hate: StatusNum,
+}
+
+impl SkillCost {
+    pub fn new(
+        need_mp: StatusNum,
+        cooldown: TimeNum,
+        hate: StatusNum,
+    ) -> Result<Self, SkillCostError> {
+        if !need_mp.is_finite()
+            || !cooldown.is_finite()
+            || !hate.is_finite()
+            || need_mp < 0.0
+            || cooldown < 0.0
+            || hate < 0.0
+        {
+            return Err(SkillCostError::InvalidArgs {
+                need_mp,
+                cooldown,
+                hate,
+            });
+        }
+
+        Ok(Self {
+            need_mp,
+            cooldown,
+            hate,
+        })
+    }
+
+    pub fn need_mp(&self) -> StatusNum {
+        self.need_mp
+    }
+
+    pub fn cooldown(&self) -> TimeNum {
+        self.cooldown
+    }
+
+    pub fn hate(&self) -> StatusNum {
+        self.hate
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum SkillCostError {
+    InvalidArgs {
+        need_mp: StatusNum,
+        cooldown: TimeNum,
+        hate: StatusNum,
+    },
+}
 
 #[derive(Debug, Clone)]
 pub enum SkillCustomUseable {

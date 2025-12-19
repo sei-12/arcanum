@@ -8,6 +8,11 @@ pub struct RuntimeSkillId {
     pub(crate) char_id: RuntimeCharId,
     pub(crate) idx: u8,
 }
+impl RuntimeSkillId {
+    pub fn owner_id(&self) -> RuntimeCharId {
+        self.char_id
+    }
+}
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum LtId {

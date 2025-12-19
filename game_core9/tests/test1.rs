@@ -65,7 +65,10 @@ impl SkillTrait for Skill {
     ) {
     }
     fn start(&mut self) {}
-    fn update(&mut self, msg: &AnyMessageBox) {}
+    fn end(&mut self) {
+        
+    }
+    fn update(&mut self, _msg: &AnyMessageBox) {}
     fn current_progress(&self) -> Option<game_core9::skill::CharSkillProgress> {
         None
     }

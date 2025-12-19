@@ -1,15 +1,16 @@
 use crate::{
     any_message::AnyMessageBox,
+    core_actor::EffectsBuffer,
     effect::Effect,
     game_state::GameState,
     progress_state::ProgressState,
-    runtime_id::RuntimeCharId,
+    runtime_id::RuntimeSkillId,
     skill::{CharSkillProgress, CharSkillProgressKind},
     skill_impl_utils::skill_chunks::SkillChunks,
 };
-use std::{collections::VecDeque, fmt::Debug, sync::Arc};
+use std::{fmt::Debug, sync::Arc};
 
-pub type EffectsFn = dyn Fn(RuntimeCharId, &GameState, &mut VecDeque<Effect>);
+pub type EffectsFn = dyn Fn(RuntimeSkillId, &GameState, &mut EffectsBuffer);
 
 mod skill_chunks;
 
@@ -32,7 +33,7 @@ impl SkillEffectUnit {
     pub fn new(
         time_ms: u16,
         progress_kind: CharSkillProgressKind,
-        effects: impl Fn(RuntimeCharId, &GameState, &mut VecDeque<Effect>) + 'static,
+        effects: impl Fn(RuntimeSkillId, &GameState, &mut EffectsBuffer) + 'static,
     ) -> Result<Self, SkillEffectUnitError> {
         Self::new_with_arc(time_ms, progress_kind, Arc::new(effects))
     }
@@ -97,26 +98,40 @@ impl SkillEffectUnits {
 
     pub fn tick(
         &self,
-        owner_id: RuntimeCharId,
+        id: RuntimeSkillId,
         state: &GameState,
-        effects_buffer: &mut VecDeque<Effect>,
-    ) -> Result<AnyMessageBox, SkillEffectUnitsError> {
-        let (effect_fucntions, msg) = self.tick_inner(state.get_char(owner_id).lt().speed())?;
+        effects_buffer: &mut EffectsBuffer,
+    ) -> Result<(), SkillEffectUnitsError> {
+        let (effect_fucntions, msg, ended) =
+            self.tick_inner(state.get_char(id.char_id).lt().speed())?;
 
         for effect_fn in effect_fucntions {
-            effect_fn.as_ref()(owner_id, state, effects_buffer);
+            effect_fn.as_ref()(id, state, effects_buffer);
         }
 
-        Ok(msg)
+        effects_buffer.push(Effect::UpdateSkillState { skill_id: id, msg });
+
+        if ended {
+            effects_buffer.push(Effect::EndSkill { skill_id: id });
+        }
+
+        Ok(())
     }
 
     // iterで返してもいいけど、面倒なのでやめとく
     fn tick_inner(
         &self,
         add_progress: f32,
-    ) -> Result<(Vec<Arc<EffectsFn>>, AnyMessageBox), SkillEffectUnitsError> {
+    ) -> Result<(Vec<Arc<EffectsFn>>, AnyMessageBox, bool), SkillEffectUnitsError> {
         assert_eq!(self.times.len(), self.units.len());
         debug_assert!(self.times.iter().is_sorted());
+        debug_assert!({
+            // stepsが要素数以上ということは進捗は100%以上である必要があるし
+            // stepsが要素数未満ということは進捗は100%未満である必要がある。
+            let check_steps = self.step >= self.times.len();
+            let check_progress = *self.times.last().unwrap() <= self.progress;
+            (check_steps && check_progress) || (!check_steps && !check_progress)
+        });
 
         if !self.startd {
             return Err(SkillEffectUnitsError::NotStarted);
@@ -125,11 +140,6 @@ impl SkillEffectUnits {
         let mut current_step = self.step;
         let mut effect_functions = Vec::new();
         let current_progress = self.progress + add_progress;
-
-        #[cfg(debug_assertions)]
-        if self.step >= self.times.len() {
-            assert!(*self.times.last().unwrap() <= current_progress);
-        }
 
         while self
             .times
@@ -140,12 +150,15 @@ impl SkillEffectUnits {
             current_step += 1;
         }
 
+        let ended = current_step >= self.times.len();
+
         Ok((
             effect_functions,
             AnyMessageBox::new(UpdateUnits {
                 add_progress,
                 steps: current_step,
             }),
+            ended,
         ))
     }
 
@@ -168,6 +181,18 @@ impl SkillEffectUnits {
         self.progress = 0.0;
         self.step = 0;
         self.startd = true;
+
+        Ok(())
+    }
+
+    pub fn end(&mut self) -> Result<(), SkillEffectUnitsError> {
+        if !self.startd {
+            return Err(SkillEffectUnitsError::NotStarted);
+        }
+
+        self.startd = false;
+        self.progress = 0.0;
+        self.step = 0;
 
         Ok(())
     }
@@ -231,23 +256,26 @@ mod tests {
         let mut units = SkillEffectUnits::new(units_vec).unwrap();
         units.start().unwrap();
 
-        let (effect_fns, any_msg) = units.tick_inner(9.0).unwrap();
+        let (effect_fns, any_msg, ended) = units.tick_inner(9.0).unwrap();
         let msg = any_msg.downcast_ref::<UpdateUnits>().unwrap();
         assert_eq_f32(msg.add_progress, 9.0);
         assert_eq!(msg.steps, 0);
         assert_eq!(effect_fns.len(), 0);
+        assert!(!ended);
 
-        let (effect_fns, any_msg) = units.tick_inner(10.1).unwrap();
+        let (effect_fns, any_msg, ended) = units.tick_inner(10.1).unwrap();
         let msg = any_msg.downcast_ref::<UpdateUnits>().unwrap();
         assert_eq_f32(msg.add_progress, 10.1);
         assert_eq!(msg.steps, 1);
         assert_eq!(effect_fns.len(), 1);
+        assert!(!ended);
 
-        let (effect_fns, any_msg) = units.tick_inner(20.1).unwrap();
+        let (effect_fns, any_msg, ended) = units.tick_inner(20.1).unwrap();
         let msg = any_msg.downcast_ref::<UpdateUnits>().unwrap();
         assert_eq_f32(msg.add_progress, 20.1);
         assert_eq!(msg.steps, 2);
         assert_eq!(effect_fns.len(), 2);
+        assert!(!ended);
     }
 
     #[test]
@@ -266,8 +294,13 @@ mod tests {
         let tick_args = [5.0, 5.0, 10.0, 8.0, 10.0, 10.0, 20.0];
         let mut last_msg: Option<AnyMessageBox> = None;
         for tick_arg in tick_args {
-            let (effect_fns, any_msg) = units.tick_inner(tick_arg).unwrap();
+            let (effect_fns, any_msg, ended) = units.tick_inner(tick_arg).unwrap();
             effect_fns_count += effect_fns.len();
+            if effect_fns_count == 4 {
+                assert!(ended);
+            } else {
+                assert!(!ended);
+            }
             let res = units.update(&any_msg);
             assert!(res.is_none());
             last_msg = Some(any_msg);

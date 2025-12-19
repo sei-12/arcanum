@@ -69,11 +69,29 @@ fn user_input_effect(
 ) -> Result<(), crate::Error> {
     match input {
         UserInput::UseSkill { skill_id } => {
-            if !state.get_skill(skill_id).useable(state) {
+            let skill = state.get_skill(skill_id);
+            if !skill.useable(state) {
                 return Err(crate::Error::InvalidArgument("Unusable Skill".to_string()));
             }
 
+            let cost = skill.skill_box().cost(skill_id, state);
+
             effects_buffer.push(Effect::UseSkill { skill_id });
+
+            effects_buffer.push(Effect::AddHate {
+                target_id: skill_id.owner_id(),
+                num: cost.hate(),
+            });
+
+            effects_buffer.push(Effect::AddSkillCooldown {
+                skill_id,
+                num: cost.cooldown(),
+            });
+
+            effects_buffer.push(Effect::ConsumeMp {
+                target_id: skill_id.owner_id().into(),
+                num: cost.need_mp(),
+            });
         }
         UserInput::None => {}
     };

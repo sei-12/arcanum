@@ -1,4 +1,3 @@
-
 use crate::{
     LevelNum, StaticCharId, StatusNum, TimeNum,
     buttle_skill::ButtleSkill,
@@ -59,8 +58,14 @@ impl ButtleChar {
     }
 
     pub(crate) fn use_skill(&mut self, id: RuntimeSkillId) {
+        assert!(self.current_using_skill.is_none());
         self.current_using_skill = Some(id);
         self.get_skill_mut(id).skill_box_mut().start();
+    }
+    pub(crate) fn end_skill(&mut self, id: RuntimeSkillId) {
+        assert!(self.current_using_skill.is_some());
+        self.current_using_skill = None;
+        self.get_skill_mut(id).skill_box_mut().end();
     }
 
     pub fn lt(&self) -> &LtCommon {
