@@ -13,10 +13,10 @@ pub mod game_state;
 pub mod lt_common;
 pub mod passive;
 pub mod potential;
-pub mod skill;
-pub mod weapon;
 pub mod progress_state;
+pub mod skill;
 pub mod skill_impl_utils;
+pub mod weapon;
 
 pub use error::Error;
 

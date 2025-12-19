@@ -1,7 +1,17 @@
 use std::collections::VecDeque;
 
 use crate::{
-    LevelNum, StaticCharId, StatusNum, TimeNum, buttle_skill::ButtleSkill, core_actor::EffectsBuffer, effect::Effect, game_state::GameState, lt_common::LtCommon, potential::Potential, progress_state::ProgressState, runtime_id::{LtId, RuntimeCharId, RuntimeSkillId}, skill::{CharSkillProgress, SkillBox}, weapon::{Weapon, WeaponType}
+    LevelNum, StaticCharId, StatusNum, TimeNum,
+    buttle_skill::ButtleSkill,
+    core_actor::EffectsBuffer,
+    effect::Effect,
+    game_state::GameState,
+    lt_common::LtCommon,
+    potential::Potential,
+    progress_state::ProgressState,
+    runtime_id::{LtId, RuntimeCharId, RuntimeSkillId},
+    skill::{CharSkillProgress, SkillBox},
+    weapon::{Weapon, WeaponType},
 };
 
 pub struct ButtleCharArgs {

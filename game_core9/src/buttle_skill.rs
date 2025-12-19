@@ -36,7 +36,7 @@ impl ButtleSkill {
     pub fn add_cooldown(&mut self, num: TimeNum) {
         self.cooldown += num;
     }
-    
+
     pub fn skill_box(&self) -> &SkillBox {
         &self.skill_box
     }

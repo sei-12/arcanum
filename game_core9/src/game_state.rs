@@ -1,7 +1,14 @@
 use std::collections::VecDeque;
 
 use crate::{
-    MAX_CHARACTERS, buttle_char::{ButtleChar, ButtleCharArgs}, buttle_enemy::{ButtleEnemy, ButtleEnemyArgs}, buttle_skill::ButtleSkill, core_actor::EffectsBuffer, effect::Effect, lt_common::LtCommon, runtime_id::{LtId, RuntimeCharId, RuntimeSkillId}
+    MAX_CHARACTERS,
+    buttle_char::{ButtleChar, ButtleCharArgs},
+    buttle_enemy::{ButtleEnemy, ButtleEnemyArgs},
+    buttle_skill::ButtleSkill,
+    core_actor::EffectsBuffer,
+    effect::Effect,
+    lt_common::LtCommon,
+    runtime_id::{LtId, RuntimeCharId, RuntimeSkillId},
 };
 
 pub struct GameStateArgs {

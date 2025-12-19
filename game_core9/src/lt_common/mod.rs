@@ -1,7 +1,9 @@
 use std::collections::VecDeque;
 
 use crate::{
-    LevelNum, StatusNum, TimeNum, core_actor::EffectsBuffer, effect::Effect, game_state::GameState, lt_common::any_point::AnyPointPercent, passive::PassiveList, potential::Potential, runtime_id::LtId, weapon::Weapon
+    LevelNum, StatusNum, TimeNum, core_actor::EffectsBuffer, effect::Effect, game_state::GameState,
+    lt_common::any_point::AnyPointPercent, passive::PassiveList, potential::Potential,
+    runtime_id::LtId, weapon::Weapon,
 };
 
 mod any_point;

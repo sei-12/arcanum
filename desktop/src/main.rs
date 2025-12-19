@@ -1,16 +1,9 @@
-use std::time::Duration;
-
-use game_core9::core_actor::{GameCoreActor, GameCoreOutput, UserInput};
-use game_core9::game_state::GameState;
-use iced::widget::{button, column, text};
+use crate::game_view::{GamePage, GameViewMessage};
+use iced::widget::{button, column};
 use iced::{Element, Subscription};
 
-use crate::assets::game_core;
-use crate::game_view::{GamePage, GameViewMessage};
-use crate::ui_state::UIState;
-// use crate::view::game_view;
-
 mod assets;
+mod char_skill;
 mod common;
 mod game_view;
 mod ui_state;

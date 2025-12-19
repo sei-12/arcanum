@@ -58,6 +58,7 @@ impl SkillTrait for Skill {
         &game_core9::skill::SkillInfomation {
             name: "ファイヤーボール",
             description: "",
+            flaver_text: "",
             id: 1,
             default_need_mp: 10.0,
             defalut_hate: 10.0,
@@ -73,8 +74,8 @@ impl SkillTrait for Skill {
     }
     fn start(&mut self) {}
     fn update(&mut self, _msg: &AnyMessageBox) {}
-    fn current_condition(&self) -> game_core9::buttle_char::SkillCondition {
-        todo!()
+    fn current_progress(&self) -> Option<game_core9::skill::CharSkillProgress> {
+        None
     }
 }
 

@@ -8,7 +8,13 @@ use downcast_rs::{Downcast, impl_downcast};
 use dyn_clone::DynClone;
 
 use crate::{
-    StaticSkillId, StatusNum, TimeNum, any_message::AnyMessageBox, core_actor::EffectsBuffer, effect::Effect, game_state::GameState, progress_state::ProgressState, runtime_id::{RuntimeCharId, RuntimeSkillId}
+    StaticSkillId, StatusNum, TimeNum,
+    any_message::AnyMessageBox,
+    core_actor::EffectsBuffer,
+    effect::Effect,
+    game_state::GameState,
+    progress_state::ProgressState,
+    runtime_id::{RuntimeCharId, RuntimeSkillId},
 };
 
 //--------------------------------------------------//
@@ -57,12 +63,7 @@ pub struct SkillInfomation {
 pub trait SkillTrait: Debug + Downcast + DynClone {
     fn current_progress(&self) -> Option<CharSkillProgress>;
 
-    fn tick(
-        &self,
-        owner_id: RuntimeSkillId,
-        state: &GameState,
-        effects_buffer: &mut EffectsBuffer,
-    );
+    fn tick(&self, owner_id: RuntimeSkillId, state: &GameState, effects_buffer: &mut EffectsBuffer);
 
     fn start(&mut self);
     fn update(&mut self, msg: &AnyMessageBox);

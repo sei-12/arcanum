@@ -1,25 +1,24 @@
 use std::{borrow::Cow, collections::VecDeque, fmt::Display, time::Duration};
 
 use game_core9::{
-    buttle_char::ButtleChar,
+    buttle_char::{ButtleChar, CharCondition},
     buttle_enemy::ButtleEnemy,
     buttle_skill::ButtleSkill,
     core_actor::{GameCoreActor, GameCoreOutput, UserInput},
-    lt_common::{self, LtCommon},
+    lt_common::LtCommon,
     runtime_id::RuntimeSkillId,
 };
 use iced::{
-    Background, Border, Color, Element, Event, Length, Padding, Task,
-    advanced::Widget,
+    Background, Border, Color, Element, Event, Length, Padding,
     alignment::{
         Horizontal,
-        Vertical::{self, Bottom},
+        Vertical::{self},
     },
     border::Radius,
     event::{self, Status},
     keyboard::{Event::KeyPressed, Key, key::Named},
     widget::{
-        Column, Container, Image, Row, Scrollable, button, column, container, pick_list, row,
+        Button, Column, Container, Image, Row, button, column, container, pick_list, row,
         scrollable, text, toggler, tooltip,
     },
 };
@@ -384,7 +383,7 @@ impl GamePage {
                     column![
                         row![
                             button(text!("詳細").size(14)).padding(3),
-                            button(text!("使用").size(14)).padding(3)
+                            self.skill_use_button(skill)
                         ]
                         .spacing(5)
                     ]
@@ -405,6 +404,20 @@ impl GamePage {
             },
             ..Default::default()
         })
+    }
+
+    fn skill_use_button(&self, skill: &ButtleSkill) -> Button<'_, MainAppMessage> {
+        let useable = skill.useable(self.core.state());
+
+        let mut button = button(text("使用").size(14)).padding(3);
+
+        if useable {
+            button = button.on_press(MainAppMessage::GameViewMessage(GameViewMessage::UseSkill(
+                skill.runtime_id(),
+            )))
+        }
+
+        button
     }
 
     fn lt_status_view(&self, lt_common: &LtCommon) -> Column<'_, MainAppMessage> {
@@ -576,11 +589,12 @@ impl<'a> Lt<'a> {
 
     fn condition(&self) -> String {
         let s = match self {
-            Lt::Char(buttle_char) => match buttle_char.current_condition().ty {
-                game_core9::buttle_char::CharConditionType::Chanting => "詠唱中",
-                game_core9::buttle_char::CharConditionType::StartUp => "準備中",
-                game_core9::buttle_char::CharConditionType::Acting => "行動中",
-                game_core9::buttle_char::CharConditionType::Stiffness => "硬直中",
+            Lt::Char(char) => match char.current_condition() {
+                CharCondition::UseSkill(s) => match s.kind {
+                    game_core9::skill::CharSkillProgressKind::Chanting => "詠唱中",
+                    game_core9::skill::CharSkillProgressKind::Acting => "行動中",
+                },
+                CharCondition::Wait => "待機中",
             },
             Lt::Enemy(buttle_enemy) => match buttle_enemy.current_condition().ty {
                 game_core9::buttle_enemy::EnemyConditionType::StartUp => "準備中",

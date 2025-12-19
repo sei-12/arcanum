@@ -58,12 +58,11 @@ impl SkillTrait for Skill {
         }
     }
     fn tick(
-            &self,
-            _owner_id: game_core9::runtime_id::RuntimeSkillId,
-            _state: &game_core9::game_state::GameState,
-            _effects_buffer: &mut EffectsBuffer,
-        ) {
-        
+        &self,
+        _owner_id: game_core9::runtime_id::RuntimeSkillId,
+        _state: &game_core9::game_state::GameState,
+        _effects_buffer: &mut EffectsBuffer,
+    ) {
     }
     fn start(&mut self) {}
     fn update(&mut self, msg: &AnyMessageBox) {}
