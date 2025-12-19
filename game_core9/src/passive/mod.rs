@@ -14,6 +14,7 @@ use dyn_clone::DynClone;
 use crate::{
     StaticPassiveId,
     any_message::AnyMessageBox,
+    core_actor::EffectsBuffer,
     damage::Damage,
     effect::Effect,
     game_state::GameState,
@@ -69,7 +70,7 @@ pub trait PassiveTrait: Debug + Downcast + DynClone {
     fn display(&self) -> String;
     fn should_trash(&self) -> bool;
     fn merge(&mut self, passive: &PassiveBox);
-    fn tick(&self, owner: LtId, state: &GameState, effects_buffer: &mut VecDeque<Effect>);
+    fn tick(&self, owner: LtId, state: &GameState, effects_buffer: &mut EffectsBuffer);
     fn update(&mut self, msg: &AnyMessageBox);
     fn status(&self, status: &mut PassiveStatus) {}
     fn trigger_recv_damage(
@@ -77,7 +78,7 @@ pub trait PassiveTrait: Debug + Downcast + DynClone {
         owner: LtId,
         dmg: &Damage,
         state: &GameState,
-        effects_buffer: &mut VecDeque<Effect>,
+        effects_buffer: &mut EffectsBuffer,
     ) {
     }
 }
@@ -139,7 +140,7 @@ impl PassiveList {
         &self,
         owner_id: LtId,
         state: &GameState,
-        effects_buffer: &mut VecDeque<Effect>,
+        effects_buffer: &mut EffectsBuffer,
     ) {
         self.added_order_iter().for_each(|p| {
             p.tick(owner_id, state, effects_buffer);
@@ -165,7 +166,7 @@ impl PassiveList {
         owner: LtId,
         dmg: &Damage,
         state: &GameState,
-        effects_buffer: &mut VecDeque<Effect>,
+        effects_buffer: &mut EffectsBuffer,
     ) {
         self.added_order_iter().for_each(|p| {
             p.trigger_recv_damage(owner, dmg, state, effects_buffer);

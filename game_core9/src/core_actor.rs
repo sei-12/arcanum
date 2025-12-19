@@ -12,11 +12,10 @@ pub enum UserInput {
     None,
 }
 
-
 #[derive(Debug)]
 pub struct GameCoreActor {
     state: GameState,
-    effects_buffer: VecDeque<Effect>,
+    effects_buffer: EffectsBuffer,
     game_ended: bool,
 }
 
@@ -24,7 +23,7 @@ impl GameCoreActor {
     pub fn new(args: GameStateArgs) -> Result<Self, crate::Error> {
         Ok(Self {
             state: GameState::new(args)?,
-            effects_buffer: VecDeque::new(),
+            effects_buffer: EffectsBuffer(VecDeque::new()),
             game_ended: false,
         })
     }
@@ -66,7 +65,7 @@ impl GameCoreActor {
 fn user_input_effect(
     input: UserInput,
     state: &GameState,
-    effects_buffer: &mut VecDeque<Effect>,
+    effects_buffer: &mut EffectsBuffer,
 ) -> Result<(), crate::Error> {
     match input {
         UserInput::UseSkill { skill_id } => {
@@ -74,7 +73,7 @@ fn user_input_effect(
                 return Err(crate::Error::InvalidArgument("Unusable Skill".to_string()));
             }
 
-            effects_buffer.push_back(Effect::UseSkill { skill_id });
+            effects_buffer.push(Effect::UseSkill { skill_id });
         }
         UserInput::None => {}
     };
@@ -82,7 +81,7 @@ fn user_input_effect(
     Ok(())
 }
 
-fn sub_effects(effect: &Effect, state: &GameState, effects_buffer: &mut VecDeque<Effect>) {
+fn sub_effects(effect: &Effect, state: &GameState, effects_buffer: &mut EffectsBuffer) {
     if let Effect::Damage(damage) = effect {
         state.get_lt(damage.target()).passive.trigger_recv_damage(
             damage.target(),
@@ -127,4 +126,15 @@ impl OutputEffect {
 
 pub enum OutputEffectKind {
     Damage(Damage),
+}
+
+#[derive(Debug, Clone)]
+pub struct EffectsBuffer(VecDeque<Effect>);
+impl EffectsBuffer {
+    pub fn push(&mut self, effect: Effect) {
+        self.0.push_back(effect);
+    }
+    fn pop_front(&mut self) -> Option<Effect> {
+        self.0.pop_front()
+    }
 }

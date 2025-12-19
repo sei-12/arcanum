@@ -4,6 +4,7 @@ use rand::{Rng, rng};
 
 use crate::{
     buttle_enemy::{EnemyCondition, EnemyConditionType},
+    core_actor::EffectsBuffer,
     effect::Effect,
     enemy_skill::EnemySkill,
     game_state::GameState,
@@ -70,8 +71,8 @@ impl EnemySkillRunnner {
         self.skills.get(idx).unwrap()
     }
 
-    pub fn tick(&self, state: &GameState, effects_buffer: &mut VecDeque<Effect>) {
-        effects_buffer.push_back(Effect::EnemySkillRunnerIncrementFrame);
+    pub fn tick(&self, state: &GameState, effects_buffer: &mut EffectsBuffer) {
+        effects_buffer.push(Effect::EnemySkillRunnerIncrementFrame);
         let current_skill = self.get_current_skill();
         if self.current_frame == current_skill.start_up_frames {
             current_skill.run_actions(state, effects_buffer);

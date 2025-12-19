@@ -6,7 +6,7 @@ mod a {
         any_message::AnyMessageBox,
         buttle_char::ButtleCharArgs,
         buttle_enemy::{ButtleEnemyArgs, EnemyInfomation},
-        core_actor::{GameCoreActor, UserInput},
+        core_actor::{EffectsBuffer, GameCoreActor, UserInput},
         enemy_skill::EnemySkill,
         game_state::GameStateArgs,
         potential::Potential,
@@ -66,9 +66,9 @@ mod a {
         }
         fn tick(
             &self,
-            _owner_id: game_core9::runtime_id::RuntimeCharId,
+            _owner_id: game_core9::runtime_id::RuntimeSkillId,
             _state: &game_core9::game_state::GameState,
-            _effects_buffer: &mut std::collections::VecDeque<game_core9::effect::Effect>,
+            _effects_buffer: &mut EffectsBuffer,
         ) {
         }
         fn start(&mut self) {}

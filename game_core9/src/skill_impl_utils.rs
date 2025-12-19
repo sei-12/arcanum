@@ -34,6 +34,14 @@ impl SkillEffectUnit {
         progress_kind: CharSkillProgressKind,
         effects: impl Fn(RuntimeCharId, &GameState, &mut VecDeque<Effect>) + 'static,
     ) -> Result<Self, SkillEffectUnitError> {
+        Self::new_with_arc(time_ms, progress_kind, Arc::new(effects))
+    }
+
+    pub fn new_with_arc(
+        time_ms: u16,
+        progress_kind: CharSkillProgressKind,
+        effects: Arc<EffectsFn>,
+    ) -> Result<SkillEffectUnit, SkillEffectUnitError> {
         if time_ms == 0 {
             return Err(SkillEffectUnitError::TimeIsZero);
         }
@@ -41,7 +49,7 @@ impl SkillEffectUnit {
         Ok(Self {
             time_ms,
             progress_kind,
-            effects: Arc::new(effects),
+            effects,
         })
     }
 }

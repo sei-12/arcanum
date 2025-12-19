@@ -1,7 +1,6 @@
-use std::collections::VecDeque;
-
 use crate::{
     MAX_CHARACTERS, StaticEnemySkillId, StatusNum,
+    core_actor::EffectsBuffer,
     damage::{Damage, DamageType},
     effect::Effect,
     game_state::GameState,
@@ -20,7 +19,7 @@ pub struct EnemySkill {
 }
 
 impl EnemySkill {
-    pub(crate) fn run_actions(&self, state: &GameState, effects_buffer: &mut VecDeque<Effect>) {
+    pub(crate) fn run_actions(&self, state: &GameState, effects_buffer: &mut EffectsBuffer) {
         let mut target_ids = Vec::<LtId>::with_capacity(MAX_CHARACTERS + 1);
 
         for (target, action) in self.actions.iter() {
@@ -39,11 +38,11 @@ impl EnemySkill {
                         };
 
                         for _ in 0..*count {
-                            effects_buffer.push_back(Effect::Damage(dmg.clone()));
+                            effects_buffer.push(Effect::Damage(dmg.clone()));
                         }
                     }
                     EnemySkillAction::AddPassive(passive_box) => {
-                        effects_buffer.push_back(Effect::AddPassive {
+                        effects_buffer.push(Effect::AddPassive {
                             target_id,
                             passive: passive_box.clone(),
                         });

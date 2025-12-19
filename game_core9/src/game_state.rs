@@ -1,13 +1,7 @@
 use std::collections::VecDeque;
 
 use crate::{
-    MAX_CHARACTERS,
-    buttle_char::{ButtleChar, ButtleCharArgs},
-    buttle_enemy::{ButtleEnemy, ButtleEnemyArgs},
-    buttle_skill::ButtleSkill,
-    effect::Effect,
-    lt_common::LtCommon,
-    runtime_id::{LtId, RuntimeCharId, RuntimeSkillId},
+    MAX_CHARACTERS, buttle_char::{ButtleChar, ButtleCharArgs}, buttle_enemy::{ButtleEnemy, ButtleEnemyArgs}, buttle_skill::ButtleSkill, core_actor::EffectsBuffer, effect::Effect, lt_common::LtCommon, runtime_id::{LtId, RuntimeCharId, RuntimeSkillId}
 };
 
 pub struct GameStateArgs {
@@ -46,7 +40,7 @@ impl GameState {
         Ok(Self { chars, enemy })
     }
 
-    pub(crate) fn tick(&self, effects_buffer: &mut VecDeque<Effect>) {
+    pub(crate) fn tick(&self, effects_buffer: &mut EffectsBuffer) {
         for char in self.chars.iter() {
             char.tick(self, effects_buffer);
         }

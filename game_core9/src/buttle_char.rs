@@ -1,16 +1,7 @@
 use std::collections::VecDeque;
 
 use crate::{
-    LevelNum, StaticCharId, StatusNum, TimeNum,
-    buttle_skill::ButtleSkill,
-    effect::Effect,
-    game_state::GameState,
-    lt_common::LtCommon,
-    potential::Potential,
-    progress_state::ProgressState,
-    runtime_id::{LtId, RuntimeCharId, RuntimeSkillId},
-    skill::{CharSkillProgress, SkillBox},
-    weapon::{Weapon, WeaponType},
+    LevelNum, StaticCharId, StatusNum, TimeNum, buttle_skill::ButtleSkill, core_actor::EffectsBuffer, effect::Effect, game_state::GameState, lt_common::LtCommon, potential::Potential, progress_state::ProgressState, runtime_id::{LtId, RuntimeCharId, RuntimeSkillId}, skill::{CharSkillProgress, SkillBox}, weapon::{Weapon, WeaponType}
 };
 
 pub struct ButtleCharArgs {
@@ -80,16 +71,14 @@ impl ButtleChar {
         self.runtime_id().into()
     }
 
-    pub(crate) fn tick(&self, state: &GameState, effects_buffer: &mut VecDeque<Effect>) {
+    pub(crate) fn tick(&self, state: &GameState, effects_buffer: &mut EffectsBuffer) {
         if let Some(skill_id) = self.current_using_skill {
             let skill = self.skills.get(skill_id.idx as usize).unwrap();
-            skill
-                .skill_box()
-                .tick(self.runtime_id, state, effects_buffer);
+            skill.skill_box().tick(skill_id, state, effects_buffer);
         }
 
         self.lt_common.tick(self.lt_id(), state, effects_buffer);
-        effects_buffer.push_back(Effect::HealSkillCooldownAll {
+        effects_buffer.push(Effect::HealSkillCooldownAll {
             target_id: self.runtime_id,
             num: 0.01, // 1 = 1s
         });
