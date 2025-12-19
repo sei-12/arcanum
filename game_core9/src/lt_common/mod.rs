@@ -1,4 +1,3 @@
-
 use crate::{
     LevelNum, StatusNum, TimeNum, core_actor::EffectsBuffer, effect::Effect, game_state::GameState,
     lt_common::any_point::AnyPointPercent, passive::PassiveList, potential::Potential,
@@ -23,7 +22,7 @@ impl LtCommon {
             potential,
             level,
             hp_per: AnyPointPercent::new_max(),
-            mp_per: AnyPointPercent::new_empty(),
+            mp_per: AnyPointPercent::new(0.5),
             passive: PassiveList::default(),
             weapon,
         }
@@ -184,7 +183,8 @@ impl LtCommon {
     }
 
     pub fn speed(&self) -> TimeNum {
-        self.agi() / 10.0
+        // potentialが10のとき、1フレームあたり10進める。
+        (self.agi() * 4.0 + self.dex() + self.str()) / 6.0
     }
 
     pub fn is_dead(&self) -> bool {

@@ -18,9 +18,12 @@ impl AnyPointPercent {
         }
     }
 
-    pub fn new_empty() -> Self {
+    pub const fn new(num: f32) -> Self {
+        assert!(num.is_finite());
+        assert!(num >= 0.0);
+        assert!(num <= 1.0);
         Self {
-            inner_val: Num::Plus(0.0),
+            inner_val: Num::Plus(num),
         }
     }
 
@@ -65,9 +68,15 @@ mod tests {
     }
 
     #[test]
-    fn new_empty() {
-        let p = AnyPointPercent::new_empty();
+    fn new() {
+        let p = AnyPointPercent::new(0.0);
         assert_f32_eq(p.get(MAX), 0.0);
+    }
+
+    #[test]
+    fn new_half() {
+        let p = AnyPointPercent::new(0.5);
+        assert_f32_eq(p.get(MAX), 50.0);
     }
 
     #[test]
