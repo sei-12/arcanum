@@ -9,7 +9,7 @@ use crate::{
     potential::Potential,
     progress_state::ProgressState,
     runtime_id::{LtId, RuntimeCharId, RuntimeSkillId},
-    skill::SkillBox,
+    skill::{CharSkillProgress, SkillBox},
     weapon::{Weapon, WeaponType},
 };
 
@@ -134,38 +134,21 @@ impl ButtleChar {
     }
 
     pub fn current_condition(&self) -> CharCondition {
-        CharCondition {
-            ty: CharConditionType::Acting,
-            progress: ProgressState::new(1u8, 1u8).unwrap(),
+        let skill_progress = self.current_using_skill.map(|s| {
+            self.get_skill(s)
+                .skill_box()
+                .current_progress()
+                .expect("使用中のスキルはSomeを返す")
+        });
+
+        match skill_progress {
+            Some(s) => CharCondition::UseSkill(s),
+            None => CharCondition::Wait,
         }
     }
 }
 
-pub enum SkillCondition {
-    /// 詠唱中
-    ///
-    /// 攻撃されると中断する
-    Chanting,
-    /// 準備中
-    StartUp,
-    /// 行動中
-    Acting,
-    /// 硬直中
-    Stiffness,
-}
-
-pub enum CharConditionType {
-    /// 詠唱中
-    ///
-    /// 攻撃されると中断する
-    Chanting,
-    /// 準備中
-    StartUp,
-    /// 行動中
-    Acting,
-}
-
-pub struct CharCondition {
-    pub ty: CharConditionType,
-    pub progress: ProgressState,
+pub enum CharCondition {
+    UseSkill(CharSkillProgress),
+    Wait,
 }

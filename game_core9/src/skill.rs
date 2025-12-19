@@ -10,9 +10,9 @@ use dyn_clone::DynClone;
 use crate::{
     StaticSkillId, StatusNum, TimeNum,
     any_message::AnyMessageBox,
-    buttle_char::SkillCondition,
     effect::Effect,
     game_state::GameState,
+    progress_state::ProgressState,
     runtime_id::{RuntimeCharId, RuntimeSkillId},
 };
 
@@ -52,6 +52,7 @@ impl DerefMut for SkillBox {
 pub struct SkillInfomation {
     pub name: &'static str,
     pub description: &'static str,
+    pub flaver_text: &'static str,
     pub id: StaticSkillId,
     pub default_need_mp: StatusNum,
     pub defalut_hate: StatusNum,
@@ -59,7 +60,8 @@ pub struct SkillInfomation {
 }
 
 pub trait SkillTrait: Debug + Downcast + DynClone {
-    fn current_condition(&self) -> SkillCondition;
+    fn current_progress(&self) -> Option<CharSkillProgress>;
+
     fn tick(
         &self,
         owner_id: RuntimeCharId,
@@ -95,4 +97,20 @@ pub enum SkillCustomUseable {
     IgnoreCooldown,
     /// 特になし。need_mpとcooldownに依存する
     Normal,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CharSkillProgressKind {
+    Chanting,
+    Acting,
+}
+
+#[derive(Debug, Clone)]
+pub struct CharSkillProgress {
+    pub kind: CharSkillProgressKind,
+    /// 全体フレームに対しての進捗ではないことに注意
+    /// kindがChantingなら"詠唱"の進捗
+    pub chunk_progress: ProgressState,
+    /// 全体フレームに対しての進捗
+    pub overall_progress: ProgressState,
 }

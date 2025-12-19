@@ -16,6 +16,7 @@ pub mod potential;
 pub mod skill;
 pub mod weapon;
 pub mod progress_state;
+pub mod skill_impl_utils;
 
 pub use error::Error;
 

@@ -54,11 +54,15 @@ mod a {
             &game_core9::skill::SkillInfomation {
                 name: "",
                 description: "",
+                flaver_text: "",
                 id: 1,
                 default_need_mp: 10.0,
                 defalut_hate: 10.0,
                 defalut_cooldown: 10.0,
             }
+        }
+        fn current_progress(&self) -> Option<game_core9::skill::CharSkillProgress> {
+            None
         }
         fn tick(
             &self,
@@ -69,9 +73,6 @@ mod a {
         }
         fn start(&mut self) {}
         fn update(&mut self, _msg: &AnyMessageBox) {}
-        fn current_condition(&self) -> game_core9::buttle_char::SkillCondition {
-            todo!()
-        }
     }
 
     fn char1() -> ButtleCharArgs {

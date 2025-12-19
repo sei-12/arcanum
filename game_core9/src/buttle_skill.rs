@@ -44,4 +44,8 @@ impl ButtleSkill {
     pub(crate) fn skill_box_mut(&mut self) -> &mut SkillBox {
         &mut self.skill_box
     }
+
+    pub fn runtime_id(&self) -> RuntimeSkillId {
+        self.runtime_id
+    }
 }
